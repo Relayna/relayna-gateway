@@ -1,0 +1,14 @@
+{
+  "runtime_commit": "a45b814cf7f20fe3ff33eaeff28aa77816d92f41",
+  "local": "Full configured PostgreSQL/Redis stack,565 Nextest tests,workspace build,UI build/tests/typecheck/coverage,docs/metadata,and29 harness tests passed.",
+  "ci": "All executed checks passed. One initial push Rust job timed out waiting for mock upstream bodies after a closed connection; failed jobs were rerun successfully on the same candidate,without code or test changes. Original failed log retained.",
+  "ci_runs": [
+    "https://github.com/sarattha/relayna-gateway/actions/runs/43602232804",
+    "https://github.com/sarattha/relayna-gateway/actions/runs/43602228419"
+  ],
+  "limitations": [
+    "No live Azure tenant validation",
+    "No 24-hour soak claimed",
+    "Final documentation/head checks and required reviews remain merge gates"
+  ]
+}

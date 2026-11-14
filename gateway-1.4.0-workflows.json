@@ -1,0 +1,93 @@
+[
+  {
+    "id": 43602274314,
+    "html_url": "https://github.com/sarattha/relayna-gateway/actions/runs/43602274314",
+    "display_title": "Body admission amd64 / 100 MiB / full / source build",
+    "head_sha": "a45b814cf7f20fe3ff33eaeff28aa77816d92f41",
+    "event": "workflow_dispatch",
+    "run_attempt": 1,
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-14T13:56:38Z",
+    "run_started_at": "2026-11-14T13:56:38Z",
+    "updated_at": "2026-11-14T14:30:19Z"
+  },
+  {
+    "id": 43602271966,
+    "html_url": "https://github.com/sarattha/relayna-gateway/actions/runs/43602271966",
+    "display_title": "Body admission amd64 / 80 MiB / full / source build",
+    "head_sha": "a45b814cf7f20fe3ff33eaeff28aa77816d92f41",
+    "event": "workflow_dispatch",
+    "run_attempt": 1,
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-14T13:56:36Z",
+    "run_started_at": "2026-11-14T13:56:36Z",
+    "updated_at": "2026-11-14T14:32:03Z"
+  },
+  {
+    "id": 43602269306,
+    "html_url": "https://github.com/sarattha/relayna-gateway/actions/runs/43602269306",
+    "display_title": "Body admission amd64 / 40 MiB / full / source build",
+    "head_sha": "a45b814cf7f20fe3ff33eaeff28aa77816d92f41",
+    "event": "workflow_dispatch",
+    "run_attempt": 1,
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-14T13:56:34Z",
+    "run_started_at": "2026-11-14T13:56:34Z",
+    "updated_at": "2026-11-14T14:22:37Z"
+  },
+  {
+    "id": 43602266550,
+    "html_url": "https://github.com/sarattha/relayna-gateway/actions/runs/43602266550",
+    "display_title": "Body admission amd64 / 20 MiB / full / source build",
+    "head_sha": "a45b814cf7f20fe3ff33eaeff28aa77816d92f41",
+    "event": "workflow_dispatch",
+    "run_attempt": 1,
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-14T13:56:32Z",
+    "run_started_at": "2026-11-14T13:56:32Z",
+    "updated_at": "2026-11-14T14:32:35Z"
+  },
+  {
+    "id": 43602264241,
+    "html_url": "https://github.com/sarattha/relayna-gateway/actions/runs/43602264241",
+    "display_title": "Body admission amd64 / 10 MiB / full / source build",
+    "head_sha": "a45b814cf7f20fe3ff33eaeff28aa77816d92f41",
+    "event": "workflow_dispatch",
+    "run_attempt": 1,
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-14T13:56:30Z",
+    "run_started_at": "2026-11-14T13:56:30Z",
+    "updated_at": "2026-11-14T14:30:34Z"
+  },
+  {
+    "id": 43602261815,
+    "html_url": "https://github.com/sarattha/relayna-gateway/actions/runs/43602261815",
+    "display_title": "Body admission amd64 / 5 MiB / full / source build",
+    "head_sha": "a45b814cf7f20fe3ff33eaeff28aa77816d92f41",
+    "event": "workflow_dispatch",
+    "run_attempt": 1,
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-14T13:56:28Z",
+    "run_started_at": "2026-11-14T13:56:28Z",
+    "updated_at": "2026-11-14T14:29:54Z"
+  },
+  {
+    "id": 43602276708,
+    "html_url": "https://github.com/sarattha/relayna-gateway/actions/runs/43602276708",
+    "display_title": "Body admission amd64 / 5 MiB / comparison / source build",
+    "head_sha": "a45b814cf7f20fe3ff33eaeff28aa77816d92f41",
+    "event": "workflow_dispatch",
+    "run_attempt": 1,
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-14T13:56:40Z",
+    "run_started_at": "2026-11-14T13:56:40Z",
+    "updated_at": "2026-11-14T14:06:33Z"
+  }
+]
