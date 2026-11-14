@@ -39,6 +39,13 @@ dependency audit:
 If a suitable upstream release is unavailable, retain the patch and document
 the blocker for the next version's review. This patch is not permanent vendoring.
 
+## Gateway 1.4.0 review (14 November 2026)
+
+Checked the [published SQLx SQLite 0.9.0 manifest](https://docs.rs/crate/sqlx-sqlite/0.9.0/source/Cargo.toml).
+It still requires `libsqlite3-sys >=0.30.1, <0.38.0`, excluding patched 0.39.1.
+Retain this manifest-only backport for Gateway 1.4.0; review again at the next
+version bump. The PostgreSQL runtime feature boundary remains unchanged.
+
 `UPSTREAM.json` records the original package archive, its SHA-256 checksum,
 Git revision, and the hashes of all unchanged Rust source files.
 

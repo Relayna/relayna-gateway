@@ -120,6 +120,12 @@ The Rust verification helper runs formatting, workspace Clippy/tests and the req
 
 ## Releases and performance evidence
 
+Version **1.4.0** adds [Managed Identity project and virtual-key discovery](docs/operations/entra-portal-and-owner-monitoring.md#discover-projects-keys-and-usage-with-a-bearer-token).
+Approved apps discover exact authorized projects, list safe current key metadata,
+and retrieve usage with returned UUIDs. Portal responses and PostgreSQL/Redis
+state stay compatible. The [1.4.0 validation record](docs/benchmarks/v1.4.0.md)
+tracks the fresh benchmarks required before merge and publication.
+
 Version **1.3.0** adds [LiteLLM customer usage and costs](docs/litellm-customer-usage.md):
 paginated customer IDs, exact lookup and streaming CSV export for mapped
 LiteLLM credentials, including Gateway-managed requests. Customer data stays in

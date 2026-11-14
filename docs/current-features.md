@@ -1,5 +1,12 @@
 # Current Feature Highlights
 
+## Managed Identity project and key discovery (1.4.0)
+
+Approved monitoring applications can list authorized projects and their safe
+current virtual-key metadata before retrieving usage. Exact project bindings
+remain mandatory, unused keys appear in inventory, and historical usage keeps
+its original project attribution. See the [configuration and bearer-token flow](operations/entra-portal-and-owner-monitoring.md#discover-projects-keys-and-usage-with-a-bearer-token).
+
 ## LiteLLM customer usage and costs (1.3.0)
 
 **Usage & cost** reports cost and request count by customer ID for a Relayna
