@@ -1,5 +1,29 @@
 # Releases
 
+## 1.4.0: Managed Identity project and key discovery
+
+Version **1.4.0** lets approved monitoring applications discover authorized
+projects and safe current virtual-key metadata before retrieving usage.
+Verified Entra tokens must match enabled exact tenant/client/object/app-role
+bindings. Portal members retain their response shape and membership roles;
+project-wide permission and historical usage attribution stay unchanged.
+No PostgreSQL or Redis migration is required.
+
+See the [bearer-token flow](operations/entra-portal-and-owner-monitoring.md#discover-projects-keys-and-usage-with-a-bearer-token)
+and [upgrade guide](deployment.md#upgrade-to-140). The
+[1.4.0 validation record](benchmarks/v1.4.0.md) contains 263 freshly measured
+native amd64 resource trials, with three stable confirmations per selected
+setting. All six settings are conservatively labeled tested lower bounds;
+failed trials and lost denial replies remain explicit. Six same-runner
+comparison trials against immutable v1.2.0 are HTTP-clean, with zero transport
+errors, OOMs or restarts. The audited reports, raw observations and checksums
+are preserved in an immutable archive and wired into documentation hosting.
+Final-head CI and required review remain gates before merge or release.
+
+The required SQLx patch review checked published [sqlx-sqlite 0.9.0](https://docs.rs/crate/sqlx-sqlite/0.9.0/source/Cargo.toml),
+which still restricts SQLite bindings below 0.38.0. Retain the existing
+manifest-only backport resolving patched 0.39.1 and recheck at the next bump.
+
 ## 1.3.0: LiteLLM customer usage and costs
 
 Version **1.3.0** adds customer-ID cost and request reporting for mapped LiteLLM
@@ -263,25 +287,20 @@ avoids changing the required lint baseline whenever the stable channel moves.
 3. Run the full verification stack:
 
    ```bash
-   python3 scripts/validate-release-metadata.py v1.3.0
-   cargo fmt --all --check
-   cargo clippy --workspace --all-targets --all-features -- -D warnings
-   cargo test --workspace --all-features
-   cargo audit --ignore RUSTSEC-2023-0071 --ignore RUSTSEC-2024-0437 --ignore RUSTSEC-2026-0173 --ignore RUSTSEC-2026-0381
-   cargo deny check
-   cargo machete
-   cargo nextest run --workspace --all-features
-   trivy fs --severity HIGH,CRITICAL --exit-code 1 --skip-dirs target --skip-dirs site .
-   gitleaks detect --source . --redact
-   semgrep scan --config .semgrep.yml
-   node tests/admin-ui.test.mjs
-   mkdocs build --strict
+   python3 scripts/validate-release-metadata.py v1.4.0
+   npm run build:admin-ui
+   npm test
+   npm run typecheck:admin-ui
+   npm run test:react:coverage
+   bash .codex/skills/code-change-verification/scripts/run.sh
+   cargo build --workspace --all-features --locked
+   make metadata-check docs-check
    ```
 
 4. Build the release image:
 
    ```bash
-   docker build -t relayna-gateway:1.3.0 .
+   docker build -t relayna-gateway:1.4.0 .
    ```
 
 5. Commit the final runtime candidate, run the fresh six-size adaptive benchmark
@@ -295,8 +314,8 @@ avoids changing the required lint baseline whenever the stable channel moves.
 7. Create and push the tag at the merged release commit:
 
    ```bash
-   git tag -a v1.3.0 -m "Release v1.3.0"
-   git push origin v1.3.0
+   git tag -a v1.4.0 -m "Release v1.4.0"
+   git push origin v1.4.0
    ```
 
 The GitHub release workflow validates that the tag version, workspace package
@@ -306,11 +325,11 @@ section, publishes the Docker image to GitHub Container Registry, scans the
 image, generates an SBOM, signs the image digest with Cosign keyless signing,
 and attaches provenance.
 
-For `v1.3.0`, the workflow publishes:
+For `v1.4.0`, the workflow publishes:
 
 ```text
-ghcr.io/sarattha/relayna-gateway:1.3.0
-ghcr.io/sarattha/relayna-gateway:1.3
+ghcr.io/sarattha/relayna-gateway:1.4.0
+ghcr.io/sarattha/relayna-gateway:1.4
 ghcr.io/sarattha/relayna-gateway:latest
 ```
 

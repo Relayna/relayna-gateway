@@ -10,6 +10,28 @@ Published v1.0.1 images retain their original contents. Use the current released
 image; see the
 [triage and verification procedure](runtime-image-security.md).
 
+## Upgrade to 1.4.0
+
+Version 1.4.0 adds project discovery and current virtual-key metadata for approved
+monitoring identities. Existing routes, portal responses, key formats, usage
+fields and PostgreSQL/Redis state remain compatible; no migration is required.
+
+1. After [release validation](benchmarks/v1.4.0.md) and publication, drain and
+   replace replicas with `ghcr.io/sarattha/relayna-gateway:1.4.0`, retaining
+   PostgreSQL, Redis, secrets and configuration.
+2. Enable owner Entra authentication and assign the monitoring app role plus
+   an enabled exact project binding. Follow the [workload configuration](operations/entra-portal-and-owner-monitoring.md#workload-monitoring-configuration).
+3. List `/owner/v1/projects`, then `/owner/v1/projects/{project_id}/keys` with
+   the owner's API access token. Use returned key UUIDs as `key_id` on existing
+   project usage endpoints; no raw virtual-key secret is needed.
+4. Verify another project's inventory is denied and unused keys appear in their
+   current project. Moving keys does not move historical usage. Project access
+   still permits monitoring all keys within that project.
+
+Rollback to v1.3.0 needs no data conversion. Clients must configure or retain
+project/key UUIDs because the new discovery surfaces are unavailable after
+rollback; existing usage queries continue to work.
+
 ## Upgrade to 1.3.0
 
 Version 1.3.0 adds customer-level LiteLLM reporting and CSV export. Public

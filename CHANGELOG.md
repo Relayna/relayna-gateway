@@ -4,6 +4,46 @@ All notable changes to Relayna Gateway are documented in this file.
 
 ## Unreleased
 
+## 1.4.0 - 2026-11-14
+
+### Added
+
+- Let approved monitoring workloads discover projects with `GET /owner/v1/projects`
+  using verified Entra tokens and enabled exact tenant/client/object/app-role bindings.
+- Add `GET /owner/v1/projects/{project_id}/keys` for safe current virtual-key
+  metadata, including unused, disabled, revoked and expired keys. Returned UUIDs
+  work with existing project usage filters; raw keys and verifier hashes stay private.
+- Document the [project, key and usage flow](https://sarattha.github.io/relayna-gateway/operations/entra-portal-and-owner-monitoring/#discover-projects-keys-and-usage-with-a-bearer-token).
+
+### Changed
+
+- Enforce locked, all-feature dependency policy and reject affected SQLite
+  bindings. Align CI Gitleaks with the global allowlist syntax and scan complete
+  publishing history without unrelated local checkpoint refs.
+- Review published SQLx 0.9.0 and retain the SQLite binding backport because
+  that release still excludes the patched 0.39 bindings.
+
+### Compatibility and upgrade
+
+- Preserve portal project responses and membership roles, proxy authentication,
+  usage events and PostgreSQL/Redis state. No migration is required.
+- Monitoring authorization remains project-wide; `key_id` filters results but
+  adds no key-specific permission boundary. Inventory follows current membership;
+  usage retains historical project attribution.
+- See the [upgrade guide](https://sarattha.github.io/relayna-gateway/deployment/#upgrade-to-140).
+
+### Release validation
+
+- Complete 263 fresh native amd64 resource trials across all six sizes, with
+  three stable confirmations per selected setting. Audit all raw observations;
+  conservatively label the settings tested lower bounds and retain failed
+  trials, lost denial replies, image/harness provenance and checksums.
+- Complete the controlled comparison against immutable v1.2.0 with three
+  HTTP-clean fresh-pod trials per version and zero transport errors, OOMs or
+  restarts. Preserve reports and original evidence in an immutable documentation
+  archive. Final-head checks and required review remain merge gates. See the
+  [1.4.0 validation record](https://sarattha.github.io/relayna-gateway/benchmarks/v1.4.0/).
+
 ## 1.3.0 - 2026-11-14
 
 ### Added
