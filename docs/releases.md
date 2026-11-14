@@ -10,10 +10,15 @@ project-wide permission and historical usage attribution stay unchanged.
 No PostgreSQL or Redis migration is required.
 
 See the [bearer-token flow](operations/entra-portal-and-owner-monitoring.md#discover-projects-keys-and-usage-with-a-bearer-token)
-and [upgrade guide](deployment.md#upgrade-to-140). Fresh six-size resource
-measurements, a controlled forwarding-latency comparison and durable evidence
-must complete in the [1.4.0 validation record](benchmarks/v1.4.0.md) before
-merge or release. No previous version's measurements are substituted.
+and [upgrade guide](deployment.md#upgrade-to-140). The
+[1.4.0 validation record](benchmarks/v1.4.0.md) contains 263 freshly measured
+native amd64 resource trials, with three stable confirmations per selected
+setting. All six settings are conservatively labeled tested lower bounds;
+failed trials and lost denial replies remain explicit. Six same-runner
+comparison trials against immutable v1.2.0 are HTTP-clean, with zero transport
+errors, OOMs or restarts. The audited reports, raw observations and checksums
+are preserved in an immutable archive and wired into documentation hosting.
+Final-head CI and required review remain gates before merge or release.
 
 The required SQLx patch review checked published [sqlx-sqlite 0.9.0](https://docs.rs/crate/sqlx-sqlite/0.9.0/source/Cargo.toml),
 which still restricts SQLite bindings below 0.38.0. Retain the existing

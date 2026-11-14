@@ -34,10 +34,15 @@ All notable changes to Relayna Gateway are documented in this file.
 
 ### Release validation
 
-- Fresh final-candidate six-size benchmarks, controlled forwarding-latency
-  comparison and durable evidence must complete before merge or release. The
-  [1.4.0 validation record](https://sarattha.github.io/relayna-gateway/benchmarks/v1.4.0/)
-  tracks this gate; previous-version results do not validate this version.
+- Complete 263 fresh native amd64 resource trials across all six sizes, with
+  three stable confirmations per selected setting. Audit all raw observations;
+  conservatively label the settings tested lower bounds and retain failed
+  trials, lost denial replies, image/harness provenance and checksums.
+- Complete the controlled comparison against immutable v1.2.0 with three
+  HTTP-clean fresh-pod trials per version and zero transport errors, OOMs or
+  restarts. Preserve reports and original evidence in an immutable documentation
+  archive. Final-head checks and required review remain merge gates. See the
+  [1.4.0 validation record](https://sarattha.github.io/relayna-gateway/benchmarks/v1.4.0/).
 
 ## 1.3.0 - 2026-11-14
 

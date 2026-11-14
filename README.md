@@ -124,7 +124,8 @@ Version **1.4.0** adds [Managed Identity project and virtual-key discovery](docs
 Approved apps discover exact authorized projects, list safe current key metadata,
 and retrieve usage with returned UUIDs. Portal responses and PostgreSQL/Redis
 state stay compatible. The [1.4.0 validation record](docs/benchmarks/v1.4.0.md)
-tracks the fresh benchmarks required before merge and publication.
+contains 263 audited native resource trials, a controlled comparison and
+immutable evidence. Final-head CI and required reviews remain merge gates.
 
 Version **1.3.0** adds [LiteLLM customer usage and costs](docs/litellm-customer-usage.md):
 paginated customer IDs, exact lookup and streaming CSV export for mapped
