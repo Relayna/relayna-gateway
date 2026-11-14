@@ -22,10 +22,12 @@ hosting. The 10 MiB study establishes a repeated resource edge; the other sizes
 are tested lower bounds with intermittent adjacent OOMs. Production headroom
 is required, and lost denial replies remain explicit.
 
-**The controlled same-runner v1.2.0 comparison is still pending.** Keep this
-version bump unmerged and do not tag or publish until its result/evidence and
-final-head CI/review requirements pass. Synthetic customer UI/export tests do
-not replace release validation.
+The controlled same-runner v1.2.0 comparison is complete: three fresh-pod
+HTTP-clean trials per version, with zero transport errors, OOMs or restarts.
+Candidate/baseline reports, raw observations, manifests and audit are retained
+in the same immutable archive. Final-head CI and required reviewer approval
+still apply before merge, tagging or publication. Synthetic customer UI/export
+tests do not replace release validation.
 
 ## Earlier releases
 

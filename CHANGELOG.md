@@ -46,10 +46,12 @@ All notable changes to Relayna Gateway are documented in this file.
   audited HTML/JSON/CSV, provenance, failed trials and checksums in an immutable
   documentation archive. The 10 MiB setting establishes a repeated resource
   edge; other sizes remain tested lower bounds requiring production headroom.
-- The controlled same-runner comparison with v1.2.0 remains pending. Do not
-  merge, tag or publish until its result/evidence and final-head CI/reviews
-  are complete. See the [versioned validation record](https://sarattha.github.io/relayna-gateway/benchmarks/v1.3.0/).
-  Synthetic million-row export checks do not replace this gate.
+- Complete the same-runner comparison against the immutable v1.2.0 image:
+  three HTTP-clean fresh-pod trials per version, with no transport errors,
+  OOMs or restarts. Preserve candidate/baseline HTML/JSON/CSV, original raw
+  evidence, image manifests and the audit. Final-head CI and required reviews
+  remain merge/release gates. See the [versioned validation record](https://sarattha.github.io/relayna-gateway/benchmarks/v1.3.0/).
+  Synthetic million-row export checks do not replace release validation.
 
 ## 1.2.0 - 2026-11-06
 
