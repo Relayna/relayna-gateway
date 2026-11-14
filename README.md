@@ -36,3 +36,24 @@ included; the evidence passed secret scanning.
 Hosted documentation copies are published after merge to main, with the
 manifest verified in the docs workflow. This archive is not a GitHub release
 attachment; release attachments remain the changelog and SPDX SBOM.
+
+## Controlled same-runner comparison
+
+Workflow 43596307023 measured native amd64 on one hosted runner, sequentially
+building candidate 2985a614aa3afda44f32975d90b34f40acb583ce then testing immutable
+v1.2.0 image index sha256:a22c3d850ab2c7320d4bf87ce83adf0fa3deb90496fba6a8227a6eea9d885cbf.
+Both versions have three fresh-pod HTTP-clean trials at 5 MiB, eight slots per
+pod and 16 offered requests per pod. No transport errors, OOMs or restarts.
+
+- `gateway-1.3.0-comparison-audit.json` and `.py`: reanalysis, provenance and
+  reproducible publication script. It verifies the baseline native config digest.
+- `gateway-1.3.0-candidate-latency.html`, `.json`, `.csv` and the corresponding
+  `baseline-latency` files: standalone reports and original observations.
+- `gateway-1.3.0-latency-evidence.tar.gz`: original candidate/baseline raw
+  evidence, manifests and checksums. Extract beside the audit script and run
+  it from a Gateway checkout containing the original harness and commits.
+
+The round trip includes twelve seconds of deliberate upstream delay. Three
+trials do not isolate Gateway CPU overhead or prove a production latency SLO
+or statistical regression bound. Candidate/previous release success counts
+and expected admission 503s remain explicit; no numeric observations changed.

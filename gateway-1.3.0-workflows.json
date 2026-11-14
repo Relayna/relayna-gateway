@@ -35,5 +35,17 @@
       "id": 43571316946,
       "url": "https://github.com/sarattha/relayna-gateway/actions/runs/43571316946"
     }
-  ]
+  ],
+  "comparison": {
+    "id": 43596307023,
+    "url": "https://github.com/sarattha/relayna-gateway/actions/runs/43596307023",
+    "candidate_commit": "2985a614aa3afda44f32975d90b34f40acb583ce",
+    "baseline_image": "ghcr.io/sarattha/relayna-gateway@sha256:a22c3d850ab2c7320d4bf87ce83adf0fa3deb90496fba6a8227a6eea9d885cbf",
+    "body_mib": 5,
+    "slots": 8,
+    "repetitions": 3,
+    "status": "completed",
+    "audit": "All six original trials reanalyzed; three HTTP-clean trials per version; caps, native architecture, host, fixtures, provenance and baseline digest verified."
+  },
+  "resource_evidence_archive": "cc5cdf9708fc947064068cfc9a86904571ecca0b"
 }
