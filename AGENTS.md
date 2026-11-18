@@ -5,10 +5,31 @@ policy, provider routing, metering, and Relayna runtime integration. Read
 `docs/architecture.md` and the relevant feature documentation before changing
 behavior or architecture.
 
+## Agent collaboration
+
+- Use the requested outcome and repository evidence to resolve routine decisions.
+  Make reasonable, reversible assumptions and disclose the ones that affect the
+  result. Ask when a decision materially changes scope, requires authorization,
+  involves irreversible or destructive work, or blocks further progress.
+- Carry authorized work through implementation and verification. Recover from
+  failed attempts within scope and continue any work that can proceed while a
+  decision is pending. Before handing back, check every requested deliverable
+  against the intended outcome and run the relevant repository checks.
+- Write for the reader. Use Relayna's established terminology and give operators
+  and integrators the context they need to act. When editing existing prose,
+  preserve the author's meaning and wording outside the requested change.
+- Make the final response stand on its own. Lead with the outcome and report
+  verification results, material assumptions, and any remaining blockers or
+  unverified work.
+
 ## Working rules
 
 - Preserve unrelated local changes. Read affected files before editing and keep
   each change focused on the requested outcome.
+- Reuse existing types, helpers, and APIs when they fit. Keep control flow,
+  names, and comments readable. Preserve the behavior callers rely on when
+  consolidating or refactoring shared code. Add abstractions when they make
+  the code easier to understand or maintain.
 - Keep gateway-core framework-agnostic. Pingora owns proxy traffic; Axum owns
   control-plane APIs.
 - Add or update tests for behavior changes and update the corresponding public
@@ -72,6 +93,10 @@ Preserve released contracts or provide migration coverage for:
 
 Read `SKILLS.md` and apply the Admin UI 4.0 Design System before changing UI
 source, generated assets, UI tests, or operator-facing UI documentation.
+Use the design system's Manrope typography and approved brand assets. Keep
+interface copy focused on navigation, actions, instructions, and status.
+When the task supplies a visual reference, render the result and compare it with
+the reference and the Admin UI design system.
 
 The Vite/TypeScript package at `crates/gateway-api/admin-ui/` is the source of
 truth. Regenerate checked-in assets at

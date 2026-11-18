@@ -20,6 +20,7 @@ ignore = [
     # 0.26.11 only reexports the patched 1.x root set; bans below reject all
     # unpatched root data. Keep SQLx 0.8 compatibility. Revisit by 2026-11-15.
     "RUSTSEC-2026-0381",
+    { id = "RUSTSEC-2026-0543", reason = "Maintenance advisory for chrono, which Pingora 0.9 still requires for HTTP dates", expiry = "2026-12-18" },
 ]
 
 [licenses]
