@@ -6,9 +6,7 @@ mod request_admission_tests;
 #[path = "websocket.rs"]
 mod websocket;
 use crate::accessa_transport::{ConnectionLease, ConnectionLimits, FrameLimit};
-use crate::body_rewrite::{
-    prepare_rewritten_request_headers, prepare_rewritten_response_headers, BoundedBodyRewriter,
-};
+use crate::body_rewrite::{prepare_rewritten_response_headers, BoundedBodyRewriter};
 use crate::request_timing::{micros, RequestTimingProbe};
 use crate::{
     BodyAdmissionController, BodyAdmissionLease, DEFAULT_MAX_BUFFERED_REQUESTS,
@@ -467,7 +465,6 @@ pub struct PingoraContext {
     guardrail_context: Option<GuardrailContext>,
     guardrail_events: Vec<GuardrailExecutionEvent>,
     guardrail_error: Option<GatewayError>,
-    rewritten_request_len: Option<usize>,
     guardrail_stream_holdback: String,
 }
 
@@ -566,7 +563,6 @@ where
             guardrail_context: None,
             guardrail_events: Vec::new(),
             guardrail_error: None,
-            rewritten_request_len: None,
             guardrail_stream_holdback: String::new(),
         }
     }
@@ -1712,7 +1708,6 @@ where
         };
 
         if plan.entries.is_empty() && response_plan.entries.is_empty() {
-            ctx.rewritten_request_len = Some(raw_body.len());
             ctx.body_prefix.clear();
             ctx.body_prefix
                 .extend_from_slice(&raw_body[..raw_body.len().min(65_536)]);
@@ -1797,7 +1792,6 @@ where
         ctx.guardrail_context = guardrail_context;
         ctx.guardrail_events.extend(guardrail_events);
         if let Some(body) = body.as_ref() {
-            ctx.rewritten_request_len = Some(body.len());
             ctx.body_prefix.clear();
             ctx.body_prefix
                 .extend_from_slice(&body[..body.len().min(65_536)]);
@@ -2415,21 +2409,22 @@ where
                 upstream_request.insert_header("x-relayna-service", service_name)?;
             }
         }
-        if ctx.foundry.is_some()
-            || ctx
-                .pre_guardrail_plan
-                .as_ref()
-                .is_some_and(|plan| !plan.entries.is_empty())
-        {
-            if let Some(rewritten_len) = ctx.rewritten_request_len {
-                prepare_rewritten_request_headers(upstream_request, rewritten_len);
-            }
-        }
-
         if ctx.foundry.is_some() {
             upstream_request.remove_header("content-length");
             upstream_request.insert_header("transfer-encoding", "chunked")?;
             upstream_request.insert_header("content-type", "application/json")?;
+        } else if !ctx.socket
+            && !ctx.litellm_passthrough
+            && ctx
+                .guardrail_definitions
+                .iter()
+                .any(|guardrail| guardrail.enabled)
+            && !session.as_mut().is_body_empty()
+            && !managed_service_request_can_stream(ctx)
+        {
+            // Model and client selectors arrive in the body, after headers are sent.
+            // With no fixed length, Pingora frames the filtered body for the upstream.
+            upstream_request.remove_header("content-length");
         }
 
         // This callback prepares headers; it does not prove upstream application receipt.
@@ -4799,7 +4794,6 @@ fn new_pingora_context_for_tests() -> PingoraContext {
         guardrail_context: None,
         guardrail_events: Vec::new(),
         guardrail_error: None,
-        rewritten_request_len: None,
         guardrail_stream_holdback: String::new(),
     }
 }

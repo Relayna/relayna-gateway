@@ -50,6 +50,17 @@ async fn mock_upstream() -> (String, JoinHandle<()>, Arc<DelayedRequestGate>) {
     let app = Router::new()
         .route("/stream", post(|body: Bytes| async move { body }))
         .route(
+            "/framing",
+            post(|headers: HeaderMap, body: Bytes| async move {
+                Json(json!({
+                    "length": headers.get("content-length").map(|v| v.to_str().unwrap()),
+                    "encoding": headers.get("transfer-encoding").map(|v| v.to_str().unwrap()),
+                    "bytes": body.len(),
+                    "masked": body.as_ref() == br#"{"input":"[EMAIL_1]"}"#,
+                }))
+            }),
+        )
+        .route(
             "/delayed",
             post(move |body: Bytes| {
                 let gate = Arc::clone(&delayed_handler);
@@ -293,7 +304,10 @@ async fn gateway_process_proxies_generation_direct_and_registered_service_routes
                     allowed_services: Some(vec![stream_service_name.clone()]),
                     ..KeyPolicyPatch::default()
                 },
-                guardrail_policy: GuardrailPolicy::default(),
+                guardrail_policy: GuardrailPolicy {
+                    optional_guardrails: vec!["pii-redact".to_owned()],
+                    ..GuardrailPolicy::default()
+                },
             },
             &stream_material,
         )
@@ -582,6 +596,54 @@ async fn gateway_process_proxies_generation_direct_and_registered_service_routes
     .await;
     assert_eq!(response.status(), StatusCode::OK);
     let _ = response.bytes().await.expect("consume streaming response");
+
+    // Shrinking, expanding, and body-selected rewrites must all reach upstream EOF.
+    for (service, key, input) in [
+        (
+            &service_name,
+            &material,
+            json!({"input": "synthetic@example.invalid"}),
+        ),
+        (&service_name, &material, json!({"input": "a@b.co"})),
+        (
+            &stream_service_name,
+            &stream_material,
+            json!({"input": "a@b.co", "guardrails": ["pii-redact"]}),
+        ),
+    ] {
+        let response = client
+            .post(format!("{proxy_url}/services/{service}/framing"))
+            .bearer_auth(&key.raw_key)
+            .json(&input)
+            .timeout(Duration::from_secs(5))
+            .send()
+            .await
+            .expect("guardrail rewrite completes");
+        assert_eq!(response.status(), StatusCode::OK);
+        assert_eq!(
+            response.json::<Value>().await.unwrap(),
+            json!({"length": null, "encoding": "chunked", "bytes": br#"{"input":"[EMAIL_1]"}"#.len(), "masked": true}),
+        );
+    }
+
+    let receipt = client
+        .post(format!(
+            "{proxy_url}/services/{stream_service_name}/framing"
+        ))
+        .bearer_auth(&stream_material.raw_key)
+        .header("content-type", "application/octet-stream")
+        .body("data")
+        .timeout(Duration::from_secs(5))
+        .send()
+        .await
+        .unwrap()
+        .json::<Value>()
+        .await
+        .unwrap();
+    assert_eq!(
+        receipt,
+        json!({"length": "4", "encoding": null, "bytes": 4, "masked": false})
+    );
 
     let opaque_body = vec![0x5a; 4096];
     let response = client
