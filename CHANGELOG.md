@@ -4,6 +4,13 @@ All notable changes to Relayna Gateway are documented in this file.
 
 ## Unreleased
 
+### Fixed
+
+- Prevent HTTP/1.1 upstreams from hanging when a guardrail rewrite changes the
+  length of a buffered request. Providers and registered services must accept
+  chunked uploads for nonempty buffered requests that can run an enabled
+  guardrail, even when the request ultimately selects none.
+
 ## 1.4.0 - 2026-11-14
 
 ### Added
