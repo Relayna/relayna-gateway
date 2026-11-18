@@ -484,11 +484,12 @@ impl RuntimeMetrics {
         snapshot.recording_failures_total = state.recording_failures_total.clone();
         snapshot.active = state.active.clone();
         snapshot.body_capacity = state.body_limits.map(|(requests, bytes)| {
+            use std::sync::atomic::Ordering::Relaxed;
+            let retained = super::BUFFERED_REQUESTS.load(Relaxed).max(0) as usize;
+            let headers = super::BODY_HEADER_SLOTS.load(Relaxed) as usize;
             BodyCapacitySnapshot::new(
                 requests,
-                super::BUFFERED_REQUESTS
-                    .load(std::sync::atomic::Ordering::Relaxed)
-                    .max(0) as usize,
+                retained.saturating_add(headers).min(requests),
                 bytes,
                 super::BUFFERED_BODY_BYTES.load(std::sync::atomic::Ordering::Relaxed) as usize,
             )
@@ -746,7 +747,7 @@ fn duration_us(duration: Duration) -> u64 {
     duration.as_micros().try_into().unwrap_or(u64::MAX)
 }
 
-/// Called by the body controller; no queue exists or is reported.
+/// Set the per-process limits for the body capacity snapshot.
 pub fn configure_body_capacity(max_requests: usize, max_bytes: usize) {
     runtime()
         .state

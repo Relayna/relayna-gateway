@@ -4,12 +4,107 @@ use std::sync::{
     atomic::{AtomicUsize, Ordering},
     Arc, Mutex,
 };
-use std::time::Instant;
+use std::time::{Duration, Instant};
+use tokio::sync::{OwnedSemaphorePermit, Semaphore};
 
 pub const DEFAULT_MAX_BUFFERED_REQUESTS: usize = 8;
 pub const DEFAULT_MAX_INFLIGHT_BUFFER_BYTES: usize = 512 * 1024 * 1024;
 pub const SMALL_BODY_MAX_BYTES: usize = 256 * 1024;
 const REQUEST_WORKING_OVERHEAD: usize = 64 * 1024;
+
+/// Per-process bounds on uploads waiting before admission.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct BodyWaitPolicy {
+    pub max_waiters: usize,
+    pub timeout: Duration,
+}
+
+impl Default for BodyWaitPolicy {
+    fn default() -> Self {
+        Self {
+            max_waiters: 0,
+            timeout: Duration::from_secs(10),
+        }
+    }
+}
+
+impl BodyWaitPolicy {
+    pub fn validate(self, max_slots: usize) -> GatewayResult<()> {
+        if self.max_waiters > Semaphore::MAX_PERMITS
+            || (self.max_waiters > 0 && max_slots > Semaphore::MAX_PERMITS)
+            || self.timeout.is_zero()
+            || self.timeout > Duration::from_secs(600)
+        {
+            return Err(GatewayError::InvalidConfiguration);
+        }
+        Ok(())
+    }
+}
+
+#[derive(Debug)]
+pub(crate) struct BodyWaitQueue {
+    slots: Arc<Semaphore>,
+    large_slots: Option<Arc<Semaphore>>,
+    waiters: Semaphore,
+    policy: BodyWaitPolicy,
+}
+
+/// A header reservation becomes part of the buffered body lease on its first chunk.
+#[derive(Debug)]
+pub(crate) struct UploadSlot {
+    header_reservation: Option<gateway_telemetry::BodyGaugeGuard>,
+    _total: OwnedSemaphorePermit,
+    large: Option<OwnedSemaphorePermit>,
+}
+
+impl BodyWaitQueue {
+    fn large_slots(&self, expected: Option<usize>) -> Option<&Arc<Semaphore>> {
+        self.large_slots
+            .as_ref()
+            .filter(|_| expected.is_none_or(|length| length > SMALL_BODY_MAX_BYTES))
+    }
+
+    pub(crate) fn try_slot(&self, expected: Option<usize>) -> Option<UploadSlot> {
+        let large = match self.large_slots(expected) {
+            Some(slots) => Some(slots.clone().try_acquire_owned().ok()?),
+            None => None,
+        };
+        Some(UploadSlot {
+            _total: self.slots.clone().try_acquire_owned().ok()?,
+            header_reservation: Some(gateway_telemetry::body_header_slot_reserved()),
+            large,
+        })
+    }
+
+    pub(crate) async fn wait_for_slot(&self, expected: Option<usize>) -> GatewayResult<UploadSlot> {
+        let _place = self
+            .waiters
+            .try_acquire()
+            .map_err(|_| queue_rejection("queue_full"))?;
+        let _waiting = gateway_telemetry::body_waiter_started();
+        // Acquire shared-class capacity first so that waiting large uploads cannot
+        // occupy the count reserved for small bodies. One deadline covers both waits.
+        tokio::time::timeout(self.policy.timeout, async {
+            let large = match self.large_slots(expected) {
+                Some(slots) => Some(slots.clone().acquire_owned().await?),
+                None => None,
+            };
+            Ok::<_, tokio::sync::AcquireError>(UploadSlot {
+                _total: self.slots.clone().acquire_owned().await?,
+                header_reservation: Some(gateway_telemetry::body_header_slot_reserved()),
+                large,
+            })
+        })
+        .await
+        .map_err(|_| queue_rejection("queue_timeout"))?
+        .map_err(|_| GatewayError::GatewayOverloaded)
+    }
+}
+
+fn queue_rejection(reason: &'static str) -> GatewayError {
+    gateway_telemetry::record_body_admission_rejection(reason);
+    GatewayError::GatewayOverloaded
+}
 
 /// Optional, additive working-set admission. This is a conservative estimate,
 /// not an allocator/RSS limit: JSON shape and third-party guardrails still matter.
@@ -67,6 +162,7 @@ struct BodyAdmissionState {
     active_bytes: AtomicUsize,
     size_policy: Option<SizeAwareBodyPolicy>,
     working: Mutex<WorkingSet>,
+    wait_queue: Option<BodyWaitQueue>,
 }
 
 #[derive(Debug, Clone)]
@@ -77,6 +173,7 @@ pub struct BodyAdmissionController {
 #[derive(Debug)]
 pub struct BodyAdmissionLease {
     state: Arc<BodyAdmissionState>,
+    slot: Option<UploadSlot>,
     reserved_bytes: usize,
     admitted_at: Instant,
     expected_length: Option<usize>,
@@ -111,6 +208,20 @@ impl BodyAdmissionController {
         max_bytes: usize,
         size_policy: Option<SizeAwareBodyPolicy>,
     ) -> GatewayResult<Self> {
+        Self::with_policies(
+            max_requests,
+            max_bytes,
+            size_policy,
+            BodyWaitPolicy::default(),
+        )
+    }
+
+    pub(crate) fn with_policies(
+        max_requests: usize,
+        max_bytes: usize,
+        size_policy: Option<SizeAwareBodyPolicy>,
+        wait: BodyWaitPolicy,
+    ) -> GatewayResult<Self> {
         if max_requests == 0 || max_bytes == 0 {
             return Err(GatewayError::InvalidConfiguration);
         }
@@ -121,6 +232,15 @@ impl BodyAdmissionController {
         let max_requests = size_policy
             .and_then(|policy| policy.elastic_max_requests)
             .unwrap_or(max_requests);
+        wait.validate(max_requests)?;
+        let wait_queue = (wait.max_waiters > 0).then(|| BodyWaitQueue {
+            slots: Arc::new(Semaphore::new(max_requests)),
+            large_slots: size_policy
+                .filter(|p| p.reserved_small_requests > 0)
+                .map(|p| Arc::new(Semaphore::new(max_requests - p.reserved_small_requests))),
+            waiters: Semaphore::new(wait.max_waiters),
+            policy: wait,
+        });
         gateway_telemetry::runtime::configure_body_capacity(max_requests, max_bytes);
         Ok(Self {
             state: Arc::new(BodyAdmissionState {
@@ -131,6 +251,7 @@ impl BodyAdmissionController {
                 active_bytes: AtomicUsize::new(0),
                 size_policy,
                 working: Mutex::new(WorkingSet::default()),
+                wait_queue,
             }),
         })
     }
@@ -143,7 +264,30 @@ impl BodyAdmissionController {
         &self,
         expected_length: Option<usize>,
     ) -> GatewayResult<BodyAdmissionLease> {
+        self.acquire_with_slot(expected_length, None)
+    }
+
+    pub(crate) fn wait_queue(&self) -> Option<&BodyWaitQueue> {
+        self.state.wait_queue.as_ref()
+    }
+
+    pub(crate) fn wait_policy(&self) -> BodyWaitPolicy {
+        self.wait_queue().map(|q| q.policy).unwrap_or_default()
+    }
+
+    pub(crate) fn acquire_with_slot(
+        &self,
+        expected_length: Option<usize>,
+        reserved: Option<UploadSlot>,
+    ) -> GatewayResult<BodyAdmissionLease> {
         let started = Instant::now();
+        let mut slot = match (reserved, self.wait_queue()) {
+            (None, Some(queue)) => Some(queue.try_slot(expected_length).ok_or_else(|| {
+                gateway_telemetry::runtime::record_body_admission_decision(started.elapsed(), true);
+                queue_rejection("concurrency")
+            })?),
+            (slot, _) => slot,
+        };
         increment_bounded(&self.state.active_requests, 1, self.state.max_requests).map_err(
             |_| {
                 gateway_telemetry::runtime::record_body_admission_decision(started.elapsed(), true);
@@ -153,8 +297,12 @@ impl BodyAdmissionController {
         )?;
         gateway_telemetry::runtime::record_body_admission_decision(started.elapsed(), false);
         gateway_telemetry::buffered_request_started();
+        if let Some(slot) = &mut slot {
+            slot.header_reservation.take();
+        }
         let mut lease = BodyAdmissionLease {
             state: Arc::clone(&self.state),
+            slot,
             reserved_bytes: 0,
             admitted_at: Instant::now(),
             expected_length,
@@ -198,11 +346,14 @@ impl BodyAdmissionController {
     }
 
     /// Instantaneous counters are sampled independently; admission still uses
-    /// the same atomic bounds and never queues requests.
+    /// the same bounds. Waiting connections have no retained body.
     pub fn capacity_snapshot(&self) -> gateway_telemetry::runtime::BodyCapacitySnapshot {
         gateway_telemetry::runtime::BodyCapacitySnapshot::new(
             self.max_requests(),
-            self.active_requests(),
+            self.wait_queue().map_or_else(
+                || self.active_requests(),
+                |q| self.max_requests() - q.slots.available_permits(),
+            ),
             self.max_bytes(),
             self.active_bytes(),
         )
@@ -349,6 +500,27 @@ impl BodyAdmissionLease {
             });
             return Err(GatewayError::GatewayOverloaded);
         }
+        // A rewrite or an underestimated length can change the size class.
+        // Promote without waiting while retaining a body, and release a large
+        // permit when a completed small output no longer needs one.
+        if let (Some(slot), Some(slots)) = (
+            &mut self.slot,
+            self.state
+                .wait_queue
+                .as_ref()
+                .and_then(|q| q.large_slots.as_ref()),
+        ) {
+            if large && slot.large.is_none() {
+                slot.large = Some(
+                    slots
+                        .clone()
+                        .try_acquire_owned()
+                        .map_err(|_| queue_rejection("working_set"))?,
+                );
+            } else if !large {
+                slot.large.take();
+            }
+        }
         state.bytes = next_bytes.expect("checked above");
         state.large_bytes = next_large_bytes.expect("checked above");
         state.large_requests = next_large_requests;
@@ -471,6 +643,114 @@ mod tests {
         let mut policy = sized(2, working_mib, 0).size_policy().unwrap();
         policy.elastic_max_requests = Some(ceiling);
         BodyAdmissionController::with_size_policy(2, 512 * 1024 * 1024, Some(policy)).unwrap()
+    }
+
+    fn bounded_wait(max_waiters: usize, timeout: Duration) -> BodyAdmissionController {
+        BodyAdmissionController::with_policies(
+            1,
+            1024,
+            None,
+            BodyWaitPolicy {
+                max_waiters,
+                timeout,
+            },
+        )
+        .unwrap()
+    }
+
+    // Poll once on the current task to establish queue order without scheduling or sleeps.
+    async fn assert_pending<F: std::future::Future>(future: std::pin::Pin<&mut F>) {
+        tokio::select! {
+            biased;
+            _ = future => panic!("expected to wait for a slot"),
+            _ = std::future::ready(()) => {}
+        }
+    }
+
+    #[tokio::test]
+    async fn queued_uploads_resume_in_order_after_the_final_forwarded_reference() {
+        let controller = bounded_wait(2, Duration::from_secs(5));
+        let queue = controller.wait_queue().unwrap();
+        let held = controller
+            .try_acquire()
+            .unwrap()
+            .into_bytes(Bytes::from_static(b"held"))
+            .unwrap();
+        let last = held.slice(1..);
+        drop(held);
+        let mut first = Box::pin(queue.wait_for_slot(None));
+        let mut second = Box::pin(queue.wait_for_slot(None));
+        assert_pending(first.as_mut()).await;
+        assert_pending(second.as_mut()).await;
+        assert!(matches!(
+            queue.wait_for_slot(None).await,
+            Err(GatewayError::GatewayOverloaded)
+        ));
+        assert_eq!(controller.active_requests(), 1);
+        assert_eq!(controller.active_bytes(), 4);
+        drop(last);
+        assert!(
+            controller.try_acquire().is_err(),
+            "a post-call buffer must not jump the queue"
+        );
+        assert_pending(second.as_mut()).await;
+        let slot = first.await.unwrap();
+        let lease = controller.acquire_with_slot(None, Some(slot)).unwrap();
+        assert_pending(second.as_mut()).await;
+        drop(lease);
+        drop(second.await.unwrap());
+        assert_eq!(queue.waiters.available_permits(), 2);
+        assert!(controller.try_acquire().is_ok());
+    }
+
+    #[tokio::test]
+    async fn cancelled_or_timed_out_waits_return_their_places_without_body_charges() {
+        let controller = bounded_wait(1, Duration::from_millis(20));
+        let queue = controller.wait_queue().unwrap();
+        let slot = queue.try_slot(None).unwrap();
+        assert_eq!(controller.capacity_snapshot().free_requests, 0);
+        let mut cancelled = Box::pin(queue.wait_for_slot(None));
+        assert_pending(cancelled.as_mut()).await;
+        drop(cancelled);
+        assert_eq!(queue.waiters.available_permits(), 1);
+        assert!(matches!(
+            queue.wait_for_slot(None).await,
+            Err(GatewayError::GatewayOverloaded)
+        ));
+        assert_eq!(queue.waiters.available_permits(), 1);
+        assert_eq!(
+            (controller.active_requests(), controller.active_bytes()),
+            (0, 0)
+        );
+        drop(slot);
+        assert!(queue.try_slot(None).is_some());
+    }
+
+    #[tokio::test]
+    async fn waiting_large_uploads_leave_header_and_rewrite_capacity_for_small_bodies() {
+        let controller = BodyAdmissionController::with_policies(
+            2,
+            32 << 20,
+            sized(2, 32, 1).size_policy(),
+            BodyWaitPolicy {
+                max_waiters: 1,
+                ..Default::default()
+            },
+        )
+        .unwrap();
+        let queue = controller.wait_queue().unwrap();
+        let large = queue.try_slot(None).unwrap();
+        let mut waiting = Box::pin(queue.wait_for_slot(Some(SMALL_BODY_MAX_BYTES + 1)));
+        assert_pending(waiting.as_mut()).await;
+        let mut small = controller.try_acquire_sized(Some(1)).unwrap();
+        assert!(small.prepare_rewrite(SMALL_BODY_MAX_BYTES + 1).is_err());
+        assert_eq!(small.reserved_bytes(), 0);
+        drop(large);
+        drop(waiting.await.unwrap());
+        small.prepare_rewrite(SMALL_BODY_MAX_BYTES + 1).unwrap();
+        assert!(queue.try_slot(None).is_none());
+        drop(small);
+        assert!(queue.try_slot(None).is_some());
     }
 
     #[test]

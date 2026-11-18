@@ -4,6 +4,12 @@ All notable changes to Relayna Gateway are documented in this file.
 
 ## Unreleased
 
+### Added
+
+- Add an opt-in, per-pod upload wait queue. Operators can set the maximum
+  number of waiting requests and their deadline. Prometheus reports current
+  waiters and counts queue-full and timeout rejections separately.
+
 ### Fixed
 
 - Prevent HTTP/1.1 upstreams from hanging when a guardrail rewrite changes the

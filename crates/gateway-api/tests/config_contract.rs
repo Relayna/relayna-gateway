@@ -54,6 +54,8 @@ const VARIABLES: &[&str] = &[
     "ENTRA_AUTH_DEBUG",
     "GATEWAY_BIND_ADDR",
     "GATEWAY_CONTROL_BIND_ADDR",
+    "GATEWAY_MAX_BODY_WAITERS",
+    "GATEWAY_BODY_WAIT_TIMEOUT_MS",
     "GATEWAY_MAX_BUFFERED_REQUESTS",
     "GATEWAY_MAX_INFLIGHT_BUFFER_BYTES",
     "GATEWAY_MAX_BODY_WORKING_BYTES",
@@ -83,6 +85,37 @@ fn set_required_environment() {
     ] {
         std::env::set_var(name, value);
     }
+}
+
+#[test]
+fn upload_waiting_is_opt_in_and_bounded() {
+    let _guard = ENV_LOCK.lock().unwrap();
+    clear_environment();
+    set_required_environment();
+    let policy = Config::from_env().unwrap().gateway_body_wait_policy;
+    assert_eq!(policy.max_waiters, 0);
+    assert_eq!(policy.timeout.as_millis(), 10_000);
+    std::env::set_var("GATEWAY_MAX_BODY_WAITERS", "256");
+    std::env::set_var("GATEWAY_BODY_WAIT_TIMEOUT_MS", "250");
+    let policy = Config::from_env().unwrap().gateway_body_wait_policy;
+    assert_eq!(policy.max_waiters, 256);
+    assert_eq!(policy.timeout.as_millis(), 250);
+    for (name, value) in [
+        ("GATEWAY_BODY_WAIT_TIMEOUT_MS", "0"),
+        ("GATEWAY_BODY_WAIT_TIMEOUT_MS", "600001"),
+        ("GATEWAY_MAX_BODY_WAITERS", "-1"),
+        ("GATEWAY_MAX_BODY_WAITERS", &usize::MAX.to_string()),
+        ("GATEWAY_MAX_BUFFERED_REQUESTS", &usize::MAX.to_string()),
+    ] {
+        let previous = std::env::var(name).ok();
+        std::env::set_var(name, value);
+        assert!(Config::from_env().is_err(), "{name} must be validated");
+        match previous {
+            Some(value) => std::env::set_var(name, value),
+            None => std::env::remove_var(name),
+        }
+    }
+    clear_environment();
 }
 
 #[test]

@@ -8,7 +8,7 @@ mod request_timing;
 pub use foundry::{verify_foundry_connection, FoundryConnectionCheck};
 
 pub use body_admission::{
-    BodyAdmissionController, BodyAdmissionLease, SizeAwareBodyPolicy,
+    BodyAdmissionController, BodyAdmissionLease, BodyWaitPolicy, SizeAwareBodyPolicy,
     DEFAULT_MAX_BUFFERED_REQUESTS, DEFAULT_MAX_INFLIGHT_BUFFER_BYTES,
 };
 pub use body_rewrite::{

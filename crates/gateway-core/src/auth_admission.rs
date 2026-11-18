@@ -39,6 +39,16 @@ struct Bucket {
     updated: Instant,
 }
 
+/// The transport peer has already been charged once. Waiting for upload capacity
+/// between this check and authentication must not consume an active auth slot.
+pub struct CheckedPeer<'a>(&'a RequestAdmission);
+
+impl<'a> CheckedPeer<'a> {
+    pub async fn acquire(self) -> GatewayResult<SemaphorePermit<'a>> {
+        self.0.acquire_slot().await
+    }
+}
+
 impl Default for RequestAdmission {
     fn default() -> Self {
         Self::new(DEFAULT_SOURCE_RPS, DEFAULT_SOURCE_BURST).expect("valid defaults")
@@ -65,7 +75,15 @@ impl RequestAdmission {
     /// Only pass the transport peer, never an unvalidated forwarded header.
     /// Unknown peers share one bucket rather than bypassing enforcement.
     pub async fn acquire(&self, peer: Option<IpAddr>) -> GatewayResult<SemaphorePermit<'_>> {
+        self.check_peer(peer)?.acquire().await
+    }
+
+    pub fn check_peer(&self, peer: Option<IpAddr>) -> GatewayResult<CheckedPeer<'_>> {
         self.check_source(peer, Instant::now())?;
+        Ok(CheckedPeer(self))
+    }
+
+    async fn acquire_slot(&self) -> GatewayResult<SemaphorePermit<'_>> {
         if let Ok(permit) = self.slots.try_acquire() {
             return Ok(permit);
         }

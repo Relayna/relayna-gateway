@@ -455,7 +455,10 @@ The body-admission defaults reserve no memory at startup. They cap concurrent
 managed body buffering at eight requests and 512 MiB of aggregate serialized
 body data. Keep this byte budget below the container memory limit to leave
 headroom for JSON parsing, guardrails, connection pools, and normal runtime
-state.
+state. To let a pod absorb short upload bursts, set
+`GATEWAY_MAX_BODY_WAITERS` to the number of extra requests it can hold and
+`GATEWAY_BODY_WAIT_TIMEOUT_MS` to their maximum wait. See
+[waiting for upload capacity](operations.md#waiting-for-upload-capacity).
 
 `GATEWAY_ADMIN_TOKEN` is optional. Set it only for the first startup against a
 fresh database when you want to seed a known `op_live_...` operator token. Omit

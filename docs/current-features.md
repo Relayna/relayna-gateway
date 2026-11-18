@@ -495,6 +495,10 @@ limits with `GATEWAY_MAX_BUFFERED_REQUESTS` and
 retryable `503 gateway_overloaded` response before forwarding begins or
 downstream response headers are committed.
 
+Operators can also enable [bounded in-proxy waiting](operations.md#waiting-for-upload-capacity)
+to absorb upload bursts. Requests can wait at their headers for a configurable
+time before the proxy starts reading their bodies.
+
 From release `0.1.47`, request admission follows the final forwarded buffer reference, including
 clones queued behind upstream writes. Once Pingora consumes the upload, waiting
 for upstream response headers no longer holds a body slot. Complete-body policy

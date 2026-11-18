@@ -12,7 +12,9 @@ use gateway_core::{
     GuardrailPolicy, OpenAiRouteMode, PolicyLayerKind, ProjectCreateRequest, ServiceCreateRequest,
     VirtualKeyMaterial,
 };
-use gateway_proxy::{PingoraLiteLlmConfig, PingoraUpstreamConfig, RelaynaPingoraProxy};
+use gateway_proxy::{
+    BodyWaitPolicy, PingoraLiteLlmConfig, PingoraUpstreamConfig, RelaynaPingoraProxy,
+};
 use gateway_store::{PostgresStore, RedisControlState, RedisReadiness};
 use pingora_core::server::Server;
 use serde_json::{json, Value};
@@ -341,7 +343,12 @@ async fn gateway_process_proxies_generation_direct_and_registered_service_routes
         .with_auth_runtime(auth_runtime.clone())
         .with_worker_token(Some("worker-secret".to_owned()))
         .with_body_admission_limits(2, 512)
-        .expect("body admission limits");
+        .expect("body admission limits")
+        .with_body_wait_policy(BodyWaitPolicy {
+            max_waiters: 2,
+            timeout: Duration::from_secs(5),
+        })
+        .expect("bounded upload waiting");
     let proxy = RelaynaPingoraProxy::new(
         Arc::new(store.clone()),
         Arc::new(redis_control),
@@ -737,6 +744,14 @@ async fn gateway_process_proxies_generation_direct_and_registered_service_routes
     .expect("rejected usage recorded");
     assert_eq!(rejected_cost, None, "do not charge a rejected upload");
 
+    check_upload_wait_on_wire(
+        &client,
+        proxy_port,
+        &stream_service_name,
+        &stream_material.raw_key,
+    )
+    .await;
+
     // Both admitted uploads have reached the upstream, but it has not sent
     // response headers. They must no longer occupy the two body-buffer slots.
     let delayed_body = json!({"payload": "release-after-upload"}).to_string();
@@ -798,6 +813,155 @@ async fn gateway_process_proxies_generation_direct_and_registered_service_routes
 }
 
 // Runs against the same real Pingora process after the released native-mode cases.
+async fn check_upload_wait_on_wire(client: &reqwest::Client, port: u16, service: &str, key: &str) {
+    use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
+    async fn wait_for_gauge(name: &str, value: usize) {
+        let expected = format!("{name} {value}");
+        time::timeout(Duration::from_secs(3), async {
+            while !gateway_telemetry::prometheus()
+                .lines()
+                .any(|line| line == expected)
+            {
+                time::sleep(Duration::from_millis(5)).await;
+            }
+        })
+        .await
+        .unwrap_or_else(|_| {
+            panic!(
+                "expected {expected}, observed {:?}",
+                gateway_telemetry::prometheus()
+                    .lines()
+                    .find(|line| line.starts_with(name))
+            )
+        });
+    }
+
+    let path = format!("/services/{service}/stream");
+    let url = format!("http://127.0.0.1:{port}{path}");
+    let headers = format!("POST {path} HTTP/1.1\r\nHost: localhost\r\nAuthorization: Bearer {key}\r\nContent-Type: application/json\r\nContent-Length: 7\r\nConnection: close\r\n\r\n");
+    let mut holders = Vec::new();
+    for _ in 0..2 {
+        let mut socket = tokio::net::TcpStream::connect(("127.0.0.1", port))
+            .await
+            .unwrap();
+        socket.write_all(headers.as_bytes()).await.unwrap();
+        holders.push(socket);
+    }
+    time::timeout(Duration::from_secs(3), async {
+        while gateway_telemetry::runtime::runtime_snapshot(60)
+            .body_capacity
+            .unwrap()
+            .free_requests
+            != 0
+        {
+            time::sleep(Duration::from_millis(5)).await;
+        }
+    })
+    .await
+    .expect("headers occupy slots before any body is read");
+    wait_for_gauge("gateway_buffered_requests", 0).await;
+    for holder in &mut holders {
+        holder.write_all(b"{").await.unwrap();
+    }
+    wait_for_gauge("gateway_buffered_requests", 2).await;
+
+    let expired = tokio::spawn(
+        client
+            .post(&url)
+            .bearer_auth(key)
+            .json(&json!({"expires":true}))
+            .timeout(Duration::from_secs(8))
+            .send(),
+    );
+    wait_for_gauge("gateway_body_waiters", 1).await;
+    let response = expired.await.unwrap().unwrap();
+    assert_eq!(response.status(), StatusCode::SERVICE_UNAVAILABLE);
+    assert_eq!(response.headers()["retry-after"], "1");
+    assert_eq!(
+        response.json::<Value>().await.unwrap()["error"]["code"],
+        "gateway_overloaded"
+    );
+    wait_for_gauge("gateway_body_waiters", 0).await;
+
+    let mut waiting = Vec::new();
+    for length in [16, 180] {
+        let body = json!({"data": "x".repeat(length)}).to_string();
+        let request = client
+            .post(&url)
+            .bearer_auth(key)
+            .header("content-type", "application/json")
+            .body(body.clone())
+            .timeout(Duration::from_secs(8));
+        waiting.push((body, tokio::spawn(request.send())));
+        wait_for_gauge("gateway_body_waiters", waiting.len()).await;
+    }
+    wait_for_gauge("gateway_buffered_body_bytes", 2).await;
+    let id = Uuid::new_v4().to_string();
+    let response = client
+        .post(&url)
+        .bearer_auth(key)
+        .header("x-request-id", &id)
+        .json(&json!({"overflow": true}))
+        .timeout(Duration::from_secs(2))
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(response.status(), StatusCode::SERVICE_UNAVAILABLE);
+    assert_eq!(response.headers()["retry-after"], "1");
+    assert_eq!(response.headers()["x-request-id"], id);
+    assert_eq!(
+        response.json::<Value>().await.unwrap()["error"]["code"],
+        "gateway_overloaded"
+    );
+
+    // A full body queue must still allow ordinary bodyless authentication and
+    // reject malformed credentials on an upload before allocating another place.
+    for request in [
+        client.post(&url),
+        client
+            .post(&url)
+            .header("authorization", "invalid")
+            .body("x"),
+    ] {
+        let response = request
+            .timeout(Duration::from_secs(2))
+            .send()
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+    }
+
+    for mut socket in holders {
+        socket.write_all(br#""a":1}"#).await.unwrap();
+        let mut status = String::new();
+        time::timeout(
+            Duration::from_secs(3),
+            BufReader::new(socket).read_line(&mut status),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        assert!(status.starts_with("HTTP/1.1 200"));
+    }
+    for (expected, result) in waiting {
+        let response = result.await.unwrap().unwrap();
+        assert_eq!(response.status(), StatusCode::OK);
+        assert_eq!(
+            response.bytes().await.unwrap().as_ref(),
+            expected.as_bytes()
+        );
+    }
+    wait_for_gauge("gateway_body_waiters", 0).await;
+    wait_for_gauge("gateway_buffered_body_bytes", 0).await;
+    let metrics = gateway_telemetry::prometheus();
+    for reason in ["queue_timeout", "queue_full"] {
+        let expected = format!(
+            r#"gateway_denials_total{{kind="body_admission",route="all",reason="{reason}"}} 1"#
+        );
+        assert!(metrics.lines().any(|line| line == expected));
+    }
+}
+
 async fn unverified_bearer_regressions(
     client: &reqwest::Client,
     proxy_url: &str,

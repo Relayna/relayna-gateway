@@ -26,6 +26,8 @@ Optional variables:
 | `RELAYNA_STUDIO_BASE_URL` | Optional Relayna Studio backend base URL for Admin portal service import. |
 | `RELAYNA_STUDIO_TOKEN` | Optional bearer token used when Gateway fetches the Studio service catalog. |
 | `GATEWAY_MAX_BUFFERED_REQUESTS` | Maximum concurrent managed requests or post-call responses that may retain complete bodies in memory. Defaults to `8`. |
+| `GATEWAY_MAX_BODY_WAITERS` | Maximum additional upload requests waiting for a slot per process. Defaults to `0` (immediate admission or rejection). |
+| `GATEWAY_BODY_WAIT_TIMEOUT_MS` | Maximum time a request can wait for an upload slot. Defaults to `10000`. Valid range is `1` through `600000` milliseconds. |
 | `GATEWAY_MAX_INFLIGHT_BUFFER_BYTES` | Maximum aggregate serialized body bytes retained by buffered proxy requests and responses. Defaults to `536870912` (512 MiB). |
 | `GATEWAY_MAX_BODY_WORKING_BYTES` | Optional additional estimated working-set budget for buffered requests/responses. Unset preserves existing count/byte admission. |
 | `GATEWAY_BODY_ELASTIC_MAX_REQUESTS` | Optional elastic-mode safety ceiling, at least `GATEWAY_MAX_BUFFERED_REQUESTS`. Requires a working budget. Explicitly replaces the ordinary count ceiling; byte charges determine concurrency below it. Unset retains the ordinary ceiling and upfront workspace reservation. |
@@ -110,9 +112,9 @@ unknown-length bodies use shared capacity; a small body that grows beyond its
 classification must acquire shared capacity before growth. The protected count
 and estimated-memory reserve are not lent to large requests. This limits
 interference but does not guarantee fairness or minimum throughput for either
-class. Admission remains fail-fast, without a queue of partially retained
-bodies. Saturation returns `503 gateway_overloaded`; route-size violations
-remain `413 request_body_too_large`.
+class. Byte reservations, workspace growth and post-call response admission
+fail immediately at their limits. Saturation returns `503 gateway_overloaded`.
+Route-size violations return `413 request_body_too_large`.
 
 This budget is an estimate, not an RSS or allocator limit. JSON object density,
 guardrail internals, provider transforms, and networking can consume additional
@@ -135,6 +137,38 @@ use `kind="body_admission",reason="working_set"` for buffer admission,
 `kind="body_admission",reason="processing_workspace"` for a late elastic
 workspace upgrade, and
 `kind="upstream_admission",route="proxy",reason="concurrency"` respectively.
+
+### Waiting for upload capacity
+
+Set `GATEWAY_MAX_BODY_WAITERS` above zero to absorb short bursts. For example,
+with eight active slots and sixteen waiters, each pod can admit eight uploads
+and hold up to sixteen more at the request headers. The next arrival gets
+`503 gateway_overloaded` with `Retry-After: 1` if the queue is full. A request
+that reaches `GATEWAY_BODY_WAIT_TIMEOUT_MS` receives the same response.
+Choose a deadline that fits inside the client and ingress timeouts.
+
+The gateway checks the transport peer and credential header syntax before
+queueing. Waiters share the queue across callers. Eligible requests acquire
+slots in arrival order within their size class. With a small-body reservation,
+a declared small upload can use protected capacity while large uploads wait.
+A waiting request holds its connection and headers. The proxy pauses body
+reads and acquires its authentication permit after the wait. Client sockets,
+kernel buffers and protocol read-ahead can still consume pod memory.
+
+Bodyless requests, WebSocket upgrades and the internal Accessa admission API
+bypass the upload queue. Body-bearing routes that stream can wait until the
+gateway resolves their policy and releases their slot. Active buffered
+uploads retain a slot through the final upstream reference. Once bytes are
+retained, additional byte or workspace capacity must be available immediately.
+
+Monitor `gateway_body_waiters` alongside `gateway_buffered_requests`,
+`gateway_buffered_body_bytes` and pod memory. The counter
+`gateway_denials_total{kind="body_admission",route="all"}` distinguishes
+`reason="queue_full"` and `reason="queue_timeout"`. Sustained queueing adds
+client latency. The runtime body-capacity snapshot counts slots reserved at
+headers as used, even before the first chunk appears in the buffered-body
+gauges. If waiters stay high across pods, compare arrival rate with
+completed uploads per second before raising the waiter limit.
 
 Buffered request slots and byte reservations follow the forwarded buffer until
 its last reference is released. An upload queued behind a slow upstream writer

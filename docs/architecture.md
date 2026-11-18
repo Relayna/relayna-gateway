@@ -135,6 +135,13 @@ waits on an OS thread per call. Provider forwarding continues to use Pingora's
 upstream pool; these changes do not increase provider inference speed or remove
 upstream concurrency limits.
 
+The proxy can queue body-bearing requests at their headers before acquiring
+authentication or upstream capacity. Each process bounds the waiting count
+and time. The slot transfers to the retained request body on its first chunk
+and returns when Pingora releases the final forwarded reference. Streaming
+routes release the reservation once classified. See [waiting for upload
+capacity](operations.md#waiting-for-upload-capacity).
+
 Buffered traffic can opt into a size-aware working-set bound. An additional
 elastic mode replaces the ordinary count ceiling with an explicit larger safety
 ceiling, allowing concurrency to follow available memory and body sizes. It

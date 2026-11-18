@@ -206,6 +206,34 @@ pub fn request_finished() {
     ACTIVE_REQUESTS.fetch_sub(1, Ordering::Relaxed);
 }
 
+static BODY_WAITERS: AtomicU64 = AtomicU64::new(0);
+static BODY_HEADER_SLOTS: AtomicU64 = AtomicU64::new(0);
+
+#[derive(Debug)]
+#[must_use]
+pub struct BodyGaugeGuard(&'static AtomicU64);
+
+impl BodyGaugeGuard {
+    fn increment(gauge: &'static AtomicU64) -> Self {
+        gauge.fetch_add(1, Ordering::Relaxed);
+        Self(gauge)
+    }
+}
+
+impl Drop for BodyGaugeGuard {
+    fn drop(&mut self) {
+        self.0.fetch_sub(1, Ordering::Relaxed);
+    }
+}
+
+pub fn body_waiter_started() -> BodyGaugeGuard {
+    BodyGaugeGuard::increment(&BODY_WAITERS)
+}
+
+pub fn body_header_slot_reserved() -> BodyGaugeGuard {
+    BodyGaugeGuard::increment(&BODY_HEADER_SLOTS)
+}
+
 pub fn buffered_request_started() {
     BUFFERED_REQUESTS.fetch_add(1, Ordering::Relaxed);
 }
@@ -424,6 +452,8 @@ gateway_estimated_cost_total {:.6}
 gateway_active_requests {}
 # TYPE gateway_active_streams gauge
 gateway_active_streams {}
+# TYPE gateway_body_waiters gauge
+gateway_body_waiters {}
 # TYPE gateway_buffered_requests gauge
 gateway_buffered_requests {}
 # TYPE gateway_buffered_body_bytes gauge
@@ -453,6 +483,7 @@ gateway_circuit_transitions_total {}
         cost,
         ACTIVE_REQUESTS.load(Ordering::Relaxed),
         ACTIVE_STREAMS.load(Ordering::Relaxed),
+        BODY_WAITERS.load(Ordering::Relaxed),
         BUFFERED_REQUESTS.load(Ordering::Relaxed),
         BUFFERED_BODY_BYTES.load(Ordering::Relaxed),
         BODY_ADMISSION_REJECTIONS_TOTAL.load(Ordering::Relaxed),
