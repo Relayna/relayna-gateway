@@ -30,6 +30,13 @@ by mandatory, optional, default-on, or client-requested policy. Unknown
 guardrail names, forbidden guardrail names, and scalar or array override values
 are rejected with stable guardrail error envelopes.
 
+For buffered requests that can run an enabled guardrail, Gateway sends a
+nonempty body to HTTP/1.1 upstreams with chunked transfer encoding. The final
+length can depend on a model or guardrail selected in the JSON body, so this
+also applies when the eventual plan selects no guardrails. Providers and
+registered services on these paths must accept chunked uploads. Direct LiteLLM
+passthrough and services that stream opaque bodies keep their usual framing.
+
 ## Set Up the Catalog
 
 1. Start Gateway and sign in to Admin portal with the operator token.
