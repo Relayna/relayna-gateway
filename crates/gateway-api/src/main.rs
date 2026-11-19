@@ -119,6 +119,7 @@ fn main() -> anyhow::Result<()> {
         .context("configure body admission limits")?
         .with_size_aware_body_policy(config.gateway_size_aware_body_policy)
         .context("configure body working-set admission")?
+        .with_body_wait_policy(config.gateway_body_wait_policy)?
         .with_upstream_request_limit(config.gateway_max_upstream_requests)
         .context("configure upstream request admission")?;
 

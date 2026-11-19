@@ -79,7 +79,7 @@ async fn security_controls_deny_before_forwarding_and_account_large_streamed_res
     };
     let parent = sqlx::PgPool::connect(&database).await.unwrap();
     let name = format!("security_{}", Uuid::new_v4().simple());
-    sqlx::query(&format!("CREATE DATABASE {name}"))
+    sqlx::query(sqlx::AssertSqlSafe(format!("CREATE DATABASE {name}")))
         .execute(&parent)
         .await
         .unwrap();
@@ -208,9 +208,9 @@ async fn security_controls_deny_before_forwarding_and_account_large_streamed_res
         ("daily_budget_usd", StatusCode::PAYMENT_REQUIRED),
         ("tpm_limit", StatusCode::TOO_MANY_REQUESTS),
     ] {
-        sqlx::query(&format!(
+        sqlx::query(sqlx::AssertSqlSafe(format!(
             "UPDATE key_policies SET {column}=0 WHERE key_id=$1"
-        ))
+        )))
         .bind(restricted_id)
         .execute(store.pool())
         .await
@@ -229,9 +229,9 @@ async fn security_controls_deny_before_forwarding_and_account_large_streamed_res
             status
         );
         assert_eq!(received.load(Ordering::SeqCst), before);
-        sqlx::query(&format!(
+        sqlx::query(sqlx::AssertSqlSafe(format!(
             "UPDATE key_policies SET {column}=NULL WHERE key_id=$1"
-        ))
+        )))
         .bind(restricted_id)
         .execute(store.pool())
         .await
@@ -607,8 +607,10 @@ async fn security_controls_deny_before_forwarding_and_account_large_streamed_res
     ));
     upstream_task.abort();
     store.pool().close().await;
-    sqlx::query(&format!("DROP DATABASE {name} WITH (FORCE)"))
-        .execute(&parent)
-        .await
-        .unwrap();
+    sqlx::query(sqlx::AssertSqlSafe(format!(
+        "DROP DATABASE {name} WITH (FORCE)"
+    )))
+    .execute(&parent)
+    .await
+    .unwrap();
 }

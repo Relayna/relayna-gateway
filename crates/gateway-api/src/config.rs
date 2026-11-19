@@ -3,7 +3,9 @@ use gateway_core::{
     validate_relayna_key_header_name, ApigeeTrustedHeaderConfig, EntraAuthConfig, GatewayAuthEnv,
     GatewayError, GatewayResult, ENTRA_DEFAULT_RELAYNA_KEY_HEADER, GATEWAY_INVOKE_ROLE,
 };
-use gateway_proxy::{DEFAULT_MAX_BUFFERED_REQUESTS, DEFAULT_MAX_INFLIGHT_BUFFER_BYTES};
+use gateway_proxy::{
+    BodyWaitPolicy, DEFAULT_MAX_BUFFERED_REQUESTS, DEFAULT_MAX_INFLIGHT_BUFFER_BYTES,
+};
 use std::{env, net::SocketAddr};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -30,6 +32,7 @@ pub struct Config {
     pub gateway_bind_addr: SocketAddr,
     pub gateway_control_bind_addr: SocketAddr,
     pub gateway_max_buffered_requests: usize,
+    pub gateway_body_wait_policy: BodyWaitPolicy,
     pub gateway_max_inflight_buffer_bytes: usize,
     pub gateway_size_aware_body_policy: Option<gateway_proxy::SizeAwareBodyPolicy>,
     pub gateway_max_upstream_requests: Option<usize>,
@@ -195,7 +198,7 @@ impl Config {
                 )?,
                 upload_timeout: std::time::Duration::from_millis(optional_positive_usize(
                     "GATEWAY_BODY_UPLOAD_TIMEOUT_MS",
-                    30_000,
+                    gateway_proxy::body_admission::DEFAULT_BODY_UPLOAD_TIMEOUT.as_millis() as usize,
                 )? as u64),
             };
             policy.validate(gateway_max_buffered_requests)?;
@@ -214,6 +217,24 @@ impl Config {
             }
             None
         };
+        let defaults = BodyWaitPolicy::default();
+        let gateway_body_wait_policy = BodyWaitPolicy {
+            max_waiters: match optional("GATEWAY_MAX_BODY_WAITERS") {
+                Some(value) => value
+                    .parse()
+                    .map_err(|_| GatewayError::InvalidConfiguration)?,
+                None => defaults.max_waiters,
+            },
+            timeout: std::time::Duration::from_millis(optional_positive_usize(
+                "GATEWAY_BODY_WAIT_TIMEOUT_MS",
+                defaults.timeout.as_millis() as usize,
+            )? as u64),
+        };
+        gateway_body_wait_policy.validate(
+            gateway_size_aware_body_policy
+                .and_then(|p| p.elastic_max_requests)
+                .unwrap_or(gateway_max_buffered_requests),
+        )?;
         let gateway_max_upstream_requests = optional("GATEWAY_MAX_UPSTREAM_REQUESTS")
             .map(|_| optional_positive_usize("GATEWAY_MAX_UPSTREAM_REQUESTS", 0))
             .transpose()?;
@@ -255,6 +276,7 @@ impl Config {
             gateway_bind_addr,
             gateway_control_bind_addr,
             gateway_max_buffered_requests,
+            gateway_body_wait_policy,
             gateway_max_inflight_buffer_bytes,
             gateway_size_aware_body_policy,
             gateway_max_upstream_requests,

@@ -9,7 +9,7 @@ use crate::accessa_transport::{ConnectionLease, ConnectionLimits, FrameLimit};
 use crate::body_rewrite::{prepare_rewritten_response_headers, BoundedBodyRewriter};
 use crate::request_timing::{micros, RequestTimingProbe};
 use crate::{
-    BodyAdmissionController, BodyAdmissionLease, DEFAULT_MAX_BUFFERED_REQUESTS,
+    BodyAdmissionController, BodyAdmissionLease, BodyWaitPolicy, DEFAULT_MAX_BUFFERED_REQUESTS,
     DEFAULT_MAX_INFLIGHT_BUFFER_BYTES,
 };
 use async_trait::async_trait;
@@ -176,10 +176,11 @@ impl PingoraLiteLlmConfig {
         max_buffered_requests: usize,
         max_inflight_buffer_bytes: usize,
     ) -> GatewayResult<Self> {
-        self.body_admission = BodyAdmissionController::with_size_policy(
+        self.body_admission = BodyAdmissionController::with_policies(
             max_buffered_requests,
             max_inflight_buffer_bytes,
             self.body_admission.size_policy(),
+            self.body_admission.wait_policy(),
         )?;
         Ok(self)
     }
@@ -188,9 +189,20 @@ impl PingoraLiteLlmConfig {
         mut self,
         policy: Option<crate::SizeAwareBodyPolicy>,
     ) -> GatewayResult<Self> {
-        self.body_admission = BodyAdmissionController::with_size_policy(
+        self.body_admission = BodyAdmissionController::with_policies(
             self.body_admission.configured_max_requests(),
             self.body_admission.max_bytes(),
+            policy,
+            self.body_admission.wait_policy(),
+        )?;
+        Ok(self)
+    }
+
+    pub fn with_body_wait_policy(mut self, policy: BodyWaitPolicy) -> GatewayResult<Self> {
+        self.body_admission = BodyAdmissionController::with_policies(
+            self.body_admission.configured_max_requests(),
+            self.body_admission.max_bytes(),
+            self.body_admission.size_policy(),
             policy,
         )?;
         Ok(self)
@@ -314,6 +326,73 @@ where
 }
 
 impl<S, R> RelaynaPingoraProxy<S, R> {
+    /// Returns true if the request ended at admission. Queued uploads hold no
+    /// authentication permit, upstream connection or application body buffer.
+    async fn reserve_upload_slot(
+        &self,
+        queue: &crate::body_admission::BodyWaitQueue,
+        session: &mut Session,
+        ctx: &mut PingoraContext,
+    ) -> PingoraResult<bool> {
+        if ctx.socket_requested
+            || session
+                .req_header()
+                .uri
+                .path()
+                .starts_with(ADMISSION_PREFIX)
+            || session.as_mut().is_body_empty()
+        {
+            return Ok(false);
+        }
+        let expected =
+            header_value(session.req_header(), "content-length").and_then(|v| v.parse().ok());
+        let timeout = self.config.body_admission.size_policy().map_or(
+            crate::body_admission::DEFAULT_BODY_UPLOAD_TIMEOUT,
+            |policy| policy.upload_timeout,
+        );
+        if let Some(slot) = queue.try_slot(expected) {
+            ctx.upload_slot = Some(crate::body_admission::HeaderUploadReservation::new(
+                slot, timeout,
+            ));
+            return Ok(false);
+        }
+        // Authentication below uses a fresh snapshot if configuration changes during the wait.
+        let checked = self.auth_runtime.snapshot().and_then(|auth| {
+            gateway_core::auth_admission::validate_credential_headers(
+                &session.req_header().headers,
+                &auth.config.relayna_key_header,
+            )
+        });
+        if let Err(error) = checked {
+            respond_error(session, error, ctx).await?;
+            return Ok(true);
+        }
+        let wait = queue.wait_for_slot(expected);
+        let result = if let Some(closed) = session.as_mut().watch_h2_stream_close() {
+            tokio::select! {
+                biased;
+                _ = closed => return Err(PingoraError::new_down(ErrorType::ConnectionClosed)),
+                result = wait => result,
+            }
+        } else {
+            wait.await
+        };
+        match result {
+            Ok(slot) => {
+                ctx.upload_slot = Some(crate::body_admission::HeaderUploadReservation::new(
+                    slot, timeout,
+                ));
+                Ok(false)
+            }
+            Err(error) => {
+                // HTTP/1 may already have unread body bytes on the wire.
+                session.as_downstream_mut().set_keepalive(None);
+                respond_error(session, error, ctx).await?;
+                Ok(true)
+            }
+        }
+    }
+
     async fn persist_traffic(&self, ctx: &mut PingoraContext)
     where
         S: TrafficStore,
@@ -324,7 +403,8 @@ impl<S, R> RelaynaPingoraProxy<S, R> {
             if matches!(
                 ctx.traffic.diagnostics.failure_code.as_deref(),
                 Some(
-                    "authentication_overloaded"
+                    "gateway_overloaded"
+                        | "authentication_overloaded"
                         | "source_rate_limit_exceeded"
                         | "malformed_authorization"
                 )
@@ -419,6 +499,7 @@ pub struct PingoraContext {
     policy: Option<KeyPolicy>,
     request_rewriter: Option<BoundedBodyRewriter>,
     response_rewriter: Option<BoundedBodyRewriter>,
+    upload_slot: Option<crate::body_admission::HeaderUploadReservation>,
     request_body_lease: Option<BodyAdmissionLease>,
     response_body_lease: Option<BodyAdmissionLease>,
     upstream_lease: Option<UpstreamLease>,
@@ -520,6 +601,7 @@ where
             policy: None,
             request_rewriter: None,
             response_rewriter: None,
+            upload_slot: None,
             request_body_lease: None,
             response_body_lease: None,
             upstream_lease: None,
@@ -618,7 +700,19 @@ where
             .client_addr()
             .and_then(|addr| addr.as_inet())
             .map(|addr| addr.ip());
-        let _admission = match self.config.request_admission.acquire(peer).await {
+        let peer = match self.config.request_admission.check_peer(peer) {
+            Ok(checked) => checked,
+            Err(error) => {
+                respond_error(session, error, ctx).await?;
+                return Ok(true);
+            }
+        };
+        if let Some(queue) = self.config.body_admission.wait_queue() {
+            if self.reserve_upload_slot(queue, session, ctx).await? {
+                return Ok(true);
+            }
+        }
+        let _admission = match peer.acquire().await {
             Ok(permit) => permit,
             Err(error) => {
                 respond_error(session, error, ctx).await?;
@@ -1368,6 +1462,21 @@ where
     where
         Self::CTX: Send + Sync,
     {
+        if let Some(reservation) = &ctx.upload_slot {
+            if reservation.expired() {
+                ctx.guardrail_error = Some(GatewayError::GatewayOverloaded);
+                return Err(PingoraError::new(ErrorType::InternalError));
+            }
+            if end_of_stream || body.as_ref().is_some_and(|chunk| !chunk.is_empty()) {
+                if let Some(original) = ctx.original_upload_read_timeout.take() {
+                    session.set_read_timeout(original);
+                }
+            }
+        }
+        if end_of_stream && body.as_ref().is_none_or(Bytes::is_empty) {
+            // A chunked upload can prove empty only at EOF.
+            ctx.upload_slot.take();
+        }
         if ctx.socket {
             if let Some(frames) = &mut ctx.socket_request_frames {
                 if Utc::now().timestamp() >= ctx.socket_expires_at {
@@ -1432,11 +1541,17 @@ where
         let chunk_len = body.as_ref().map_or(0, Bytes::len);
         if chunk_len > 0 {
             if ctx.request_body_lease.is_none() {
-                match self
-                    .config
-                    .body_admission
-                    .try_acquire_sized(rewriter.expected_length())
-                {
+                let lease = ctx
+                    .upload_slot
+                    .take()
+                    .map(|slot| slot.into_slot())
+                    .transpose()
+                    .and_then(|slot| {
+                        self.config
+                            .body_admission
+                            .acquire_with_slot(rewriter.expected_length(), slot)
+                    });
+                match lease {
                     Ok(lease) => ctx.request_body_lease = Some(lease),
                     Err(error) => {
                         ctx.guardrail_error = Some(error.clone());
@@ -2117,6 +2232,13 @@ where
         _session: &mut Session,
         ctx: &mut Self::CTX,
     ) -> PingoraResult<Box<HttpPeer>> {
+        if ctx.upload_slot.is_some()
+            && ((ctx.litellm_passthrough && ctx.direct_litellm_passthrough)
+                || managed_service_request_can_stream(ctx))
+        {
+            // Route policy is now known. Streaming bodies need no retention slot.
+            ctx.upload_slot.take();
+        }
         if ctx.upstream_lease.is_none() {
             if let Some(slots) = self.config.upstream_slots.as_ref() {
                 match Arc::clone(slots).try_acquire_owned() {
@@ -2252,6 +2374,17 @@ where
     where
         Self::CTX: Send + Sync,
     {
+        if let Some(reservation) = &ctx.upload_slot {
+            if reservation.expired() {
+                ctx.guardrail_error = Some(GatewayError::GatewayOverloaded);
+                return Err(PingoraError::new(ErrorType::InternalError));
+            }
+            let remaining = reservation.remaining();
+            let original = *ctx
+                .original_upload_read_timeout
+                .get_or_insert_with(|| session.get_read_timeout());
+            session.set_read_timeout(Some(original.map_or(remaining, |old| old.min(remaining))));
+        }
         let upstream = self.upstream_for(ctx).unwrap_or(&self.config.litellm);
         if ctx.socket && ctx.direct_litellm_passthrough {
             // Strip LiteLLM's alternate socket credential before injecting any
@@ -2754,6 +2887,7 @@ where
         error: Option<&pingora_core::Error>,
         ctx: &mut Self::CTX,
     ) {
+        ctx.upload_slot.take();
         ctx.socket_lease.take();
         ctx.upstream_lease.take();
         gateway_telemetry::request_finished();
@@ -2981,6 +3115,12 @@ where
     where
         Self::CTX: Send + Sync,
     {
+        if error.esource() == &ErrorSource::Downstream
+            && error.etype() == &ErrorType::ReadTimedout
+            && ctx.upload_slot.as_ref().is_some_and(|slot| slot.expired())
+        {
+            ctx.guardrail_error = Some(GatewayError::GatewayOverloaded);
+        }
         if ctx.guardrail_error.is_none() {
             let (source, code) = traffic_transport_error(error);
             ctx.traffic.fail(source, code);
@@ -4752,6 +4892,7 @@ fn new_pingora_context_for_tests() -> PingoraContext {
         policy: None,
         request_rewriter: None,
         response_rewriter: None,
+        upload_slot: None,
         request_body_lease: None,
         response_body_lease: None,
         upstream_lease: None,
@@ -4808,6 +4949,7 @@ async fn respond_error(
     error: GatewayError,
     ctx: &mut PingoraContext,
 ) -> PingoraResult<()> {
+    ctx.upload_slot.take();
     if matches!(
         error,
         GatewayError::AuthenticationOverloaded | GatewayError::SourceRateLimitExceeded

@@ -640,16 +640,16 @@ async fn insertion_visibility_migration_preserves_legacy_rows_without_rewrite() 
         "adding the marker must not rewrite either ledger"
     );
     for table in ["usage_events", "guardrail_execution_events"] {
-        let marker: Option<String> = sqlx::query_scalar(&format!(
+        let marker: Option<String> = sqlx::query_scalar(sqlx::AssertSqlSafe(format!(
             "SELECT ingestion_xid::text FROM {table} WHERE id=1"
-        ))
+        )))
         .fetch_one(&mut *tx)
         .await
         .unwrap();
         assert_eq!(marker, None, "historical rows remain NULL");
-        let marker: String = sqlx::query_scalar(&format!(
+        let marker: String = sqlx::query_scalar(sqlx::AssertSqlSafe(format!(
             "INSERT INTO {table} (id) VALUES (2) RETURNING ingestion_xid::text"
-        ))
+        )))
         .fetch_one(&mut *tx)
         .await
         .unwrap();

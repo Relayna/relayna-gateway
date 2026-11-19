@@ -257,7 +257,7 @@ async fn historical_reporting_updates_preserve_original_budgets_and_are_atomic()
 
     // Force a store failure after the service UPDATE to prove transaction rollback.
     let constraint = format!("pricing_{}", Uuid::new_v4().simple());
-    sqlx::query(&format!("ALTER TABLE usage_events ADD CONSTRAINT {constraint} CHECK (service_name <> '{name}' OR estimated_cost IS NULL OR estimated_cost >= 0.00001) NOT VALID"))
+    sqlx::query(sqlx::AssertSqlSafe(format!("ALTER TABLE usage_events ADD CONSTRAINT {constraint} CHECK (service_name <> '{name}' OR estimated_cost IS NULL OR estimated_cost >= 0.00001) NOT VALID")))
         .execute(store.pool()).await.unwrap();
     let failed = store
         .patch_service(
@@ -265,9 +265,9 @@ async fn historical_reporting_updates_preserve_original_budgets_and_are_atomic()
             request(json!({"estimated_cost_usd":0,"reprice_existing_usage":true})),
         )
         .await;
-    sqlx::query(&format!(
+    sqlx::query(sqlx::AssertSqlSafe(format!(
         "ALTER TABLE usage_events DROP CONSTRAINT {constraint}"
-    ))
+    )))
     .execute(store.pool())
     .await
     .unwrap();

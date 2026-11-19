@@ -1356,18 +1356,20 @@ async fn guardrail_lookup_failure_cannot_remove_required_policy() {
         .mandatory_guardrails
         .contains(&"pii-redact".into()));
     let schema = format!("guardrail_fault_{}", Uuid::new_v4().simple());
-    sqlx::query(&format!("CREATE SCHEMA {schema}"))
+    sqlx::query(sqlx::AssertSqlSafe(format!("CREATE SCHEMA {schema}")))
         .execute(env.store.pool())
         .await
         .unwrap();
     // Only this pool sees the shadow view. Other queries/tables remain healthy.
-    sqlx::query(&format!("CREATE VIEW {schema}.key_guardrail_policies AS SELECT key_id, mandatory_guardrails, optional_guardrails, forbidden_guardrails, guardrail_config_overrides FROM public.key_guardrail_policies WHERE 1 / (length(key_id::text) - 36) > 0")).execute(env.store.pool()).await.unwrap();
+    sqlx::query(sqlx::AssertSqlSafe(format!("CREATE VIEW {schema}.key_guardrail_policies AS SELECT key_id, mandatory_guardrails, optional_guardrails, forbidden_guardrails, guardrail_config_overrides FROM public.key_guardrail_policies WHERE 1 / (length(key_id::text) - 36) > 0"))).execute(env.store.pool()).await.unwrap();
     let search_path = format!("SET search_path TO {schema}, public");
     let pool = sqlx::postgres::PgPoolOptions::new()
         .after_connect(move |connection, _| {
             let sql = search_path.clone();
             Box::pin(async move {
-                sqlx::query(&sql).execute(connection).await?;
+                sqlx::query(sqlx::AssertSqlSafe(sql))
+                    .execute(connection)
+                    .await?;
                 Ok(())
             })
         })
@@ -1391,7 +1393,7 @@ async fn guardrail_lookup_failure_cannot_remove_required_policy() {
         GatewayError::StoreUnavailable
     );
     failing.pool().close().await;
-    sqlx::query(&format!("DROP SCHEMA {schema} CASCADE"))
+    sqlx::query(sqlx::AssertSqlSafe(format!("DROP SCHEMA {schema} CASCADE")))
         .execute(env.store.pool())
         .await
         .unwrap();

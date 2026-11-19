@@ -10,6 +10,26 @@ Published v1.0.1 images retain their original contents. Use the current released
 image; see the
 [triage and verification procedure](runtime-image-security.md).
 
+## Upgrade to 1.5.0
+
+1. After publication, roll out `ghcr.io/sarattha/relayna-gateway:1.5.0` with your
+   existing configuration. The database schema, migration history and Redis keys
+   are compatible with 1.4.0. SQLx 0.9.1 uses PostgreSQL with Tokio and rustls.
+2. Check that any HTTP/1.1 provider or registered service receiving buffered
+   requests eligible for a guardrail rewrite accepts chunked uploads. The
+   gateway can use chunked framing even if the selected request body passes
+   through with its original bytes.
+3. To evaluate waiting, canary `GATEWAY_MAX_BODY_WAITERS` above its default
+   of zero and set `GATEWAY_BODY_WAIT_TIMEOUT_MS` within the caller’s latency
+   budget. Compare verified throughput, p95 latency, queue-full and timeout
+   denials, and total pod memory. Include routes with post-call guardrails in the
+   canary because their response buffers share admission capacity with uploads.
+   [Operating the queue](operations.md#waiting-for-upload-capacity).
+
+Set the waiter limit to zero and roll the pods to return to immediate admission.
+Rolling back the binary to 1.4.0 also restores the earlier guardrail framing
+behavior. [Release validation](benchmarks/v1.5.0.md).
+
 ## Upgrade to 1.4.0
 
 Version 1.4.0 adds project discovery and current virtual-key metadata for approved
@@ -455,7 +475,10 @@ The body-admission defaults reserve no memory at startup. They cap concurrent
 managed body buffering at eight requests and 512 MiB of aggregate serialized
 body data. Keep this byte budget below the container memory limit to leave
 headroom for JSON parsing, guardrails, connection pools, and normal runtime
-state.
+state. To let a pod absorb short upload bursts, set
+`GATEWAY_MAX_BODY_WAITERS` to the number of extra requests it can hold and
+`GATEWAY_BODY_WAIT_TIMEOUT_MS` to their maximum wait. See
+[waiting for upload capacity](operations.md#waiting-for-upload-capacity).
 
 `GATEWAY_ADMIN_TOKEN` is optional. Set it only for the first startup against a
 fresh database when you want to seed a known `op_live_...` operator token. Omit

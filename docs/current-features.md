@@ -1,5 +1,12 @@
 # Current Feature Highlights
 
+## Bounded waiting for uploads (1.5.0)
+
+When all upload slots are in use, a pod can hold additional requests at their
+headers until an eligible slot opens or the wait deadline expires. Operators
+control the queue length and deadline independently. Waiting defaults to
+disabled. [Configuration and metrics](operations.md#waiting-for-upload-capacity).
+
 ## Managed Identity project and key discovery (1.4.0)
 
 Approved monitoring applications can list authorized projects and their safe
@@ -494,6 +501,10 @@ limits with `GATEWAY_MAX_BUFFERED_REQUESTS` and
 `GATEWAY_MAX_INFLIGHT_BUFFER_BYTES`; admission exhaustion returns the stable,
 retryable `503 gateway_overloaded` response before forwarding begins or
 downstream response headers are committed.
+
+Operators can also enable [bounded in-proxy waiting](operations.md#waiting-for-upload-capacity)
+to absorb upload bursts. Requests can wait at their headers for a configurable
+time before the proxy starts reading their bodies.
 
 From release `0.1.47`, request admission follows the final forwarded buffer reference, including
 clones queued behind upstream writes. Once Pingora consumes the upload, waiting

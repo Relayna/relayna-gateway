@@ -4,12 +4,39 @@ All notable changes to Relayna Gateway are documented in this file.
 
 ## Unreleased
 
+## 1.5.0 - 2026-11-19
+
+### Added
+
+- Add an opt-in, per-pod upload wait queue. Operators can set the maximum
+  number of waiting requests and their deadline. Prometheus reports current
+  waiters and counts queue-full and timeout rejections separately. A deadline
+  releases a reserved slot while the gateway awaits the first body chunk.
+
 ### Fixed
 
 - Prevent HTTP/1.1 upstreams from hanging when a guardrail rewrite changes the
   length of a buffered request. Providers and registered services must accept
   chunked uploads for nonempty buffered requests that can run an enabled
   guardrail, even when the request ultimately selects none.
+
+### Changed
+
+- Upgrade the PostgreSQL driver to SQLx 0.9.1 and remove the temporary SQLite
+  dependency backport. The optional SQLite binding remains pinned at 0.39.1.
+
+### Compatibility and validation
+
+- Upload waiting defaults to disabled. Operators can enable a bounded queue
+  per pod. Existing PostgreSQL and Redis state needs no data conversion.
+  [Upgrade guide](https://sarattha.github.io/relayna-gateway/deployment/#upgrade-to-150).
+- The [release benchmark](https://sarattha.github.io/relayna-gateway/benchmarks/v1.5.0/)
+  records 265 resource trials across six body sizes. In the matched 5 MiB test,
+  v1.5.0 and v1.4.0 each verified 48 of 96 requests with eight slots per pod.
+- With 192 waiters per pod, all 24,000 mixed-size burst requests verified across
+  three trials. Verified p95 was 1.59 seconds and the busiest gateway container
+  peaked at 406 MiB. The [earlier feature study](https://github.com/sarattha/relayna-gateway/pull/155#issuecomment-6998339170)
+  covers sustained overload, socket memory and the LiteLLM comparison.
 
 ## 1.4.0 - 2026-11-14
 

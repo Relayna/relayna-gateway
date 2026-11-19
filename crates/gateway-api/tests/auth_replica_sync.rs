@@ -33,9 +33,11 @@ impl Drop for TestDatabase {
             let runtime = tokio::runtime::Runtime::new().unwrap();
             runtime.block_on(async {
                 if let Ok(pool) = sqlx::PgPool::connect(&url).await {
-                    let _ = sqlx::query(&format!("DROP DATABASE {name} WITH (FORCE)"))
-                        .execute(&pool)
-                        .await;
+                    let _ = sqlx::query(sqlx::AssertSqlSafe(format!(
+                        "DROP DATABASE {name} WITH (FORCE)"
+                    )))
+                    .execute(&pool)
+                    .await;
                 }
             });
         })
@@ -105,7 +107,7 @@ async fn admin_changes_reach_other_gateway_processes_without_rollout() {
     };
     let parent = sqlx::PgPool::connect(&database).await.unwrap();
     let name = format!("auth_sync_{}", Uuid::new_v4().simple());
-    sqlx::query(&format!("CREATE DATABASE {name}"))
+    sqlx::query(sqlx::AssertSqlSafe(format!("CREATE DATABASE {name}")))
         .execute(&parent)
         .await
         .unwrap();

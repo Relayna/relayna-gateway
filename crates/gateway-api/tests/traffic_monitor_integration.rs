@@ -34,9 +34,11 @@ impl Drop for TestDatabase {
             let runtime = tokio::runtime::Runtime::new().unwrap();
             runtime.block_on(async {
                 if let Ok(pool) = sqlx::PgPool::connect(&url).await {
-                    let _ = sqlx::query(&format!("DROP DATABASE {name} WITH (FORCE)"))
-                        .execute(&pool)
-                        .await;
+                    let _ = sqlx::query(sqlx::AssertSqlSafe(format!(
+                        "DROP DATABASE {name} WITH (FORCE)"
+                    )))
+                    .execute(&pool)
+                    .await;
                 }
             });
         })
@@ -114,7 +116,7 @@ async fn real_proxy_captures_early_failures_attempts_stream_abort_and_recording_
     };
     let admin_pool = sqlx::PgPool::connect(&database).await.unwrap();
     let schema = format!("traffic_{}", Uuid::new_v4().simple());
-    sqlx::query(&format!("CREATE DATABASE {schema}"))
+    sqlx::query(sqlx::AssertSqlSafe(format!("CREATE DATABASE {schema}")))
         .execute(&admin_pool)
         .await
         .unwrap();
@@ -725,7 +727,7 @@ async fn real_proxy_captures_early_failures_attempts_stream_abort_and_recording_
     }
     // Every diagnostic destination fails independently; observe live evidence and logs.
     for table in ["usage_events", "request_debug_bundles", "request_traffic"] {
-        sqlx::query(&format!("ALTER TABLE {table} ADD CONSTRAINT test_recording_failure CHECK (request_id <> 'recording-failure') NOT VALID"))
+        sqlx::query(sqlx::AssertSqlSafe(format!("ALTER TABLE {table} ADD CONSTRAINT test_recording_failure CHECK (request_id <> 'recording-failure') NOT VALID")))
             .execute(store.pool()).await.unwrap();
     }
     let runtime_before: Value = client

@@ -6,6 +6,9 @@ data:
   GATEWAY_BIND_ADDR: "0.0.0.0:8080"
   GATEWAY_CONTROL_BIND_ADDR: "0.0.0.0:8081"
   GATEWAY_MAX_BUFFERED_REQUESTS: "8"
+  # Additional uploads that may wait per pod. Zero disables waiting.
+  GATEWAY_MAX_BODY_WAITERS: "0"
+  GATEWAY_BODY_WAIT_TIMEOUT_MS: "10000"
   GATEWAY_MAX_INFLIGHT_BUFFER_BYTES: "536870912"
   # Actual transport peer; size for aggregate ingress/NAT traffic.
   GATEWAY_PREAUTH_SOURCE_RPS: "100"
