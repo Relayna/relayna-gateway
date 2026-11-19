@@ -1,0 +1,56 @@
+[
+  {
+    "waiters": 0,
+    "bytes": 8192,
+    "pairs": 24,
+    "direct_ms": 1.7102499999996326,
+    "gateway_ms": 8.332750000000487,
+    "paired_added_ms": 6.559979500000736,
+    "paired_added_p95_ms": 8.121958999999606
+  },
+  {
+    "waiters": 0,
+    "bytes": 5242880,
+    "pairs": 24,
+    "direct_ms": 5.879167000000166,
+    "gateway_ms": 22.441438000000062,
+    "paired_added_ms": 16.3583964999998,
+    "paired_added_p95_ms": 19.38087500000006
+  },
+  {
+    "waiters": 0,
+    "bytes": 104857600,
+    "pairs": 24,
+    "direct_ms": 84.76977050000005,
+    "gateway_ms": 233.72781199999974,
+    "paired_added_ms": 146.74097949999964,
+    "paired_added_p95_ms": 159.24204199999986
+  },
+  {
+    "waiters": 16,
+    "bytes": 8192,
+    "pairs": 24,
+    "direct_ms": 1.6456250000001091,
+    "gateway_ms": 8.348562500000298,
+    "paired_added_ms": 6.697374999999738,
+    "paired_added_p95_ms": 9.45270900000014
+  },
+  {
+    "waiters": 16,
+    "bytes": 5242880,
+    "pairs": 24,
+    "direct_ms": 6.740542000000232,
+    "gateway_ms": 21.810083499999564,
+    "paired_added_ms": 15.321521000000303,
+    "paired_added_p95_ms": 17.270166999999674
+  },
+  {
+    "waiters": 16,
+    "bytes": 104857600,
+    "pairs": 24,
+    "direct_ms": 94.31527099999994,
+    "gateway_ms": 235.0279169999999,
+    "paired_added_ms": 141.05206299999963,
+    "paired_added_p95_ms": 149.03512599999976
+  }
+]

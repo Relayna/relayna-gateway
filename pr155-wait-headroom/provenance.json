@@ -1,0 +1,62 @@
+{
+  "runtime_commit": "ec32558c25528596b6cd7b6cd9e2d0c9cfe712cb",
+  "source_tree": "484a5da101f745c205a597f7dad2983cdcc793f8",
+  "compiler_inputs": "git archive of Cargo.toml, Cargo.lock, crates, vendor at runtime_commit, built cargo --release --offline --locked",
+  "host_model": "Apple M1 Pro",
+  "host_arch": "arm64",
+  "docker": "aarch64 10 20940046336",
+  "images": {
+    "relayna-pr155-perf:ec32558": "sha256:30ed0b27eee47b7ed2375de53dd52545c6893e4eebe36a19b1c6aa1862b82782 arm64",
+    "relayna-stage-prof:3cd57a-builder": "sha256:b1b0b30abbef7c1633188faaa9be74db9ccbde28aa02bb548b230471e086173b arm64",
+    "relayna-mixed:1.4.0-956b3d91": "sha256:130a179d46c9026004628809458aa8c54b11538f5af957b254de774ee1f8addb arm64",
+    "kindest/node:v1.36.1": "sha256:26ad49adcb6923b3faa00ee6654943de9bdda7cfcb1c42a9b9cef334a48dfb33 arm64",
+    "node:22.23.4-alpine": "sha256:2485efa4a85b92080ead19284cbdc342de5c3d6c5c031aaa1731f70eb1e9204b arm64",
+    "postgres:16-alpine": "sha256:c54a696c68013b2f8f42f479e00a2b6ad24c5ef10ee31cdfb8972cec3dad7eb7 arm64",
+    "redis:7-alpine": "sha256:c90c016450904cc9c63d38100c04c72554fcc983e257f1637ab451afaf32da7b arm64",
+    "ghcr.io/berriai/litellm:v1.110.0": "sha256:152bb023653ad8ff70d7354ea7d8f2c0f84585ec5c86a9c14362251deae0ffaa arm64"
+  },
+  "harness_sha256": {
+    "cohorts.py": "62ff03244a4872135f287a71dc793c7d5d43251d4d2a62749b47a76be5073b08",
+    "fleet.py": "6fcf5d1defc87a08bf3683af99998499b50e2dbf60fa4eae0c62d113b598e934",
+    "extend.py": "f6f6aa2db8c047ce592037b20b264357108e8c0298dbd91788b4a7b240cd6b7f",
+    "final_trials.py": "bd406902adfc5c9457c1c23ee2e2fbdf263c363a216e298b3f71cc93783f4c56",
+    "present.py": "e65ec015c1bd47d6df5b502bcdf3000e4b03ecdaf5a90d9a36cc8eb8f2ce52c4",
+    "shards.py": "0f9bea900c15287581dde3a2142ae3992ec7886989c3517fbb2ea2da9287bdf1",
+    "lab.py": "1d9b8e5463616f2bfe168ef53ef7e9376482cc6e416a525bd4067282b3112b2e",
+    "analyze.py": "a7b619952c6c3042d0604f09cc33f02daa06eda5dbfe397e4a455d174ad1eeae",
+    "sharded.mjs": "0c614991dda94e847f9fefd88b117726259418d7016b5bba02ea8eec789022fa",
+    "inputs.mjs": "9bcecb520b79424b6265d422a2d7e577f4da05c262c6b8f036c585e26b4284e0",
+    "sample.sh": "90624f81ff96a8060ff27cacdd0a27663f6abc9e47ff771dfb044c5ebf9a3f94",
+    "prepare-lite.py": "f73483a84bf731306a13bd92d387bb39c5ce9adc8eb6a5dde234575fe053935a",
+    "semantic.py": "a7668a341e6a186a4f65637a2e76526b3a943ad58283ed2a194185a195abcd01",
+    "complete-evidence.py": "57644501af2f7082fc5dd5b37eac6e0edd8637ee3d0627ae0d5c03eb413c3056",
+    "compare-driver.py": "bd514199045f98fc60438da67c9f8fa616b16c15d647893222cc3f51bf54a1a4",
+    "pair-report.py": "de2e520a0eca4833a02f8cfb648acc4605996f00e27b8dc784105649aae6ba04",
+    "verify.py": "f4a36ba58d644c6bc6ef7b452bdd298c0bc35b1f6d18ae50218479179f9e73f8",
+    "compare.py": "ed1adcdd159b7de3e97ec9675dd92c2c5e1084a27d863c719db65e9891d69be5",
+    "compare-sample.sh": "3a3200c1728d3dbd33600a3e552c34200effa1bba07fb82d2ce53c2bb3e46cfd",
+    "semantic-probe.mjs": "c91e876d7227870881e1bbcb2ae2408f936b5d8cc2a4f28551a5b111c15265d0",
+    "comparison-driver.mjs": "855050d4dc2cc3391e9018640e75a01ba211f9676bff5590ecc5994fe8acc8d9"
+  },
+  "as_of_utc": "2026-11-19T02:45:23.483035+00:00",
+  "sampled_gateway_limits": [
+    {
+      "cgroup_memory_max_bytes": 1073741824,
+      "cgroup_cpu_max": "200000 100000"
+    },
+    {
+      "cgroup_memory_max_bytes": 1073741824,
+      "cgroup_cpu_max": "200000 100000"
+    }
+  ],
+  "study": "PR 155 upload waiter headroom",
+  "litellm": {
+    "version": "1.110.0",
+    "published_at": "2026-11-18T01:36:48Z",
+    "release": "https://github.com/BerriAI/litellm/releases/tag/v1.110.0",
+    "repo_digest": "ghcr.io/berriai/litellm@sha256:4295b064b22eb88f9530e616afc812edd47048891ba64896bfc3fa74e2b883c3",
+    "workers_per_pod": 1,
+    "auth": "PostgreSQL-backed virtual key on authenticated generic passthrough",
+    "config_template_sha256": "fdc5e15d488c5c722fae222cac4b7caed976443964ff2ff09736b58690e5ea5c"
+  }
+}

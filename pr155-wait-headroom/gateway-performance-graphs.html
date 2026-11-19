@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Gateway performance graphs</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+#gateway-trials{font:normal 14px/1.4 var(--font-sans,system-ui,sans-serif);color:var(--foreground,CanvasText);--muted-label:var(--muted-foreground,GrayText);--rail:var(--muted,color-mix(in srgb, CanvasText 9%, Canvas));--relay:var(--chart-2,teal);--lite:var(--chart-4,mediumpurple);font-variant-numeric:tabular-nums}
+#gateway-trials *{box-sizing:border-box}
+#gateway-trials h2,#gateway-trials h3,#gateway-trials p{margin:0}
+#gateway-trials h2{font-size:1.35em;font-weight:600;letter-spacing:-.025em}
+#gateway-trials h3{font-size:1.08em;font-weight:600}
+#gateway-trials .subtitle,#gateway-trials .caption,#gateway-trials .series small{color:var(--muted-label);font-size:.88em}
+#gateway-trials .subtitle{margin-top:2px}
+#gateway-trials .block{margin-top:20px}
+#gateway-trials .line{display:grid;grid-template-columns:minmax(90px,1fr) repeat(3,minmax(0,1.05fr));column-gap:clamp(8px,2.8vw,24px);align-items:center;padding:5px 0}
+#gateway-trials .head{padding:8px 0 2px;color:var(--muted-label);font-size:.88em;align-items:end}
+#gateway-trials .series{font-weight:600;line-height:1.2}
+#gateway-trials .series small{display:block;margin-top:3px;font-weight:400}
+#gateway-trials .track{height:6px;background:var(--rail);border-radius:2px;overflow:hidden}
+#gateway-trials .track i{display:block;height:6px;background:var(--relay)}
+#gateway-trials .lite .track i{background:var(--lite)}
+#gateway-trials .measure span{display:block;margin-bottom:3px;white-space:nowrap}
+#gateway-trials .caption{margin-top:7px}
+#gateway-trials .division{border:0;border-top:1px solid var(--border,GrayText);margin:18px 0 0}
+#gateway-trials details{margin-top:12px}
+#gateway-trials summary{color:var(--foreground,CanvasText);width:fit-content;font-weight:500;text-decoration:underline;text-underline-offset:3px}
+#gateway-trials details .caption{margin-top:4px}
+@media(max-width:430px){#gateway-trials .line{grid-template-columns:minmax(70px,.94fr) repeat(3,minmax(0,1fr));column-gap:8px}#gateway-trials .head{font-size:.84em}}
+</style></head><body>
+<main id="gateway-trials">
+<h2>Relayna vs. LiteLLM v1.110.0</h2>
+<p class="subtitle">Two pods each · 2 CPUs and 1 GiB per pod · 20 seconds of 8 KiB–100 MiB JSON uploads · 192 Relayna waiters per pod</p>
+<section class="block"><h3>Repeated bursts</h3><p class="subtitle">240 requests in the first 250 ms of each second · 4,800 offered</p>
+<div class="line head" aria-hidden="true"><span>Gateway</span><span>Verified</span><span>HTTP 200 p95</span><span>Peak pod</span></div>
+<div class="line relayna"><div class="series">Relayna<small>4,800 HTTP 200s</small></div><div class="measure"><span>4,800</span><div class="track" aria-hidden="true"><i style="width:100.0000%"></i></div></div><div class="measure"><span>1.66 s</span><div class="track" aria-hidden="true"><i style="width:55.3454%"></i></div></div><div class="measure"><span>332 MiB</span><div class="track" aria-hidden="true"><i style="width:30.1367%"></i></div></div></div>
+<div class="line lite"><div class="series">LiteLLM<small>157 HTTP 200s</small></div><div class="measure"><span>0</span><div class="track" aria-hidden="true"><i style="width:0.0000%"></i></div></div><div class="measure"><span>1.89 s</span><div class="track" aria-hidden="true"><i style="width:62.9893%"></i></div></div><div class="measure"><span>1,029 MiB</span><div class="track" aria-hidden="true"><i style="width:93.5696%"></i></div></div></div>
+</section>
+<section class="block"><h3>Steady arrivals</h3><p class="subtitle">480 requests each second · 9,600 offered</p>
+<div class="line head" aria-hidden="true"><span>Gateway</span><span>Verified</span><span>HTTP 200 p95</span><span>Peak pod</span></div>
+<div class="line relayna"><div class="series">Relayna<small>5,899 HTTP 200s</small></div><div class="measure"><span>5,899</span><div class="track" aria-hidden="true"><i style="width:61.4479%"></i></div></div><div class="measure"><span>2.62 s</span><div class="track" aria-hidden="true"><i style="width:87.3058%"></i></div></div><div class="measure"><span>379 MiB</span><div class="track" aria-hidden="true"><i style="width:34.4634%"></i></div></div></div>
+<div class="line lite"><div class="series">LiteLLM<small>146 HTTP 200s</small></div><div class="measure"><span>0</span><div class="track" aria-hidden="true"><i style="width:0.0000%"></i></div></div><div class="measure"><span>1.88 s</span><div class="track" aria-hidden="true"><i style="width:62.5560%"></i></div></div><div class="measure"><span>1,029 MiB</span><div class="track" aria-hidden="true"><i style="width:93.5618%"></i></div></div></div>
+</section>
+<p class="caption">Verified counts require the original bytes and service credential at the upstream. LiteLLM’s HTTP 200s forwarded changed metadata. Both LiteLLM pods ran out of memory in each 1 GiB trial. Peak pod memory includes the sandbox.</p>
+<details><summary>See the burst trial with 4 GiB per LiteLLM pod</summary>
+<div class="line head" aria-hidden="true"><span>Gateway</span><span>HTTP 200s</span><span>HTTP 200 p95</span><span>Peak pod</span></div>
+<div class="line relayna"><div class="series">Relayna<small>1 GiB / pod</small></div><div class="measure"><span>4,800</span><div class="track" aria-hidden="true"><i style="width:100.0000%"></i></div></div><div class="measure"><span>1.66 s</span><div class="track" aria-hidden="true"><i style="width:6.6415%"></i></div></div><div class="measure"><span>332 MiB</span><div class="track" aria-hidden="true"><i style="width:8.0934%"></i></div></div></div>
+<div class="line lite"><div class="series">LiteLLM<small>1 GiB / pod</small></div><div class="measure"><span>157</span><div class="track" aria-hidden="true"><i style="width:3.2708%"></i></div></div><div class="measure"><span>1.89 s</span><div class="track" aria-hidden="true"><i style="width:7.5587%"></i></div></div><div class="measure"><span>1,029 MiB</span><div class="track" aria-hidden="true"><i style="width:25.1286%"></i></div></div></div>
+<div class="line lite"><div class="series">LiteLLM<small>4 GiB / pod</small></div><div class="measure"><span>1,300</span><div class="track" aria-hidden="true"><i style="width:27.0833%"></i></div></div><div class="measure"><span>23.87 s</span><div class="track" aria-hidden="true"><i style="width:95.4612%"></i></div></div><div class="measure"><span>3,192 MiB</span><div class="track" aria-hidden="true"><i style="width:77.9202%"></i></div></div></div>
+<p class="caption">Of 4,800 offered requests, LiteLLM at 4 GiB had 3,483 client timeouts, 17 HTTP 500s and zero verified payloads. Its run took 49.26 s including drain. Relayna finished in 20.67 s.</p>
+</details>
+<hr class="division">
+<section class="block"><h3>How many Relayna waiters absorbed the burst?</h3>
+<p class="subtitle">24,000 requests at each setting across three runs · eight active uploads per pod</p>
+<div class="line head" aria-hidden="true"><span>Waiters / pod</span><span>Failed</span><span>Verified p95</span><span>Peak container</span></div>
+<div class="line relayna"><div class="series">128<small>23,936 verified</small></div><div class="measure"><span>64</span><div class="track" aria-hidden="true"><i style="width:100.0000%"></i></div></div><div class="measure"><span>1.53 s</span><div class="track" aria-hidden="true"><i style="width:50.9786%"></i></div></div><div class="measure"><span>374 MiB</span><div class="track" aria-hidden="true"><i style="width:34.0415%"></i></div></div></div>
+<div class="line relayna"><div class="series">192<small>24,000 verified</small></div><div class="measure"><span>0</span><div class="track" aria-hidden="true"><i style="width:0.0000%"></i></div></div><div class="measure"><span>1.57 s</span><div class="track" aria-hidden="true"><i style="width:52.3213%"></i></div></div><div class="measure"><span>388 MiB</span><div class="track" aria-hidden="true"><i style="width:35.2358%"></i></div></div></div>
+<div class="line relayna"><div class="series">256<small>23,999 verified</small></div><div class="measure"><span>1</span><div class="track" aria-hidden="true"><i style="width:1.5625%"></i></div></div><div class="measure"><span>1.55 s</span><div class="track" aria-hidden="true"><i style="width:51.7811%"></i></div></div><div class="measure"><span>362 MiB</span><div class="track" aria-hidden="true"><i style="width:32.9492%"></i></div></div></div>
+<p class="caption">At 128 waiters, all 64 failures came from a full queue. At 192, every request verified and 636 MiB remained on the busiest pod. The single failure at 256 was an upstream connection error.</p>
+</section>
+<details><summary>See the one-minute sustained overload trial</summary><p class="caption">At 480 requests/s with 4,096 waiters per pod, 12,742 of 28,800 requests verified. 16,057 expired in the queue. Verified p95 reached 10.87 s and the busiest container peaked at 888 MiB.</p></details>
+</main></body></html>

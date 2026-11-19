@@ -1,0 +1,1298 @@
+[
+  {
+    "pair": 0,
+    "bytes": 8192,
+    "shape": "history",
+    "gateway": 10.037624999999935,
+    "direct": 1.617291000000023,
+    "added": 8.420333999999912,
+    "waiters": 16
+  },
+  {
+    "pair": 0,
+    "bytes": 5242880,
+    "shape": "history",
+    "direct": 4.532666999999947,
+    "gateway": 20.60633299999995,
+    "added": 16.073666000000003,
+    "waiters": 16
+  },
+  {
+    "pair": 0,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "gateway": 235.564167,
+    "direct": 93.97337500000003,
+    "added": 141.59079199999996,
+    "waiters": 16
+  },
+  {
+    "pair": 1,
+    "bytes": 5242880,
+    "shape": "history",
+    "gateway": 24.24429199999986,
+    "direct": 6.9741250000001855,
+    "added": 17.270166999999674,
+    "waiters": 16
+  },
+  {
+    "pair": 1,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "direct": 95.51266699999996,
+    "gateway": 244.30041699999992,
+    "added": 148.78774999999996,
+    "waiters": 16
+  },
+  {
+    "pair": 1,
+    "bytes": 8192,
+    "shape": "history",
+    "gateway": 11.023834000000079,
+    "direct": 1.5711249999999382,
+    "added": 9.45270900000014,
+    "waiters": 16
+  },
+  {
+    "pair": 2,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "direct": 93.86487500000021,
+    "gateway": 235.09233399999994,
+    "added": 141.22745899999973,
+    "waiters": 16
+  },
+  {
+    "pair": 2,
+    "bytes": 8192,
+    "shape": "history",
+    "gateway": 9.218917000000147,
+    "direct": 1.6385420000001432,
+    "added": 7.580375000000004,
+    "waiters": 16
+  },
+  {
+    "pair": 2,
+    "bytes": 5242880,
+    "shape": "history",
+    "direct": 6.68204199999991,
+    "gateway": 21.31533300000001,
+    "added": 14.6332910000001,
+    "waiters": 16
+  },
+  {
+    "pair": 3,
+    "bytes": 8192,
+    "shape": "history",
+    "direct": 1.660291999999572,
+    "gateway": 7.052292000000307,
+    "added": 5.392000000000735,
+    "waiters": 16
+  },
+  {
+    "pair": 3,
+    "bytes": 5242880,
+    "shape": "history",
+    "gateway": 20.577541999999994,
+    "direct": 6.112416999999823,
+    "added": 14.465125000000171,
+    "waiters": 16
+  },
+  {
+    "pair": 3,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "direct": 97.41004099999964,
+    "gateway": 235.99995799999988,
+    "added": 138.58991700000024,
+    "waiters": 16
+  },
+  {
+    "pair": 4,
+    "bytes": 5242880,
+    "shape": "history",
+    "gateway": 23.129291999999623,
+    "direct": 7.108124999999745,
+    "added": 16.021166999999878,
+    "waiters": 16
+  },
+  {
+    "pair": 4,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "direct": 95.3467499999997,
+    "gateway": 231.1848759999998,
+    "added": 135.8381260000001,
+    "waiters": 16
+  },
+  {
+    "pair": 4,
+    "bytes": 8192,
+    "shape": "history",
+    "gateway": 11.816833000000315,
+    "direct": 1.6546669999997903,
+    "added": 10.162166000000525,
+    "waiters": 16
+  },
+  {
+    "pair": 5,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "gateway": 235.67779100000007,
+    "direct": 93.17795799999976,
+    "added": 142.4998330000003,
+    "waiters": 16
+  },
+  {
+    "pair": 5,
+    "bytes": 8192,
+    "shape": "history",
+    "direct": 1.7645840000000135,
+    "gateway": 7.56229200000007,
+    "added": 5.797708000000057,
+    "waiters": 16
+  },
+  {
+    "pair": 5,
+    "bytes": 5242880,
+    "shape": "history",
+    "gateway": 21.950792000000092,
+    "direct": 6.762541999999939,
+    "added": 15.188250000000153,
+    "waiters": 16
+  },
+  {
+    "pair": 6,
+    "bytes": 8192,
+    "shape": "history",
+    "direct": 1.5586659999999029,
+    "gateway": 7.160417000000052,
+    "added": 5.601751000000149,
+    "waiters": 16
+  },
+  {
+    "pair": 6,
+    "bytes": 5242880,
+    "shape": "history",
+    "gateway": 19.99974999999995,
+    "direct": 7.096082999999908,
+    "added": 12.903667000000041,
+    "waiters": 16
+  },
+  {
+    "pair": 6,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "direct": 93.64833299999964,
+    "gateway": 229.93195800000012,
+    "added": 136.28362500000048,
+    "waiters": 16
+  },
+  {
+    "pair": 7,
+    "bytes": 5242880,
+    "shape": "history",
+    "direct": 6.718542000000525,
+    "gateway": 21.006792000000132,
+    "added": 14.288249999999607,
+    "waiters": 16
+  },
+  {
+    "pair": 7,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "gateway": 234.96349999999984,
+    "direct": 93.22900000000027,
+    "added": 141.73449999999957,
+    "waiters": 16
+  },
+  {
+    "pair": 7,
+    "bytes": 8192,
+    "shape": "history",
+    "direct": 1.983791999999994,
+    "gateway": 8.9110840000003,
+    "added": 6.927292000000307,
+    "waiters": 16
+  },
+  {
+    "pair": 8,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "gateway": 238.3125,
+    "direct": 94.84708300000057,
+    "added": 143.46541699999943,
+    "waiters": 16
+  },
+  {
+    "pair": 8,
+    "bytes": 8192,
+    "shape": "history",
+    "direct": 1.7678339999993113,
+    "gateway": 8.29962499999965,
+    "added": 6.531791000000339,
+    "waiters": 16
+  },
+  {
+    "pair": 8,
+    "bytes": 5242880,
+    "shape": "history",
+    "gateway": 23.05499999999938,
+    "direct": 6.941541999999572,
+    "added": 16.11345799999981,
+    "waiters": 16
+  },
+  {
+    "pair": 9,
+    "bytes": 8192,
+    "shape": "history",
+    "gateway": 7.085332999999991,
+    "direct": 1.7519579999998314,
+    "added": 5.33337500000016,
+    "waiters": 16
+  },
+  {
+    "pair": 9,
+    "bytes": 5242880,
+    "shape": "history",
+    "direct": 6.357750000000124,
+    "gateway": 22.734666999999718,
+    "added": 16.376916999999594,
+    "waiters": 16
+  },
+  {
+    "pair": 9,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "gateway": 239.19920899999943,
+    "direct": 93.02679099999932,
+    "added": 146.1724180000001,
+    "waiters": 16
+  },
+  {
+    "pair": 10,
+    "bytes": 5242880,
+    "shape": "history",
+    "direct": 5.538416999999754,
+    "gateway": 22.52099999999973,
+    "added": 16.982582999999977,
+    "waiters": 16
+  },
+  {
+    "pair": 10,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "gateway": 229.15733400000045,
+    "direct": 94.01175000000057,
+    "added": 135.14558399999987,
+    "waiters": 16
+  },
+  {
+    "pair": 10,
+    "bytes": 8192,
+    "shape": "history",
+    "direct": 1.8473329999997077,
+    "gateway": 8.253375000000233,
+    "added": 6.406042000000525,
+    "waiters": 16
+  },
+  {
+    "pair": 11,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "direct": 96.41433299999971,
+    "gateway": 234.87929200000053,
+    "added": 138.46495900000082,
+    "waiters": 16
+  },
+  {
+    "pair": 11,
+    "bytes": 8192,
+    "shape": "history",
+    "gateway": 9.634291999999732,
+    "direct": 1.5284170000004451,
+    "added": 8.105874999999287,
+    "waiters": 16
+  },
+  {
+    "pair": 11,
+    "bytes": 5242880,
+    "shape": "history",
+    "direct": 7.2647079999997,
+    "gateway": 24.44354100000055,
+    "added": 17.17883300000085,
+    "waiters": 16
+  },
+  {
+    "pair": 12,
+    "bytes": 8192,
+    "shape": "history",
+    "gateway": 6.7297499999995125,
+    "direct": 1.629041999999572,
+    "added": 5.1007079999999405,
+    "waiters": 16
+  },
+  {
+    "pair": 12,
+    "bytes": 5242880,
+    "shape": "history",
+    "direct": 5.244666999999936,
+    "gateway": 20.2607909999997,
+    "added": 15.016123999999763,
+    "waiters": 16
+  },
+  {
+    "pair": 12,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "gateway": 228.46299999999974,
+    "direct": 105.71550000000025,
+    "added": 122.74749999999949,
+    "waiters": 16
+  },
+  {
+    "pair": 13,
+    "bytes": 5242880,
+    "shape": "history",
+    "gateway": 23.943750000000364,
+    "direct": 6.910791999999674,
+    "added": 17.03295800000069,
+    "waiters": 16
+  },
+  {
+    "pair": 13,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "direct": 96.011708,
+    "gateway": 245.04683399999976,
+    "added": 149.03512599999976,
+    "waiters": 16
+  },
+  {
+    "pair": 13,
+    "bytes": 8192,
+    "shape": "history",
+    "gateway": 9.202250000000276,
+    "direct": 1.517624999999498,
+    "added": 7.6846250000007785,
+    "waiters": 16
+  },
+  {
+    "pair": 14,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "direct": 94.13095900000008,
+    "gateway": 229.07766600000014,
+    "added": 134.94670700000006,
+    "waiters": 16
+  },
+  {
+    "pair": 14,
+    "bytes": 8192,
+    "shape": "history",
+    "gateway": 9.294667000000118,
+    "direct": 1.6441670000003796,
+    "added": 7.650499999999738,
+    "waiters": 16
+  },
+  {
+    "pair": 14,
+    "bytes": 5242880,
+    "shape": "history",
+    "direct": 6.194833000000472,
+    "gateway": 20.336874999999964,
+    "added": 14.142041999999492,
+    "waiters": 16
+  },
+  {
+    "pair": 15,
+    "bytes": 8192,
+    "shape": "history",
+    "direct": 1.6922919999997248,
+    "gateway": 6.501209000000017,
+    "added": 4.808917000000292,
+    "waiters": 16
+  },
+  {
+    "pair": 15,
+    "bytes": 5242880,
+    "shape": "history",
+    "gateway": 20.567124999999578,
+    "direct": 6.873749999999745,
+    "added": 13.693374999999833,
+    "waiters": 16
+  },
+  {
+    "pair": 15,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "direct": 94.4995829999998,
+    "gateway": 235.37624999999935,
+    "added": 140.87666699999954,
+    "waiters": 16
+  },
+  {
+    "pair": 16,
+    "bytes": 5242880,
+    "shape": "history",
+    "gateway": 21.55945900000006,
+    "direct": 6.932917000000089,
+    "added": 14.626541999999972,
+    "waiters": 16
+  },
+  {
+    "pair": 16,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "direct": 93.89449999999943,
+    "gateway": 228.98220799999945,
+    "added": 135.08770800000002,
+    "waiters": 16
+  },
+  {
+    "pair": 16,
+    "bytes": 8192,
+    "shape": "history",
+    "gateway": 9.910333000000719,
+    "direct": 1.683708999999908,
+    "added": 8.226624000000811,
+    "waiters": 16
+  },
+  {
+    "pair": 17,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "gateway": 234.54025000000001,
+    "direct": 92.67745800000012,
+    "added": 141.8627919999999,
+    "waiters": 16
+  },
+  {
+    "pair": 17,
+    "bytes": 8192,
+    "shape": "history",
+    "direct": 1.9847920000011072,
+    "gateway": 9.082542000000103,
+    "added": 7.097749999998996,
+    "waiters": 16
+  },
+  {
+    "pair": 17,
+    "bytes": 5242880,
+    "shape": "history",
+    "gateway": 21.860916999999972,
+    "direct": 6.40612499999952,
+    "added": 15.454792000000452,
+    "waiters": 16
+  },
+  {
+    "pair": 18,
+    "bytes": 8192,
+    "shape": "history",
+    "direct": 1.6002090000001772,
+    "gateway": 6.356165999999575,
+    "added": 4.755956999999398,
+    "waiters": 16
+  },
+  {
+    "pair": 18,
+    "bytes": 5242880,
+    "shape": "history",
+    "gateway": 21.759249999999156,
+    "direct": 6.901707999999417,
+    "added": 14.85754199999974,
+    "waiters": 16
+  },
+  {
+    "pair": 18,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "direct": 92.91312499999913,
+    "gateway": 227.32545899999968,
+    "added": 134.41233400000056,
+    "waiters": 16
+  },
+  {
+    "pair": 19,
+    "bytes": 5242880,
+    "shape": "history",
+    "direct": 6.661874999999782,
+    "gateway": 21.401584000001094,
+    "added": 14.739709000001312,
+    "waiters": 16
+  },
+  {
+    "pair": 19,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "gateway": 240.70650000000023,
+    "direct": 93.62362500000017,
+    "added": 147.08287500000006,
+    "waiters": 16
+  },
+  {
+    "pair": 19,
+    "bytes": 8192,
+    "shape": "history",
+    "direct": 1.6470829999998386,
+    "gateway": 8.397500000000946,
+    "added": 6.750417000001107,
+    "waiters": 16
+  },
+  {
+    "pair": 20,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "gateway": 227.70033300000068,
+    "direct": 99.94945899999948,
+    "added": 127.7508740000012,
+    "waiters": 16
+  },
+  {
+    "pair": 20,
+    "bytes": 8192,
+    "shape": "history",
+    "direct": 1.91058300000077,
+    "gateway": 8.137749999999869,
+    "added": 6.227166999999099,
+    "waiters": 16
+  },
+  {
+    "pair": 20,
+    "bytes": 5242880,
+    "shape": "history",
+    "gateway": 23.064542000000074,
+    "direct": 7.045334000000366,
+    "added": 16.019207999999708,
+    "waiters": 16
+  },
+  {
+    "pair": 21,
+    "bytes": 8192,
+    "shape": "history",
+    "gateway": 7.193374999998923,
+    "direct": 1.5242089999992459,
+    "added": 5.669165999999677,
+    "waiters": 16
+  },
+  {
+    "pair": 21,
+    "bytes": 5242880,
+    "shape": "history",
+    "direct": 6.571291000000201,
+    "gateway": 22.677958000000217,
+    "added": 16.106667000000016,
+    "waiters": 16
+  },
+  {
+    "pair": 21,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "gateway": 249.70083299999897,
+    "direct": 96.11520800000108,
+    "added": 153.5856249999979,
+    "waiters": 16
+  },
+  {
+    "pair": 22,
+    "bytes": 5242880,
+    "shape": "history",
+    "direct": 4.548500000000786,
+    "gateway": 22.037083999999595,
+    "added": 17.48858399999881,
+    "waiters": 16
+  },
+  {
+    "pair": 22,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "gateway": 232.80679100000089,
+    "direct": 96.51024999999936,
+    "added": 136.29654100000153,
+    "waiters": 16
+  },
+  {
+    "pair": 22,
+    "bytes": 8192,
+    "shape": "history",
+    "direct": 1.582750000001397,
+    "gateway": 8.227082999999766,
+    "added": 6.644332999998369,
+    "waiters": 16
+  },
+  {
+    "pair": 23,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "direct": 96.5911670000005,
+    "gateway": 240.68924999999945,
+    "added": 144.09808299999895,
+    "waiters": 16
+  },
+  {
+    "pair": 23,
+    "bytes": 8192,
+    "shape": "history",
+    "gateway": 9.81695899999977,
+    "direct": 1.5793340000000171,
+    "added": 8.237624999999753,
+    "waiters": 16
+  },
+  {
+    "pair": 23,
+    "bytes": 5242880,
+    "shape": "history",
+    "direct": 6.940500000000611,
+    "gateway": 21.52758299999914,
+    "added": 14.587082999998529,
+    "waiters": 16
+  },
+  {
+    "pair": 0,
+    "bytes": 8192,
+    "shape": "history",
+    "gateway": 9.49008300000014,
+    "direct": 1.6434169999999995,
+    "added": 7.846666000000141,
+    "waiters": 0
+  },
+  {
+    "pair": 0,
+    "bytes": 5242880,
+    "shape": "history",
+    "direct": 6.286792000000105,
+    "gateway": 25.667667000000165,
+    "added": 19.38087500000006,
+    "waiters": 0
+  },
+  {
+    "pair": 0,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "gateway": 235.25654099999997,
+    "direct": 87.40350000000012,
+    "added": 147.85304099999985,
+    "waiters": 0
+  },
+  {
+    "pair": 1,
+    "bytes": 5242880,
+    "shape": "history",
+    "gateway": 25.530666999999994,
+    "direct": 5.147875000000113,
+    "added": 20.38279199999988,
+    "waiters": 0
+  },
+  {
+    "pair": 1,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "direct": 84.91183299999966,
+    "gateway": 255.0344580000001,
+    "added": 170.12262500000043,
+    "waiters": 0
+  },
+  {
+    "pair": 1,
+    "bytes": 8192,
+    "shape": "history",
+    "gateway": 9.356834000000163,
+    "direct": 1.6616659999999683,
+    "added": 7.695168000000194,
+    "waiters": 0
+  },
+  {
+    "pair": 2,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "direct": 85.12345800000003,
+    "gateway": 228.31933299999992,
+    "added": 143.1958749999999,
+    "waiters": 0
+  },
+  {
+    "pair": 2,
+    "bytes": 8192,
+    "shape": "history",
+    "gateway": 9.700374999999894,
+    "direct": 1.5784160000002885,
+    "added": 8.121958999999606,
+    "waiters": 0
+  },
+  {
+    "pair": 2,
+    "bytes": 5242880,
+    "shape": "history",
+    "direct": 6.778542000000016,
+    "gateway": 21.45616599999994,
+    "added": 14.677623999999923,
+    "waiters": 0
+  },
+  {
+    "pair": 3,
+    "bytes": 8192,
+    "shape": "history",
+    "direct": 1.6470420000000559,
+    "gateway": 6.674333999999817,
+    "added": 5.027291999999761,
+    "waiters": 0
+  },
+  {
+    "pair": 3,
+    "bytes": 5242880,
+    "shape": "history",
+    "gateway": 23.635999999999967,
+    "direct": 6.477917000000161,
+    "added": 17.158082999999806,
+    "waiters": 0
+  },
+  {
+    "pair": 3,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "direct": 82.87350000000015,
+    "gateway": 242.115542,
+    "added": 159.24204199999986,
+    "waiters": 0
+  },
+  {
+    "pair": 4,
+    "bytes": 5242880,
+    "shape": "history",
+    "gateway": 21.569458999999824,
+    "direct": 5.19820800000025,
+    "added": 16.371250999999575,
+    "waiters": 0
+  },
+  {
+    "pair": 4,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "direct": 83.38774999999987,
+    "gateway": 225.44337499999983,
+    "added": 142.05562499999996,
+    "waiters": 0
+  },
+  {
+    "pair": 4,
+    "bytes": 8192,
+    "shape": "history",
+    "gateway": 9.247667000000092,
+    "direct": 1.594499999999698,
+    "added": 7.653167000000394,
+    "waiters": 0
+  },
+  {
+    "pair": 5,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "gateway": 237.9180419999998,
+    "direct": 84.67704200000026,
+    "added": 153.24099999999953,
+    "waiters": 0
+  },
+  {
+    "pair": 5,
+    "bytes": 8192,
+    "shape": "history",
+    "direct": 1.7914590000000317,
+    "gateway": 7.731291000000056,
+    "added": 5.939832000000024,
+    "waiters": 0
+  },
+  {
+    "pair": 5,
+    "bytes": 5242880,
+    "shape": "history",
+    "gateway": 21.868666999999732,
+    "direct": 6.988333000000239,
+    "added": 14.880333999999493,
+    "waiters": 0
+  },
+  {
+    "pair": 6,
+    "bytes": 8192,
+    "shape": "history",
+    "direct": 1.5050419999997757,
+    "gateway": 7.616666999999779,
+    "added": 6.111625000000004,
+    "waiters": 0
+  },
+  {
+    "pair": 6,
+    "bytes": 5242880,
+    "shape": "history",
+    "gateway": 22.510084000000006,
+    "direct": 5.012499999999818,
+    "added": 17.497584000000188,
+    "waiters": 0
+  },
+  {
+    "pair": 6,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "direct": 85.44570900000008,
+    "gateway": 228.1231670000002,
+    "added": 142.67745800000012,
+    "waiters": 0
+  },
+  {
+    "pair": 7,
+    "bytes": 5242880,
+    "shape": "history",
+    "direct": 6.828708000000006,
+    "gateway": 20.57695800000056,
+    "added": 13.748250000000553,
+    "waiters": 0
+  },
+  {
+    "pair": 7,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "gateway": 240.8930419999997,
+    "direct": 84.57916699999987,
+    "added": 156.31387499999983,
+    "waiters": 0
+  },
+  {
+    "pair": 7,
+    "bytes": 8192,
+    "shape": "history",
+    "direct": 1.7382499999994252,
+    "gateway": 8.121041999999761,
+    "added": 6.382792000000336,
+    "waiters": 0
+  },
+  {
+    "pair": 8,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "gateway": 230.16150000000016,
+    "direct": 88.88466599999992,
+    "added": 141.27683400000024,
+    "waiters": 0
+  },
+  {
+    "pair": 8,
+    "bytes": 8192,
+    "shape": "history",
+    "direct": 1.6863750000002256,
+    "gateway": 8.582333999999719,
+    "added": 6.895958999999493,
+    "waiters": 0
+  },
+  {
+    "pair": 8,
+    "bytes": 5242880,
+    "shape": "history",
+    "gateway": 22.715000000000146,
+    "direct": 5.471542000000227,
+    "added": 17.24345799999992,
+    "waiters": 0
+  },
+  {
+    "pair": 9,
+    "bytes": 8192,
+    "shape": "history",
+    "gateway": 7.508249999999862,
+    "direct": 1.9124580000006972,
+    "added": 5.5957919999991645,
+    "waiters": 0
+  },
+  {
+    "pair": 9,
+    "bytes": 5242880,
+    "shape": "history",
+    "direct": 5.241541999999754,
+    "gateway": 22.372792000000118,
+    "added": 17.131250000000364,
+    "waiters": 0
+  },
+  {
+    "pair": 9,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "gateway": 240.91145899999992,
+    "direct": 85.74541700000009,
+    "added": 155.16604199999983,
+    "waiters": 0
+  },
+  {
+    "pair": 10,
+    "bytes": 5242880,
+    "shape": "history",
+    "direct": 7.252375000000029,
+    "gateway": 22.344624999999724,
+    "added": 15.092249999999694,
+    "waiters": 0
+  },
+  {
+    "pair": 10,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "gateway": 227.1359999999995,
+    "direct": 83.2056249999996,
+    "added": 143.9303749999999,
+    "waiters": 0
+  },
+  {
+    "pair": 10,
+    "bytes": 8192,
+    "shape": "history",
+    "direct": 2.070958000000246,
+    "gateway": 9.776333000000704,
+    "added": 7.705375000000458,
+    "waiters": 0
+  },
+  {
+    "pair": 11,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "direct": 85.30604099999982,
+    "gateway": 235.6692920000005,
+    "added": 150.36325100000067,
+    "waiters": 0
+  },
+  {
+    "pair": 11,
+    "bytes": 8192,
+    "shape": "history",
+    "gateway": 9.676583000000392,
+    "direct": 1.7071249999999054,
+    "added": 7.969458000000486,
+    "waiters": 0
+  },
+  {
+    "pair": 11,
+    "bytes": 5242880,
+    "shape": "history",
+    "direct": 5.264709000000039,
+    "gateway": 24.522667000000183,
+    "added": 19.257958000000144,
+    "waiters": 0
+  },
+  {
+    "pair": 12,
+    "bytes": 8192,
+    "shape": "history",
+    "gateway": 7.485415999999532,
+    "direct": 2.712916000000405,
+    "added": 4.772499999999127,
+    "waiters": 0
+  },
+  {
+    "pair": 12,
+    "bytes": 5242880,
+    "shape": "history",
+    "direct": 6.841625000000022,
+    "gateway": 22.209082999999737,
+    "added": 15.367457999999715,
+    "waiters": 0
+  },
+  {
+    "pair": 12,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "gateway": 228.2744589999993,
+    "direct": 82.64554099999987,
+    "added": 145.62891799999943,
+    "waiters": 0
+  },
+  {
+    "pair": 13,
+    "bytes": 5242880,
+    "shape": "history",
+    "gateway": 23.222541000000092,
+    "direct": 5.305083999999624,
+    "added": 17.917457000000468,
+    "waiters": 0
+  },
+  {
+    "pair": 13,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "direct": 104.38024999999925,
+    "gateway": 242.25850100000025,
+    "added": 137.878251000001,
+    "waiters": 0
+  },
+  {
+    "pair": 13,
+    "bytes": 8192,
+    "shape": "history",
+    "gateway": 10.502999999999702,
+    "direct": 1.7336660000000848,
+    "added": 8.769333999999617,
+    "waiters": 0
+  },
+  {
+    "pair": 14,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "direct": 83.07545800000025,
+    "gateway": 222.9285829999999,
+    "added": 139.85312499999964,
+    "waiters": 0
+  },
+  {
+    "pair": 14,
+    "bytes": 8192,
+    "shape": "history",
+    "gateway": 9.346000000000458,
+    "direct": 1.586250000000291,
+    "added": 7.759750000000167,
+    "waiters": 0
+  },
+  {
+    "pair": 14,
+    "bytes": 5242880,
+    "shape": "history",
+    "direct": 6.570791999999528,
+    "gateway": 20.604291999999987,
+    "added": 14.033500000000458,
+    "waiters": 0
+  },
+  {
+    "pair": 15,
+    "bytes": 8192,
+    "shape": "history",
+    "direct": 1.9561669999993683,
+    "gateway": 6.37762500000008,
+    "added": 4.421458000000712,
+    "waiters": 0
+  },
+  {
+    "pair": 15,
+    "bytes": 5242880,
+    "shape": "history",
+    "gateway": 23.464834000000337,
+    "direct": 7.119292000000314,
+    "added": 16.345542000000023,
+    "waiters": 0
+  },
+  {
+    "pair": 15,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "direct": 84.23391700000047,
+    "gateway": 232.19908299999952,
+    "added": 147.96516599999904,
+    "waiters": 0
+  },
+  {
+    "pair": 16,
+    "bytes": 5242880,
+    "shape": "history",
+    "gateway": 20.666709000000083,
+    "direct": 5.360458999999537,
+    "added": 15.306250000000546,
+    "waiters": 0
+  },
+  {
+    "pair": 16,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "direct": 87.0678339999995,
+    "gateway": 228.25958300000002,
+    "added": 141.19174900000053,
+    "waiters": 0
+  },
+  {
+    "pair": 16,
+    "bytes": 8192,
+    "shape": "history",
+    "gateway": 9.597791000000143,
+    "direct": 1.7025000000003274,
+    "added": 7.8952909999998155,
+    "waiters": 0
+  },
+  {
+    "pair": 17,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "gateway": 239.69487600000048,
+    "direct": 87.2215840000008,
+    "added": 152.47329199999967,
+    "waiters": 0
+  },
+  {
+    "pair": 17,
+    "bytes": 8192,
+    "shape": "history",
+    "direct": 1.5947089999990567,
+    "gateway": 7.5465839999997115,
+    "added": 5.951875000000655,
+    "waiters": 0
+  },
+  {
+    "pair": 17,
+    "bytes": 5242880,
+    "shape": "history",
+    "gateway": 25.25129200000083,
+    "direct": 6.935916000000361,
+    "added": 18.31537600000047,
+    "waiters": 0
+  },
+  {
+    "pair": 18,
+    "bytes": 8192,
+    "shape": "history",
+    "direct": 1.831000000000131,
+    "gateway": 7.649208999999246,
+    "added": 5.818208999999115,
+    "waiters": 0
+  },
+  {
+    "pair": 18,
+    "bytes": 5242880,
+    "shape": "history",
+    "gateway": 21.071083000000726,
+    "direct": 5.1533330000002024,
+    "added": 15.917750000000524,
+    "waiters": 0
+  },
+  {
+    "pair": 18,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "direct": 84.76829100000032,
+    "gateway": 226.7307920000003,
+    "added": 141.96250099999997,
+    "waiters": 0
+  },
+  {
+    "pair": 19,
+    "bytes": 5242880,
+    "shape": "history",
+    "direct": 6.974583999999595,
+    "gateway": 24.523417000000336,
+    "added": 17.54883300000074,
+    "waiters": 0
+  },
+  {
+    "pair": 19,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "gateway": 239.63616699999875,
+    "direct": 84.77124999999978,
+    "added": 154.86491699999897,
+    "waiters": 0
+  },
+  {
+    "pair": 19,
+    "bytes": 8192,
+    "shape": "history",
+    "direct": 1.9339579999996204,
+    "gateway": 7.732292000000598,
+    "added": 5.7983340000009775,
+    "waiters": 0
+  },
+  {
+    "pair": 20,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "gateway": 223.90912500000013,
+    "direct": 84.07945800000016,
+    "added": 139.82966699999997,
+    "waiters": 0
+  },
+  {
+    "pair": 20,
+    "bytes": 8192,
+    "shape": "history",
+    "direct": 2.2425419999999576,
+    "gateway": 8.214958000000479,
+    "added": 5.972416000000521,
+    "waiters": 0
+  },
+  {
+    "pair": 20,
+    "bytes": 5242880,
+    "shape": "history",
+    "gateway": 20.407209000000876,
+    "direct": 5.090709000000061,
+    "added": 15.316500000000815,
+    "waiters": 0
+  },
+  {
+    "pair": 21,
+    "bytes": 8192,
+    "shape": "history",
+    "gateway": 6.808374999998705,
+    "direct": 1.7642919999998412,
+    "added": 5.044082999998864,
+    "waiters": 0
+  },
+  {
+    "pair": 21,
+    "bytes": 5242880,
+    "shape": "history",
+    "direct": 5.237458999999944,
+    "gateway": 19.559250000000247,
+    "added": 14.321791000000303,
+    "waiters": 0
+  },
+  {
+    "pair": 21,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "gateway": 236.47237499999937,
+    "direct": 84.89187499999935,
+    "added": 151.58050000000003,
+    "waiters": 0
+  },
+  {
+    "pair": 22,
+    "bytes": 5242880,
+    "shape": "history",
+    "direct": 6.792625000000044,
+    "gateway": 22.921541000001525,
+    "added": 16.12891600000148,
+    "waiters": 0
+  },
+  {
+    "pair": 22,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "gateway": 226.21650000000045,
+    "direct": 84.71179200000006,
+    "added": 141.5047080000004,
+    "waiters": 0
+  },
+  {
+    "pair": 22,
+    "bytes": 8192,
+    "shape": "history",
+    "direct": 1.663709000000381,
+    "gateway": 9.195583000000624,
+    "added": 7.5318740000002435,
+    "waiters": 0
+  },
+  {
+    "pair": 23,
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "direct": 83.94741700000122,
+    "gateway": 240.09287600000062,
+    "added": 156.1454589999994,
+    "waiters": 0
+  },
+  {
+    "pair": 23,
+    "bytes": 8192,
+    "shape": "history",
+    "gateway": 8.450542000000496,
+    "direct": 1.7133749999993597,
+    "added": 6.737167000001136,
+    "waiters": 0
+  },
+  {
+    "pair": 23,
+    "bytes": 5242880,
+    "shape": "history",
+    "direct": 4.824000000000524,
+    "gateway": 22.830791000000318,
+    "added": 18.006790999999794,
+    "waiters": 0
+  }
+]

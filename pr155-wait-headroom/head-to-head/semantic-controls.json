@@ -1,0 +1,121 @@
+[
+  {
+    "bytes": 8192,
+    "shape": "history",
+    "status": 200,
+    "upstream_bytes": 8018,
+    "upstream_sha256": "064de7dfc264cfa369f0d82de776edd31448694b1b1c30ebe1612dfa74874c9f",
+    "credential_ok": true,
+    "semantic": false,
+    "changed_top_level_fields": [
+      "metadata"
+    ],
+    "exact": false
+  },
+  {
+    "bytes": 131072,
+    "shape": "tools",
+    "status": 200,
+    "upstream_bytes": 130890,
+    "upstream_sha256": "39f487ff8fb8c0e1e2e88fcaad5a4cafb6a7e300aecddf087d6ea124ea8ac250",
+    "credential_ok": true,
+    "semantic": false,
+    "changed_top_level_fields": [
+      "metadata"
+    ],
+    "exact": false
+  },
+  {
+    "bytes": 524288,
+    "shape": "retrieval",
+    "status": 200,
+    "upstream_bytes": 523678,
+    "upstream_sha256": "dac72aa33448a5b184c07b3837d2f4da412d2398242eb0db7d9dc8a00e18fc6f",
+    "credential_ok": true,
+    "semantic": false,
+    "changed_top_level_fields": [
+      "metadata"
+    ],
+    "exact": false
+  },
+  {
+    "bytes": 5242880,
+    "shape": "history",
+    "status": 200,
+    "upstream_bytes": 5242688,
+    "upstream_sha256": "eb0dcdae9ad631c916e9ecb56acbeabf50871b7501c0bae31f79329c722beb5f",
+    "credential_ok": true,
+    "semantic": false,
+    "changed_top_level_fields": [
+      "metadata"
+    ],
+    "exact": false
+  },
+  {
+    "bytes": 10485760,
+    "shape": "tools",
+    "status": 200,
+    "upstream_bytes": 10485450,
+    "upstream_sha256": "46ea32f7bb5ae2b5240963f344362e593d48424c1873989501bc9bfee7a6f29e",
+    "credential_ok": true,
+    "semantic": false,
+    "changed_top_level_fields": [
+      "metadata"
+    ],
+    "exact": false
+  },
+  {
+    "bytes": 20971520,
+    "shape": "retrieval",
+    "status": 200,
+    "upstream_bytes": 20971002,
+    "upstream_sha256": "db6409683231d88bd10a7dc455a3b2e9e48ef7ae64ecc6f90eb44d9ca0a45c33",
+    "credential_ok": true,
+    "semantic": false,
+    "changed_top_level_fields": [
+      "metadata"
+    ],
+    "exact": false
+  },
+  {
+    "bytes": 41943040,
+    "shape": "history",
+    "status": 200,
+    "upstream_bytes": 41942708,
+    "upstream_sha256": "89b5fcfc4cb78f198ccd1399d31909f47b7ae69716a0484971b4aae17a754f3b",
+    "credential_ok": true,
+    "semantic": false,
+    "changed_top_level_fields": [
+      "metadata"
+    ],
+    "exact": false
+  },
+  {
+    "bytes": 83886080,
+    "shape": "tools",
+    "status": 500,
+    "semantic": false,
+    "changed_top_level_fields": [
+      "max_tokens",
+      "messages",
+      "metadata",
+      "model",
+      "stream",
+      "tools"
+    ],
+    "exact": false
+  },
+  {
+    "bytes": 104857600,
+    "shape": "retrieval",
+    "status": 200,
+    "upstream_bytes": 104857132,
+    "upstream_sha256": "1ad8de80817331c191c5b762456be3de7139bde954c0bf2fd35ccf3402d1f63a",
+    "credential_ok": true,
+    "semantic": false,
+    "changed_top_level_fields": [
+      "metadata"
+    ],
+    "exact": false
+  }
+]

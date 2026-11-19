@@ -1,0 +1,51 @@
+{
+  "128": {
+    "offered": 24000,
+    "verified": 23936,
+    "within_2s": 23930,
+    "errors": {
+      "gateway_overloaded": 64
+    },
+    "p95_s": 1.5293575886145845,
+    "p99_s": 1.7463694208854177,
+    "remaining_mib": 649.54296875,
+    "peak_mib": 374.45703125,
+    "peak_rss_mib": 357.953125,
+    "peak_sock_mib": 55.7421875,
+    "queue_full": 64,
+    "queue_timeout": 0,
+    "max_drain_s": 1.4374815395572877
+  },
+  "192": {
+    "offered": 24000,
+    "verified": 24000,
+    "within_2s": 23952,
+    "errors": {},
+    "p95_s": 1.5696399372343657,
+    "p99_s": 1.779922848635415,
+    "remaining_mib": 636.40625,
+    "peak_mib": 387.59375,
+    "peak_rss_mib": 357.16015625,
+    "peak_sock_mib": 60.9140625,
+    "queue_full": 0,
+    "queue_timeout": 0,
+    "max_drain_s": 1.5487169565416625
+  },
+  "256": {
+    "offered": 24000,
+    "verified": 23999,
+    "within_2s": 23963,
+    "errors": {
+      "upstream_connection": 1
+    },
+    "p95_s": 1.5534320660364611,
+    "p99_s": 1.7800208053906317,
+    "remaining_mib": 661.55859375,
+    "peak_mib": 362.44140625,
+    "peak_rss_mib": 340.1171875,
+    "peak_sock_mib": 77.82421875,
+    "queue_full": 0,
+    "queue_timeout": 0,
+    "max_drain_s": 1.4270035688541611
+  }
+}

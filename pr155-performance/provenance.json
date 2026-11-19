@@ -1,0 +1,31 @@
+{
+  "runtime_commit": "ec32558c25528596b6cd7b6cd9e2d0c9cfe712cb",
+  "source_tree": "484a5da101f745c205a597f7dad2983cdcc793f8",
+  "compiler_inputs": "git archive of Cargo.toml, Cargo.lock, crates, vendor at runtime_commit, built cargo --release --offline --locked",
+  "host_model": "Apple M1 Pro",
+  "host_arch": "arm64",
+  "docker": "aarch64 10 20940046336",
+  "images": {
+    "relayna-pr155-perf:ec32558": "sha256:30ed0b27eee47b7ed2375de53dd52545c6893e4eebe36a19b1c6aa1862b82782 arm64",
+    "relayna-stage-prof:3cd57a-builder": "sha256:b1b0b30abbef7c1633188faaa9be74db9ccbde28aa02bb548b230471e086173b arm64",
+    "relayna-mixed:1.4.0-956b3d91": "sha256:130a179d46c9026004628809458aa8c54b11538f5af957b254de774ee1f8addb arm64",
+    "kindest/node:v1.36.1": "sha256:26ad49adcb6923b3faa00ee6654943de9bdda7cfcb1c42a9b9cef334a48dfb33 arm64",
+    "node:22.23.4-alpine": "sha256:2485efa4a85b92080ead19284cbdc342de5c3d6c5c031aaa1731f70eb1e9204b arm64",
+    "postgres:16-alpine": "sha256:c54a696c68013b2f8f42f479e00a2b6ad24c5ef10ee31cdfb8972cec3dad7eb7 arm64",
+    "redis:7-alpine": "sha256:c90c016450904cc9c63d38100c04c72554fcc983e257f1637ab451afaf32da7b arm64"
+  },
+  "harness_sha256": {
+    "build/Dockerfile": "bcd41655e9521d67f2617f6c5192d1eabcfb2558f6588fc6cbb7ba166e3b4335",
+    "sharded.mjs": "0c614991dda94e847f9fefd88b117726259418d7016b5bba02ea8eec789022fa",
+    "inputs.mjs": "9bcecb520b79424b6265d422a2d7e577f4da05c262c6b8f036c585e26b4284e0",
+    "fleet.py": "5a7ced9a652f68d1ee716ffb93ab1ad6e187474e493c623bac7ff32631c3e8f9",
+    "lab.py": "9a3da5b0042bf1d1c8f04b231868116af14445258c2755fce076f63defe923ff",
+    "sample.sh": "ea1a2f948b03ee51a1efb6db4e6ef0ffc026075898456f50b65bce1fe7a9f5f4",
+    "shards.py": "0f9bea900c15287581dde3a2142ae3992ec7886989c3517fbb2ea2da9287bdf1",
+    "analyze.py": "f25a9745209a618de8044c1f7168ac9caf2519c4c63a9cb1d74087c0e4a0b5b3",
+    "direct.py": "9a14fa9181c011c09815a5d147644ae6dabeaa23b810add0b2185a842c1c39e9",
+    "direct.mjs": "c355706bee507a64b3c7cab0976d6ff36d40f0e1243e8bf7191ba2ab9d414c16",
+    "present.py": "db097bd1b2c9a528e137a1036e0416446f1ea485618e5cc7537a416314866530"
+  },
+  "as_of_utc": "2026-11-19T01:20:33.815869+00:00"
+}

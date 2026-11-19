@@ -1,0 +1,27 @@
+[
+  {
+    "bytes": 8192,
+    "shape": "history",
+    "status": 200,
+    "upstream_bytes": 8018,
+    "upstream_sha256": "064de7dfc264cfa369f0d82de776edd31448694b1b1c30ebe1612dfa74874c9f",
+    "credential_ok": true,
+    "semantic": false,
+    "changed_top_level_fields": [
+      "metadata"
+    ],
+    "missing_top_level_fields": [
+      "metadata"
+    ],
+    "exact": false
+  },
+  {
+    "bytes": 83886080,
+    "shape": "tools",
+    "status": 500,
+    "semantic": false,
+    "changed_top_level_fields": null,
+    "missing_top_level_fields": null,
+    "exact": false
+  }
+]

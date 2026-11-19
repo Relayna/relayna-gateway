@@ -1,0 +1,62 @@
+{
+  "label": "pulse-256",
+  "pods": 2,
+  "rps": 240,
+  "seconds": 60,
+  "seed": 2026,
+  "offered": 14400,
+  "verified": 14399,
+  "good_2s": 14398,
+  "verified_by_end": 14211,
+  "status": {
+    "200": 14399,
+    "502": 1
+  },
+  "errors": {
+    "upstream_connection": 1
+  },
+  "p50_ms": 1033.6918525208384,
+  "p95_ms": 1521.4838818541648,
+  "p99_ms": 1777.8826116249984,
+  "half_p95_ms": [
+    1537.0102947239648,
+    1490.7438535208348
+  ],
+  "elapsed_ms": 60685.3369021875,
+  "dispatch_p99_ms": 1.7154621875015437,
+  "peak_agent_queue": 0,
+  "fleet_peak_rss_mib": 529.84765625,
+  "fleet_peak_sock_mib": 102.2578125,
+  "peak_pod_mib": 362.44140625,
+  "observed_pod_peak_mib": 358.22265625,
+  "fleet_peak_mib": 553.14453125,
+  "fleet_median_mib": 303.322265625,
+  "samples": 294,
+  "sample_skew_max_ms": 14,
+  "sequence": "2ffb4b8f464ce3c838fa3286d13a7d219ecd8e8909b4b31cfde78b6d6685c0ed",
+  "body_classes": {
+    "8192-history": 3600,
+    "524288-retrieval": 1008,
+    "20971520-retrieval": 108,
+    "131072-tools": 1800,
+    "10485760-tools": 180,
+    "5242880-history": 360,
+    "104857600-retrieval": 36,
+    "41943040-history": 72,
+    "83886080-tools": 36
+  },
+  "cpu_cores": {
+    "postgres": 0.8387505500504557,
+    "gateway": 1.7049074591804663,
+    "mock": 0.5654896524342835,
+    "loadgen": 0.24522855630366094,
+    "redis": 0.051738407583251995
+  },
+  "restarts": 0,
+  "container_changed": false,
+  "lost_samples": 0,
+  "termination_reasons": [
+    null,
+    null
+  ]
+}

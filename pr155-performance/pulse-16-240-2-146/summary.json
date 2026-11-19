@@ -1,0 +1,59 @@
+{
+  "label": "pulse-16",
+  "pods": 2,
+  "rps": 240,
+  "seconds": 20,
+  "seed": 146,
+  "offered": 4800,
+  "verified": 2607,
+  "good_2s": 2607,
+  "verified_by_end": 2515,
+  "status": {
+    "200": 2607,
+    "503": 2186,
+    "0": 7
+  },
+  "errors": {
+    "gateway_overloaded": 2186,
+    "write EPIPE": 7
+  },
+  "p50_ms": 811.7632684010459,
+  "p95_ms": 1021.9794602187503,
+  "p99_ms": 1176.9870575572895,
+  "half_p95_ms": [
+    1021.9794602187503,
+    1023.19198106771
+  ],
+  "elapsed_ms": 20222.849312843744,
+  "dispatch_p99_ms": 1.675305890625168,
+  "peak_agent_queue": 0,
+  "fleet_peak_rss_mib": 531.6171875,
+  "fleet_peak_sock_mib": 37.29296875,
+  "peak_pod_mib": 293.78515625,
+  "observed_pod_peak_mib": 278.984375,
+  "fleet_peak_mib": 511.34375,
+  "fleet_median_mib": 131.62109375,
+  "samples": 98,
+  "sample_skew_max_ms": 7,
+  "sequence": "05b50c8b1e10a408cb5a06d9812ccd7113d03750d4d9b990867173c678ecd09e",
+  "body_classes": {
+    "8192-history": 1200,
+    "131072-tools": 600,
+    "5242880-history": 120,
+    "524288-retrieval": 336,
+    "20971520-retrieval": 36,
+    "10485760-tools": 60,
+    "83886080-tools": 12,
+    "104857600-retrieval": 12,
+    "41943040-history": 24
+  },
+  "cpu_cores": {
+    "mock": 0.38393512214657594,
+    "redis": 0.031371145374449336,
+    "postgres": 0.4603719463356027,
+    "gateway": 1.0446751601922308,
+    "loadgen": 0.25234551461754107
+  },
+  "restarts": 0,
+  "container_changed": false
+}

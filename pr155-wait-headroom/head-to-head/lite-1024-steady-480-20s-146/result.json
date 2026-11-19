@@ -1,0 +1,178 @@
+{
+  "engine": "lite",
+  "mib": 1024,
+  "profile": "steady",
+  "rate": 480,
+  "seconds": 20,
+  "seed": 146,
+  "waiters": null,
+  "pod_peak_mib": 1029.1796875,
+  "rss_single_peak_mib": 1033.12890625,
+  "socket_peak_mib": 9.36328125,
+  "oom_kills": 12,
+  "termination": {
+    "gateway-bb4575695-kjxxh": "OOMKilled",
+    "gateway-bb4575695-lqpss": "OOMKilled"
+  },
+  "restarted": 2,
+  "warmup_receipts": [
+    [
+      {
+        "index": -1,
+        "pod": "gateway-bb4575695-kjxxh",
+        "body_class": "8192-history",
+        "body_bytes": 8192,
+        "status": 200,
+        "ms": 72.60995899999989,
+        "ttfb_ms": 71.3772919999999,
+        "dispatch_lag_ms": 0.11295799999993505,
+        "verified": false,
+        "upstream_bytes": 8018,
+        "upstream_sha256": "064de7dfc264cfa369f0d82de776edd31448694b1b1c30ebe1612dfa74874c9f",
+        "credential_ok": true
+      },
+      {
+        "index": -1,
+        "pod": "gateway-bb4575695-lqpss",
+        "body_class": "8192-history",
+        "body_bytes": 8192,
+        "status": 200,
+        "ms": 73.895084,
+        "ttfb_ms": 73.80549999999994,
+        "dispatch_lag_ms": 0.0011660000000119908,
+        "verified": false,
+        "upstream_bytes": 8018,
+        "upstream_sha256": "064de7dfc264cfa369f0d82de776edd31448694b1b1c30ebe1612dfa74874c9f",
+        "credential_ok": true
+      }
+    ],
+    [
+      {
+        "index": -1,
+        "pod": "gateway-bb4575695-lqpss",
+        "body_class": "8192-history",
+        "body_bytes": 8192,
+        "status": 200,
+        "ms": 136.96341699999994,
+        "ttfb_ms": 135.55941699999994,
+        "dispatch_lag_ms": 0.001042000000097687,
+        "verified": false,
+        "upstream_bytes": 8018,
+        "upstream_sha256": "064de7dfc264cfa369f0d82de776edd31448694b1b1c30ebe1612dfa74874c9f",
+        "credential_ok": true
+      },
+      {
+        "index": -1,
+        "pod": "gateway-bb4575695-kjxxh",
+        "body_class": "8192-history",
+        "body_bytes": 8192,
+        "status": 200,
+        "ms": 144.95458299999996,
+        "ttfb_ms": 144.8734159999999,
+        "dispatch_lag_ms": 0.11537500000008549,
+        "verified": false,
+        "upstream_bytes": 8018,
+        "upstream_sha256": "064de7dfc264cfa369f0d82de776edd31448694b1b1c30ebe1612dfa74874c9f",
+        "credential_ok": true
+      }
+    ],
+    [
+      {
+        "index": -1,
+        "pod": "gateway-bb4575695-kjxxh",
+        "body_class": "8192-history",
+        "body_bytes": 8192,
+        "status": 200,
+        "ms": 43.71258399999988,
+        "ttfb_ms": 42.62758399999984,
+        "dispatch_lag_ms": 0.12137500000017099,
+        "verified": false,
+        "upstream_bytes": 8018,
+        "upstream_sha256": "064de7dfc264cfa369f0d82de776edd31448694b1b1c30ebe1612dfa74874c9f",
+        "credential_ok": true
+      },
+      {
+        "index": -1,
+        "pod": "gateway-bb4575695-lqpss",
+        "body_class": "8192-history",
+        "body_bytes": 8192,
+        "status": 200,
+        "ms": 40.90104200000019,
+        "ttfb_ms": 40.802374999999984,
+        "dispatch_lag_ms": 0.0009999999999763531,
+        "verified": false,
+        "upstream_bytes": 8018,
+        "upstream_sha256": "064de7dfc264cfa369f0d82de776edd31448694b1b1c30ebe1612dfa74874c9f",
+        "credential_ok": true
+      }
+    ],
+    [
+      {
+        "index": -1,
+        "pod": "gateway-bb4575695-kjxxh",
+        "body_class": "8192-history",
+        "body_bytes": 8192,
+        "status": 200,
+        "ms": 45.08524999999986,
+        "ttfb_ms": 43.987750000000005,
+        "dispatch_lag_ms": 0.10616600000003018,
+        "verified": false,
+        "upstream_bytes": 8018,
+        "upstream_sha256": "064de7dfc264cfa369f0d82de776edd31448694b1b1c30ebe1612dfa74874c9f",
+        "credential_ok": true
+      },
+      {
+        "index": -1,
+        "pod": "gateway-bb4575695-lqpss",
+        "body_class": "8192-history",
+        "body_bytes": 8192,
+        "status": 200,
+        "ms": 41.83379200000013,
+        "ttfb_ms": 41.73441700000012,
+        "dispatch_lag_ms": 0.001040999999986525,
+        "verified": false,
+        "upstream_bytes": 8018,
+        "upstream_sha256": "064de7dfc264cfa369f0d82de776edd31448694b1b1c30ebe1612dfa74874c9f",
+        "credential_ok": true
+      }
+    ]
+  ],
+  "offered": 9600,
+  "strict": 0,
+  "http200": 146,
+  "statuses": {
+    "200": 146,
+    "0": 9454
+  },
+  "errors": {
+    "body_mismatch": 146,
+    "socket hang up": 248,
+    "read ECONNRESET": 1732,
+    "connect ECONNREFUSED 10.244.0.52:8080": 3863,
+    "connect ECONNREFUSED 10.244.0.53:8080": 3611
+  },
+  "size_counts": {
+    "8192-history": 4800,
+    "524288-retrieval": 1344,
+    "131072-tools": 2400,
+    "5242880-history": 480,
+    "41943040-history": 96,
+    "10485760-tools": 240,
+    "83886080-tools": 48,
+    "20971520-retrieval": 144,
+    "104857600-retrieval": 48
+  },
+  "strict_2s": 0,
+  "strict_p95_ms": null,
+  "http200_p95_ms": 1876.6792765312475,
+  "http200_2s": 146,
+  "elapsed_ms": 19998.543931046872,
+  "peak_client_queue": 0,
+  "lag_p99_ms": 2.760863770834476,
+  "seq": [
+    "ea1b77c2f12b6c54a26210d37fca28c2d6abcbba25792a3411369e9a699f285b",
+    "dc3c0350e6bf313a8bfd08a0636682c22242bea99363c502e729e3e931cd7a66",
+    "80dcae4bcc85825ebe220b4ac118fb5053f93c26b57849d81e96a30b85e3b4b5",
+    "d81713bc2fadad391db5662736ffb125c8c15bb4fa26ac001e5a52bbd06297a5"
+  ]
+}
