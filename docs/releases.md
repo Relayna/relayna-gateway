@@ -10,10 +10,12 @@ backport. Its published driver accepts the fixed SQLite bindings in the lockfile
 [Upstream driver dependencies](https://crates.io/api/v1/crates/sqlx-sqlite/0.9.1/dependencies).
 
 The [upgrade guide](deployment.md#upgrade-to-150) covers rollout and rollback.
-The [release benchmark record](benchmarks/v1.5.0.md) tracks the resource study
-and controlled latency comparison. The
-[mixed-upload evidence](https://github.com/sarattha/relayna-gateway/pull/155#issuecomment-6998339170)
-measured upload waiting on the feature commit before the version and driver changes.
+The [release benchmark](benchmarks/v1.5.0.md) records 265 adaptive resource
+trials and a matched comparison with v1.4.0. The opt-in queue verified all
+24,000 mixed-body uploads at 1.59 seconds p95 with eight active slots and
+192 waiters per pod. Peak gateway-container memory was 406 MiB. The
+[earlier feature study](https://github.com/sarattha/relayna-gateway/pull/155#issuecomment-6998339170)
+also covers sustained traffic and LiteLLM.
 
 ## 1.4.0: Managed Identity project and key discovery
 

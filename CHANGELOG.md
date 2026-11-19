@@ -30,10 +30,13 @@ All notable changes to Relayna Gateway are documented in this file.
 - Upload waiting defaults to disabled. Operators can enable a bounded queue
   per pod. Existing PostgreSQL and Redis state needs no data conversion.
   [Upgrade guide](https://sarattha.github.io/relayna-gateway/deployment/#upgrade-to-150).
-- [Release validation](https://sarattha.github.io/relayna-gateway/benchmarks/v1.5.0/)
-  covers the six-size resource study and controlled forwarding comparison.
-  The [separate PR measurements](https://github.com/sarattha/relayna-gateway/pull/155#issuecomment-6998339170)
-  cover mixed uploads, queue deadlines, socket memory and LiteLLM.
+- The [release benchmark](https://sarattha.github.io/relayna-gateway/benchmarks/v1.5.0/)
+  records 265 resource trials across six body sizes. In the matched 5 MiB test,
+  v1.5.0 and v1.4.0 each verified 48 of 96 requests with eight slots per pod.
+- With 192 waiters per pod, all 24,000 mixed-size burst requests verified across
+  three trials. Verified p95 was 1.59 seconds and the busiest gateway container
+  peaked at 406 MiB. The [earlier feature study](https://github.com/sarattha/relayna-gateway/pull/155#issuecomment-6998339170)
+  covers sustained overload, socket memory and the LiteLLM comparison.
 
 ## 1.4.0 - 2026-11-14
 
