@@ -1,0 +1,135 @@
+{
+  "measured_runtime": "5174ae0610b42c0891b93f54cd7d78a659c0fec8",
+  "pr": "https://github.com/sarattha/relayna-gateway/pull/155",
+  "successful_checks": 17,
+  "skipped_checks": [
+    "deploy"
+  ],
+  "ci": [
+    {
+      "name": "rust",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/sarattha/relayna-gateway/actions/runs/44451500401/job/135316308172",
+      "completed_at": "2026-11-19T03:35:56Z"
+    },
+    {
+      "name": "rust",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/sarattha/relayna-gateway/actions/runs/44451494862/job/135316290221",
+      "completed_at": "2026-11-19T03:34:36Z"
+    },
+    {
+      "name": "docs",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/sarattha/relayna-gateway/actions/runs/44451500511/job/135316308939",
+      "completed_at": "2026-11-19T03:27:48Z"
+    },
+    {
+      "name": "deploy",
+      "conclusion": "SKIPPED",
+      "url": "https://github.com/sarattha/relayna-gateway/actions/runs/44451500511/job/135316618977",
+      "completed_at": "2026-11-19T03:27:48Z"
+    },
+    {
+      "name": "runtime image",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/sarattha/relayna-gateway/actions/runs/44451500401/job/135316308607",
+      "completed_at": "2026-11-19T03:38:15Z"
+    },
+    {
+      "name": "runtime image",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/sarattha/relayna-gateway/actions/runs/44451494862/job/135316290052",
+      "completed_at": "2026-11-19T03:39:33Z"
+    },
+    {
+      "name": "security",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/sarattha/relayna-gateway/actions/runs/44451500401/job/135316308647",
+      "completed_at": "2026-11-19T03:30:42Z"
+    },
+    {
+      "name": "security",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/sarattha/relayna-gateway/actions/runs/44451494862/job/135316290206",
+      "completed_at": "2026-11-19T03:34:34Z"
+    },
+    {
+      "name": "admin portal",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/sarattha/relayna-gateway/actions/runs/44451500401/job/135316308494",
+      "completed_at": "2026-11-19T03:28:02Z"
+    },
+    {
+      "name": "admin portal",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/sarattha/relayna-gateway/actions/runs/44451494862/job/135316290182",
+      "completed_at": "2026-11-19T03:28:15Z"
+    },
+    {
+      "name": "benchmark CLI",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/sarattha/relayna-gateway/actions/runs/44451500401/job/135316308598",
+      "completed_at": "2026-11-19T03:27:15Z"
+    },
+    {
+      "name": "benchmark CLI",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/sarattha/relayna-gateway/actions/runs/44451494862/job/135316290097",
+      "completed_at": "2026-11-19T03:27:12Z"
+    },
+    {
+      "name": "monitoring smoke",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/sarattha/relayna-gateway/actions/runs/44451500401/job/135316308499",
+      "completed_at": "2026-11-19T03:40:11Z"
+    },
+    {
+      "name": "monitoring smoke",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/sarattha/relayna-gateway/actions/runs/44451494862/job/135316289837",
+      "completed_at": "2026-11-19T03:39:50Z"
+    },
+    {
+      "name": "repository metadata",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/sarattha/relayna-gateway/actions/runs/44451500401/job/135316308600",
+      "completed_at": "2026-11-19T03:27:08Z"
+    },
+    {
+      "name": "repository metadata",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/sarattha/relayna-gateway/actions/runs/44451494862/job/135316290114",
+      "completed_at": "2026-11-19T03:27:07Z"
+    },
+    {
+      "name": "docs",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/sarattha/relayna-gateway/actions/runs/44451500401/job/135316308565",
+      "completed_at": "2026-11-19T03:27:39Z"
+    },
+    {
+      "name": "docs",
+      "conclusion": "SUCCESS",
+      "url": "https://github.com/sarattha/relayna-gateway/actions/runs/44451494862/job/135316290158",
+      "completed_at": "2026-11-19T03:27:31Z"
+    }
+  ],
+  "local_checks": {
+    "nextest_passed": 571,
+    "benchmark_harness_tests_passed": 29,
+    "workspace_build": "passed",
+    "code_change_verification": "passed",
+    "strict_docs_and_metadata": "passed",
+    "admin_ui_build_tests_typecheck_and_coverage": "passed",
+    "postgres_upgrade": {
+      "from": "1.4.0",
+      "to": "1.5.0",
+      "candidate_commit": "5174ae0610b42c0891b93f54cd7d78a659c0fec8",
+      "readiness": 200,
+      "postgres_successful_migrations": 45,
+      "ordered_migration_history_sha256": "861914d64eda7c113b6b07a86a1dcfe5277e52b1620a56f8a84e594edc9b079e",
+      "identical_after_upgrade": true
+    }
+  }
+}

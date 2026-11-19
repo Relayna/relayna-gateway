@@ -1,0 +1,210 @@
+{
+  "commit": "5174ae0610b42c0891b93f54cd7d78a659c0fec8",
+  "image_id": "sha256:505b89c1002d90c233fc313688504d17aee9fdad461c058b4c6cb12ee8ba4e16",
+  "version": "1.5.0",
+  "arch": "arm64",
+  "offered": 24000,
+  "verified": 24000,
+  "statuses": {
+    "200": 24000
+  },
+  "sizes": {
+    "8192-history": 12000,
+    "131072-tools": 6000,
+    "524288-retrieval": 3360,
+    "5242880-history": 1200,
+    "20971520-retrieval": 360,
+    "104857600-retrieval": 120,
+    "10485760-tools": 600,
+    "83886080-tools": 120,
+    "41943040-history": 240
+  },
+  "pooled_verified_latency_ms": {
+    "50": 1064.8842900416676,
+    "95": 1588.8106787239594,
+    "99": 1819.4725861718725
+  },
+  "peak_gateway_container_mib": 405.984375,
+  "worst_elapsed_s": 60.76554126642188,
+  "trials": [
+    {
+      "label": "pulse-192",
+      "pods": 2,
+      "rps": 240,
+      "seconds": 20,
+      "seed": 146,
+      "offered": 4800,
+      "verified": 4800,
+      "good_2s": 4798,
+      "verified_by_end": 4646,
+      "status": {
+        "200": 4800
+      },
+      "errors": {},
+      "p50_ms": 1075.4421307604134,
+      "p95_ms": 1579.3388443489566,
+      "p99_ms": 1757.1865340416698,
+      "half_p95_ms": [
+        1564.1595054270838,
+        1592.598501692708
+      ],
+      "elapsed_ms": 20623.825848015622,
+      "dispatch_p99_ms": 2.236259015626274,
+      "peak_agent_queue": 0,
+      "fleet_peak_rss_mib": 446.078125,
+      "fleet_peak_sock_mib": 68.578125,
+      "peak_pod_mib": 339.24609375,
+      "observed_pod_peak_mib": 326.8046875,
+      "fleet_peak_mib": 506.59765625,
+      "fleet_median_mib": 279.86328125,
+      "samples": 99,
+      "sample_skew_max_ms": 45,
+      "sequence": "05b50c8b1e10a408cb5a06d9812ccd7113d03750d4d9b990867173c678ecd09e",
+      "body_classes": {
+        "8192-history": 1200,
+        "131072-tools": 600,
+        "5242880-history": 120,
+        "524288-retrieval": 336,
+        "20971520-retrieval": 36,
+        "10485760-tools": 60,
+        "83886080-tools": 12,
+        "104857600-retrieval": 12,
+        "41943040-history": 24
+      },
+      "cpu_cores": {
+        "gateway": 1.7381003449975359,
+        "mock": 0.6238122720551996,
+        "postgres": 0.8147465253819615,
+        "redis": 0.052159980285855105,
+        "loadgen": 0.2603141941843273
+      },
+      "restarts": 0,
+      "container_changed": false,
+      "lost_samples": 0,
+      "termination_reasons": [
+        null,
+        null
+      ]
+    },
+    {
+      "label": "pulse-192",
+      "pods": 2,
+      "rps": 240,
+      "seconds": 20,
+      "seed": 817,
+      "offered": 4800,
+      "verified": 4800,
+      "good_2s": 4788,
+      "verified_by_end": 4668,
+      "status": {
+        "200": 4800
+      },
+      "errors": {},
+      "p50_ms": 1062.0783180364597,
+      "p95_ms": 1652.7419996145836,
+      "p99_ms": 1839.86510436979,
+      "half_p95_ms": [
+        1714.9770048385362,
+        1467.7319609479164
+      ],
+      "elapsed_ms": 20441.241704484375,
+      "dispatch_p99_ms": 2.1616040364569926,
+      "peak_agent_queue": 0,
+      "fleet_peak_rss_mib": 559.52734375,
+      "fleet_peak_sock_mib": 58.3046875,
+      "peak_pod_mib": 405.984375,
+      "observed_pod_peak_mib": 353.86328125,
+      "fleet_peak_mib": 548.53515625,
+      "fleet_median_mib": 290.76171875,
+      "samples": 99,
+      "sample_skew_max_ms": 14,
+      "sequence": "64688fcca57954d260a9787bb3731e198b70c5d0cb353efe9a1bb8157c26a46e",
+      "body_classes": {
+        "8192-history": 1200,
+        "524288-retrieval": 336,
+        "131072-tools": 600,
+        "83886080-tools": 12,
+        "20971520-retrieval": 36,
+        "5242880-history": 120,
+        "104857600-retrieval": 12,
+        "10485760-tools": 60,
+        "41943040-history": 24
+      },
+      "cpu_cores": {
+        "gateway": 1.7657378980577736,
+        "mock": 0.6097810805481612,
+        "postgres": 0.8538138617765947,
+        "redis": 0.05320270137040323,
+        "loadgen": 0.26815458937198067
+      },
+      "restarts": 0,
+      "container_changed": false,
+      "lost_samples": 0,
+      "termination_reasons": [
+        null,
+        null
+      ]
+    },
+    {
+      "label": "pulse-192",
+      "pods": 2,
+      "rps": 240,
+      "seconds": 60,
+      "seed": 2026,
+      "offered": 14400,
+      "verified": 14400,
+      "good_2s": 14369,
+      "verified_by_end": 14187,
+      "status": {
+        "200": 14400
+      },
+      "errors": {},
+      "p50_ms": 1062.0089633906246,
+      "p95_ms": 1575.2947187552054,
+      "p99_ms": 1818.7582848802049,
+      "half_p95_ms": [
+        1583.139912421877,
+        1554.196130755212
+      ],
+      "elapsed_ms": 60765.541266421875,
+      "dispatch_p99_ms": 1.7644794479165284,
+      "peak_agent_queue": 0,
+      "fleet_peak_rss_mib": 498.8125,
+      "fleet_peak_sock_mib": 91.40625,
+      "peak_pod_mib": 357.94921875,
+      "observed_pod_peak_mib": 345.15625,
+      "fleet_peak_mib": 513.171875,
+      "fleet_median_mib": 293.95703125,
+      "samples": 294,
+      "sample_skew_max_ms": 12,
+      "sequence": "2ffb4b8f464ce3c838fa3286d13a7d219ecd8e8909b4b31cfde78b6d6685c0ed",
+      "body_classes": {
+        "8192-history": 3600,
+        "524288-retrieval": 1008,
+        "20971520-retrieval": 108,
+        "131072-tools": 1800,
+        "10485760-tools": 180,
+        "5242880-history": 360,
+        "104857600-retrieval": 36,
+        "41943040-history": 72,
+        "83886080-tools": 36
+      },
+      "cpu_cores": {
+        "gateway": 1.763827417279715,
+        "mock": 0.5684596212845974,
+        "postgres": 0.8395241975390096,
+        "redis": 0.05331065879325702,
+        "loadgen": 0.24543626496882526
+      },
+      "restarts": 0,
+      "container_changed": false,
+      "lost_samples": 0,
+      "termination_reasons": [
+        null,
+        null
+      ]
+    }
+  ],
+  "previous_evidence": "https://github.com/sarattha/relayna-gateway/tree/24d2d2975277aa0db914242fe1605dcda08c9e9e",
+  "method": "Two fresh native arm64 gateway pods per trial, each 2 CPU/1 GiB, 512 MiB serialized-body budget, 8 slots, 192 waiters, 10s wait timeout; 240 arrivals in the first 250 ms/second. Nine JSON sizes 8 KiB to 100 MiB; identical per-trial sequence hashes to earlier feature candidate. Mock upstream paused reads 250 ms and delayed responses 500 ms. Verified requires exact uploaded length, SHA-256, service credential, and HTTP 200. Pooled verified latency includes dispatch lag. Peak container figures exclude the pod sandbox."
+}

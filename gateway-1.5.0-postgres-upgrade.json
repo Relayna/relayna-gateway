@@ -1,0 +1,9 @@
+{
+  "from": "1.4.0",
+  "to": "1.5.0",
+  "candidate_commit": "5174ae0610b42c0891b93f54cd7d78a659c0fec8",
+  "readiness": 200,
+  "postgres_successful_migrations": 45,
+  "ordered_migration_history_sha256": "861914d64eda7c113b6b07a86a1dcfe5277e52b1620a56f8a84e594edc9b079e",
+  "identical_after_upgrade": true
+}

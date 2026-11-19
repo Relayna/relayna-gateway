@@ -1,0 +1,27 @@
+{
+  "runtime_and_harness_commit": "5174ae0610b42c0891b93f54cd7d78a659c0fec8",
+  "source": "https://github.com/sarattha/relayna-gateway/tree/5174ae0610b42c0891b93f54cd7d78a659c0fec8/benches/body-admission",
+  "sha256": {
+    "analysis_benchmark.py": "d933758b57e21eb2306da7e5db70f63f74bdf6de4fb42ffe11a002c626645b91",
+    "benchmark.py": "37b017f4ba1998471c944937eaa9620d219b0a48fe319e5bbb8205c8aadbae4a",
+    "capacity_report.py": "7349bcb4959648ad743b167472570d6ec47d3a5540ae6f0f72b8eccb100113fb",
+    "capacity_sweep.py": "85e2cf1a5565c25f881e109a52c727f3eb9d1f9e876bfde16bfe65ad4c6d14ab",
+    "html_report.py": "49f53b81a8ebb44cdb32bb71f71e9ea5509532aadbd4fc5aca83eeea07272276",
+    "plot.py": "f2fe631c87919878c647cd063df519ce8de90e2e18069f25d5766863f7939cb3",
+    "run.py": "5d8a9801e60d1786644cabac8ec65dbfa849800b4dd3f61e9d1751ac102104b1",
+    "summarize.py": "e1a151ee55ab8de246cc5842d5f0fef6c08495611a658083103f377eab3faea8",
+    "summarize_probes.py": "ab6ed60e0d8d3df631556604f176b3dd6a3e8a3543b57d4d124d2b95d3dd5dea",
+    "test_benchmark.py": "3df4226ad8ef6c4f8908e7d4ce067eabddb2ec42ab473e8785f5cb5020ae752a",
+    "mixed_workload.mjs": "370c33e23edad8d3259e45ce54d3b43d60254304863bb2654d4ec9b8396f1584",
+    "mixed_workload.test.mjs": "f6d1b3917266d45a93d11d1246ba939a75e2cebdf3cb34b70b75d105e89f0ab4",
+    "mock.mjs": "564c25aa58de00b2436cf3a16bde0ad8ea459c59a17eb634e571d332aee3aa13",
+    "workload.mjs": "e325faa4119cd222d7aeb31db011b20371865ea5b7da6fe3582a7c564fd0c46b"
+  },
+  "build_and_workflow_sha256": {
+    "Dockerfile": "1d74938e9a6ac5e05f22607e30553ba81de422cd22683c83146b4a67054a09a8",
+    "Cargo.lock": "1c463bf560c66edb846f94b8be053c86ce6c0a5ddc734715643a7c424c978bd6",
+    "Cargo.toml": "3b626090577ed07a4370c52cca4383647992eda7b5a39ed7c30cfa7c4d61e5f2",
+    "scripts/bench-body-admission": "d7e4b4bb08aa17854022f442c1688eecded4a6edac1c7105bfebd2e74d91bb7b",
+    ".github/workflows/body-admission-benchmark.yml": "6636d75b4674243b6da74d6b88a34c270a1efd2d23a5baf647628bb4670d16cf"
+  }
+}
