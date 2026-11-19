@@ -3816,7 +3816,8 @@ impl AdminProviderConfigStore for PostgresStore {
                 updated_at
             "#
         );
-        let row = sqlx::query(&query)
+        // The only SQL fragment comes from the two fixed conflict targets above.
+        let row = sqlx::query(sqlx::AssertSqlSafe(query))
             .bind(scope)
             .bind(key_id)
             .bind(project_id)
@@ -6673,13 +6674,13 @@ fn is_unique_violation_on(error: &sqlx::Error, constraint: &str) -> bool {
     })
 }
 
-fn append_usage_filters<'a>(builder: &mut QueryBuilder<'a, Postgres>, query: &'a UsageQuery) {
+fn append_usage_filters(builder: &mut QueryBuilder<Postgres>, query: &UsageQuery) {
     append_usage_filters_with_alias(builder, query, "");
 }
 
-fn append_usage_filters_with_alias<'a>(
-    builder: &mut QueryBuilder<'a, Postgres>,
-    query: &'a UsageQuery,
+fn append_usage_filters_with_alias(
+    builder: &mut QueryBuilder<Postgres>,
+    query: &UsageQuery,
     alias: &str,
 ) {
     let column = |name: &str| {
@@ -6772,7 +6773,7 @@ fn append_usage_filters_with_alias<'a>(
     }
 }
 
-fn append_usage_export_order(builder: &mut QueryBuilder<'_, Postgres>) {
+fn append_usage_export_order(builder: &mut QueryBuilder<Postgres>) {
     builder.push(" ORDER BY u.created_at ASC, u.request_id ASC, u.id ASC");
 }
 
@@ -6844,7 +6845,7 @@ impl UsageCursor {
     }
 }
 
-fn append_usage_snapshot(builder: &mut QueryBuilder<'_, Postgres>, snapshot: &str, alias: &str) {
+fn append_usage_snapshot(builder: &mut QueryBuilder<Postgres>, snapshot: &str, alias: &str) {
     // Historical NULL markers predate the migration. New markers retain the
     // full insertion XID across epoch wrap and later reporting-cost updates.
     builder.push(format!(
@@ -6854,13 +6855,13 @@ fn append_usage_snapshot(builder: &mut QueryBuilder<'_, Postgres>, snapshot: &st
     builder.push("::pg_snapshot))");
 }
 
-fn usage_rows_page_query<'a>(
-    query: &'a UsageQuery,
+fn usage_rows_page_query(
+    query: &UsageQuery,
     export: bool,
-    cursor: Option<&'a UsageCursor>,
+    cursor: Option<&UsageCursor>,
     limit: i64,
     offset: i64,
-) -> QueryBuilder<'a, Postgres> {
+) -> QueryBuilder<Postgres> {
     let descending = !export && usage_sort_desc(query.sort_order.as_deref());
     let mut builder =
         QueryBuilder::<Postgres>::new("WITH page AS MATERIALIZED (SELECT u.* FROM usage_events u");
@@ -7018,7 +7019,7 @@ async fn usage_rows_page(
 
 async fn usage_export_rows_from_query(
     pool: &PgPool,
-    mut builder: QueryBuilder<'_, Postgres>,
+    mut builder: QueryBuilder<Postgres>,
 ) -> GatewayResult<Vec<(Uuid, UsageExportRow)>> {
     builder
         .build()
@@ -7410,9 +7411,9 @@ async fn enrich_usage_summary(
     Ok(())
 }
 
-fn append_guardrail_event_filters<'a>(
-    builder: &mut QueryBuilder<'a, Postgres>,
-    query: &'a GuardrailEventQuery,
+fn append_guardrail_event_filters(
+    builder: &mut QueryBuilder<Postgres>,
+    query: &GuardrailEventQuery,
 ) {
     builder.push(" WHERE true");
     if let Some(from) = query.from {
@@ -8803,7 +8804,6 @@ mod tests {
     use chrono::Duration;
     use gateway_core::PolicyLookup;
     use http::Method;
-    use sqlx::Execute;
 
     #[test]
     fn profile_write_transport_errors_remain_unavailable() {
@@ -8846,7 +8846,7 @@ mod tests {
         };
         append_usage_filters_with_alias(&mut builder, &query, "u");
 
-        let sql = builder.build().sql().to_owned();
+        let sql = builder.sql().as_str().to_owned();
 
         assert!(sql.contains(
             "WHERE true AND u.project_id = $1 AND u.key_id = $2 AND u.route = $3 AND u.estimated_cost >= $4"
@@ -8861,8 +8861,8 @@ mod tests {
         append_usage_export_order(&mut builder);
 
         assert!(builder
-            .build()
             .sql()
+            .as_str()
             .ends_with("ORDER BY u.created_at ASC, u.request_id ASC, u.id ASC"));
     }
 
@@ -8975,16 +8975,17 @@ mod tests {
             .unwrap();
         let query = UsageQuery::default();
         let mut builder = usage_rows_page_query(&query, false, None, 50, 0);
-        let mut statement = builder.build();
         let sql = format!(
             "EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) {}",
-            statement.sql()
+            builder.sql().as_str()
         );
-        let arguments = statement.take_arguments().unwrap().unwrap();
-        let plan: serde_json::Value = sqlx::query_scalar_with(&sql, arguments)
-            .fetch_one(&mut *connection)
-            .await
-            .unwrap();
+        let arguments = builder.build().take_arguments().unwrap().unwrap();
+        // The prefix and query structure are internal; filter values stay bound.
+        let plan: serde_json::Value =
+            sqlx::query_scalar_with(sqlx::AssertSqlSafe(sql.as_str()), arguments)
+                .fetch_one(&mut *connection)
+                .await
+                .unwrap();
         fn nodes<'a>(node: &'a serde_json::Value, result: &mut Vec<&'a serde_json::Value>) {
             result.push(node);
             if let Some(children) = node["Plans"].as_array() {
@@ -9040,7 +9041,7 @@ mod tests {
         };
         append_usage_filters_with_alias(&mut builder, &query, "u");
 
-        let sql = builder.build().sql().to_owned();
+        let sql = builder.sql().as_str().to_owned();
 
         assert!(sql.contains(
             "md5(COALESCE(u.endpoint_template, u.endpoint_path)) = md5($1) AND COALESCE(u.endpoint_template, u.endpoint_path) = $2"
@@ -9145,7 +9146,7 @@ mod tests {
         };
         let mut builder = QueryBuilder::<Postgres>::new("SELECT * FROM usage_events");
         append_usage_filters(&mut builder, &query);
-        let sql = builder.build().sql().to_owned();
+        let sql = builder.sql().as_str().to_owned();
         for column in [
             "created_at",
             "project_id",
@@ -9178,7 +9179,7 @@ mod tests {
         };
         let mut builder = QueryBuilder::<Postgres>::new("SELECT * FROM guardrail_events");
         append_guardrail_event_filters(&mut builder, &guardrail_query);
-        let sql = builder.build().sql().to_owned();
+        let sql = builder.sql().as_str().to_owned();
         for column in [
             "created_at",
             "project_id",

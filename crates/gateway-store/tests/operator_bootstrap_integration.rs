@@ -12,7 +12,7 @@ async fn concurrent_operator_bootstrap_keeps_the_winner_without_restarting() {
     };
     let admin = PgPoolOptions::new().connect(&database_url).await.unwrap();
     let schema = format!("operator_bootstrap_{}", Uuid::new_v4().simple());
-    sqlx::query(&format!("CREATE SCHEMA {schema}"))
+    sqlx::query(sqlx::AssertSqlSafe(format!("CREATE SCHEMA {schema}")))
         .execute(&admin)
         .await
         .unwrap();
@@ -22,7 +22,9 @@ async fn concurrent_operator_bootstrap_keeps_the_winner_without_restarting() {
         .after_connect(move |connection, _| {
             let sql = search_path.clone();
             Box::pin(async move {
-                sqlx::query(&sql).execute(connection).await?;
+                sqlx::query(sqlx::AssertSqlSafe(sql))
+                    .execute(connection)
+                    .await?;
                 Ok(())
             })
         })
@@ -56,9 +58,9 @@ async fn concurrent_operator_bootstrap_keeps_the_winner_without_restarting() {
         // The winner remains uncommitted so the contender's snapshot sees no
         // active token, then waits on the conflicting unique index entry.
         let mut winner = admin.begin().await.unwrap();
-        sqlx::query(&format!(
+        sqlx::query(sqlx::AssertSqlSafe(format!(
             "INSERT INTO {schema}.operator_tokens (token_prefix, token_hash) VALUES ($1, $2)"
-        ))
+        )))
         .bind(&configured.token_prefix)
         .bind(&configured.token_hash)
         .execute(&mut *winner)
@@ -116,7 +118,7 @@ async fn concurrent_operator_bootstrap_keeps_the_winner_without_restarting() {
         GatewayError::StoreUnavailable
     );
     store.pool().close().await;
-    sqlx::query(&format!("DROP SCHEMA {schema} CASCADE"))
+    sqlx::query(sqlx::AssertSqlSafe(format!("DROP SCHEMA {schema} CASCADE")))
         .execute(&admin)
         .await
         .unwrap();

@@ -120,6 +120,11 @@ The Rust verification helper runs formatting, workspace Clippy/tests and the req
 
 ## Releases and performance evidence
 
+Version **1.5.0** adds [bounded waiting for upload bursts](docs/operations.md#waiting-for-upload-capacity)
+and corrects HTTP/1.1 framing for buffered requests eligible for guardrail rewrites.
+See the [upgrade guide](docs/deployment.md#upgrade-to-150) and
+[versioned benchmarks](docs/benchmarks/v1.5.0.md).
+
 Version **1.4.0** adds [Managed Identity project and virtual-key discovery](docs/operations/entra-portal-and-owner-monitoring.md#discover-projects-keys-and-usage-with-a-bearer-token).
 Approved apps discover exact authorized projects, list safe current key metadata,
 and retrieve usage with returned UUIDs. Portal responses and PostgreSQL/Redis

@@ -1122,9 +1122,9 @@ async fn unverified_bearer_regressions(
         "revoked_at = now()",
         "expires_at = now() - interval '1 hour'",
     ] {
-        sqlx::query(&format!(
+        sqlx::query(sqlx::AssertSqlSafe(format!(
             "UPDATE api_keys SET {assignment} WHERE key_prefix = $1"
-        ))
+        )))
         .bind(&material.key_prefix)
         .execute(store.pool())
         .await

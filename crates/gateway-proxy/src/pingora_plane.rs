@@ -346,8 +346,14 @@ impl<S, R> RelaynaPingoraProxy<S, R> {
         }
         let expected =
             header_value(session.req_header(), "content-length").and_then(|v| v.parse().ok());
+        let timeout = self.config.body_admission.size_policy().map_or(
+            crate::body_admission::DEFAULT_BODY_UPLOAD_TIMEOUT,
+            |policy| policy.upload_timeout,
+        );
         if let Some(slot) = queue.try_slot(expected) {
-            ctx.upload_slot = Some(slot);
+            ctx.upload_slot = Some(crate::body_admission::HeaderUploadReservation::new(
+                slot, timeout,
+            ));
             return Ok(false);
         }
         // Authentication below uses a fresh snapshot if configuration changes during the wait.
@@ -373,7 +379,9 @@ impl<S, R> RelaynaPingoraProxy<S, R> {
         };
         match result {
             Ok(slot) => {
-                ctx.upload_slot = Some(slot);
+                ctx.upload_slot = Some(crate::body_admission::HeaderUploadReservation::new(
+                    slot, timeout,
+                ));
                 Ok(false)
             }
             Err(error) => {
@@ -491,7 +499,7 @@ pub struct PingoraContext {
     policy: Option<KeyPolicy>,
     request_rewriter: Option<BoundedBodyRewriter>,
     response_rewriter: Option<BoundedBodyRewriter>,
-    upload_slot: Option<crate::body_admission::UploadSlot>,
+    upload_slot: Option<crate::body_admission::HeaderUploadReservation>,
     request_body_lease: Option<BodyAdmissionLease>,
     response_body_lease: Option<BodyAdmissionLease>,
     upstream_lease: Option<UpstreamLease>,
@@ -1454,6 +1462,17 @@ where
     where
         Self::CTX: Send + Sync,
     {
+        if let Some(reservation) = &ctx.upload_slot {
+            if reservation.expired() {
+                ctx.guardrail_error = Some(GatewayError::GatewayOverloaded);
+                return Err(PingoraError::new(ErrorType::InternalError));
+            }
+            if end_of_stream || body.as_ref().is_some_and(|chunk| !chunk.is_empty()) {
+                if let Some(original) = ctx.original_upload_read_timeout.take() {
+                    session.set_read_timeout(original);
+                }
+            }
+        }
         if end_of_stream && body.as_ref().is_none_or(Bytes::is_empty) {
             // A chunked upload can prove empty only at EOF.
             ctx.upload_slot.take();
@@ -1522,11 +1541,17 @@ where
         let chunk_len = body.as_ref().map_or(0, Bytes::len);
         if chunk_len > 0 {
             if ctx.request_body_lease.is_none() {
-                match self
-                    .config
-                    .body_admission
-                    .acquire_with_slot(rewriter.expected_length(), ctx.upload_slot.take())
-                {
+                let lease = ctx
+                    .upload_slot
+                    .take()
+                    .map(|slot| slot.into_slot())
+                    .transpose()
+                    .and_then(|slot| {
+                        self.config
+                            .body_admission
+                            .acquire_with_slot(rewriter.expected_length(), slot)
+                    });
+                match lease {
                     Ok(lease) => ctx.request_body_lease = Some(lease),
                     Err(error) => {
                         ctx.guardrail_error = Some(error.clone());
@@ -2349,6 +2374,17 @@ where
     where
         Self::CTX: Send + Sync,
     {
+        if let Some(reservation) = &ctx.upload_slot {
+            if reservation.expired() {
+                ctx.guardrail_error = Some(GatewayError::GatewayOverloaded);
+                return Err(PingoraError::new(ErrorType::InternalError));
+            }
+            let remaining = reservation.remaining();
+            let original = *ctx
+                .original_upload_read_timeout
+                .get_or_insert_with(|| session.get_read_timeout());
+            session.set_read_timeout(Some(original.map_or(remaining, |old| old.min(remaining))));
+        }
         let upstream = self.upstream_for(ctx).unwrap_or(&self.config.litellm);
         if ctx.socket && ctx.direct_litellm_passthrough {
             // Strip LiteLLM's alternate socket credential before injecting any
@@ -3079,6 +3115,12 @@ where
     where
         Self::CTX: Send + Sync,
     {
+        if error.esource() == &ErrorSource::Downstream
+            && error.etype() == &ErrorType::ReadTimedout
+            && ctx.upload_slot.as_ref().is_some_and(|slot| slot.expired())
+        {
+            ctx.guardrail_error = Some(GatewayError::GatewayOverloaded);
+        }
         if ctx.guardrail_error.is_none() {
             let (source, code) = traffic_transport_error(error);
             ctx.traffic.fail(source, code);

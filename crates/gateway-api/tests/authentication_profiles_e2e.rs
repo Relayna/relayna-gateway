@@ -27,7 +27,7 @@ async fn explicit_profiles_enforce_bindings_across_aliases_and_forwarding_modes(
     };
     let parent = sqlx::PgPool::connect(&database).await.unwrap();
     let name = format!("profiles_{}", Uuid::new_v4().simple());
-    sqlx::query(&format!("CREATE DATABASE {name}"))
+    sqlx::query(sqlx::AssertSqlSafe(format!("CREATE DATABASE {name}")))
         .execute(&parent)
         .await
         .unwrap();
@@ -404,11 +404,13 @@ async fn explicit_profiles_enforce_bindings_across_aliases_and_forwarding_modes(
         ("expires_at", "now()-interval '1 minute'"),
         ("revoked_at", "now()"),
     ] {
-        sqlx::query(&format!("UPDATE api_keys SET {column}={value} WHERE id=$1"))
-            .bind(ids[2])
-            .execute(store.pool())
-            .await
-            .unwrap();
+        sqlx::query(sqlx::AssertSqlSafe(format!(
+            "UPDATE api_keys SET {column}={value} WHERE id=$1"
+        )))
+        .bind(ids[2])
+        .execute(store.pool())
+        .await
+        .unwrap();
         assert_eq!(
             request("/responses", 2, None)
                 .send()
@@ -417,14 +419,14 @@ async fn explicit_profiles_enforce_bindings_across_aliases_and_forwarding_modes(
                 .status(),
             401
         );
-        sqlx::query(&format!(
+        sqlx::query(sqlx::AssertSqlSafe(format!(
             "UPDATE api_keys SET {column}={} WHERE id=$1",
             if column == "disabled" {
                 "false"
             } else {
                 "NULL"
             }
-        ))
+        )))
         .bind(ids[2])
         .execute(store.pool())
         .await
@@ -935,8 +937,10 @@ async fn explicit_profiles_enforce_bindings_across_aliases_and_forwarding_modes(
             .unwrap_err(),
         GatewayError::StoreUnavailable
     );
-    sqlx::query(&format!("DROP DATABASE {name} WITH (FORCE)"))
-        .execute(&parent)
-        .await
-        .unwrap();
+    sqlx::query(sqlx::AssertSqlSafe(format!(
+        "DROP DATABASE {name} WITH (FORCE)"
+    )))
+    .execute(&parent)
+    .await
+    .unwrap();
 }

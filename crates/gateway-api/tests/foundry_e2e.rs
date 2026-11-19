@@ -151,7 +151,7 @@ async fn foundry_registered_agents_and_passthrough_are_governed_and_stream_witho
     };
     let parent = sqlx::PgPool::connect(&database).await.unwrap();
     let name = format!("foundry_{}", Uuid::new_v4().simple());
-    sqlx::query(&format!("CREATE DATABASE {name}"))
+    sqlx::query(sqlx::AssertSqlSafe(format!("CREATE DATABASE {name}")))
         .execute(&parent)
         .await
         .unwrap();
@@ -1154,9 +1154,11 @@ async fn foundry_registered_agents_and_passthrough_are_governed_and_stream_witho
         assert!(!serialized.contains(secret));
     }
     store.pool().close().await;
-    sqlx::query(&format!("DROP DATABASE {name} WITH (FORCE)"))
-        .execute(&parent)
-        .await
-        .unwrap();
+    sqlx::query(sqlx::AssertSqlSafe(format!(
+        "DROP DATABASE {name} WITH (FORCE)"
+    )))
+    .execute(&parent)
+    .await
+    .unwrap();
     std::env::remove_var("GATEWAY_FOUNDRY_MOCK_TOKEN_ENDPOINT");
 }

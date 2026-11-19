@@ -7,18 +7,15 @@ members = [
     "crates/gateway-telemetry",
 ]
 resolver = "2"
-exclude = ["vendor/pingora-header-serde", "vendor/sqlx-sqlite"]
+exclude = ["vendor/pingora-header-serde"]
 
 [patch.crates-io]
 # Pingora 0.9's header codec still pins vulnerable pre-0.14 zstd bindings.
 # Keep upstream codec code unchanged; update only its compression dependencies.
 pingora-header-serde = { path = "vendor/pingora-header-serde" }
-# Keep SQLx 0.8's optional SQLite driver source unchanged while permitting
-# bindings with the SQLite security fixes; Gateway runtime uses PostgreSQL.
-sqlx-sqlite = { path = "vendor/sqlx-sqlite" }
 
 [workspace.package]
-version = "1.4.0"
+version = "1.5.0"
 edition = "2021"
 license = "Apache-2.0"
 repository = "https://github.com/sarattha/relayna-gateway"
@@ -49,7 +46,7 @@ rustls = { version = "0.23.46", default-features = false, features = ["ring", "s
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = { version = "1.0.145", features = ["float_roundtrip", "raw_value"] }
 sha2 = "0.10.9"
-sqlx = { version = "0.8.6", default-features = false, features = ["runtime-tokio-rustls", "postgres", "uuid", "chrono", "migrate", "macros"] }
+sqlx = { version = "0.9.1", default-features = false, features = ["runtime-tokio", "tls-rustls-ring-webpki", "postgres", "uuid", "chrono", "migrate", "macros"] }
 thiserror = "2.0.17"
 tokio = { version = "1.48.0", features = ["macros", "rt-multi-thread", "signal", "net"] }
 tower = "0.5.2"

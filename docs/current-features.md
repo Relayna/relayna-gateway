@@ -1,5 +1,12 @@
 # Current Feature Highlights
 
+## Bounded waiting for uploads (1.5.0)
+
+When all upload slots are in use, a pod can hold additional requests at their
+headers until an eligible slot opens or the wait deadline expires. Operators
+control the queue length and deadline independently. Waiting defaults to
+disabled. [Configuration and metrics](operations.md#waiting-for-upload-capacity).
+
 ## Managed Identity project and key discovery (1.4.0)
 
 Approved monitoring applications can list authorized projects and their safe

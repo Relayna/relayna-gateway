@@ -1,5 +1,20 @@
 # Releases
 
+## 1.5.0 bounded upload waiting and HTTP/1.1 forwarding
+
+Gateway can hold a bounded number of uploads at their headers when another
+request occupies the last eligible slot. Waiting is opt-in. HTTP/1.1 upstreams
+receive valid framing when guardrails can change the size of a buffered body.
+The release upgrades SQLx to 0.9.1 and removes the temporary SQLite driver
+backport. Its published driver accepts the fixed SQLite bindings in the lockfile.
+[Upstream driver dependencies](https://crates.io/api/v1/crates/sqlx-sqlite/0.9.1/dependencies).
+
+The [upgrade guide](deployment.md#upgrade-to-150) covers rollout and rollback.
+The [release benchmark record](benchmarks/v1.5.0.md) tracks the resource study
+and controlled latency comparison. The
+[mixed-upload evidence](https://github.com/sarattha/relayna-gateway/pull/155#issuecomment-6998339170)
+measured upload waiting on the feature commit before the version and driver changes.
+
 ## 1.4.0: Managed Identity project and key discovery
 
 Version **1.4.0** lets approved monitoring applications discover authorized
@@ -274,20 +289,11 @@ avoids changing the required lint baseline whenever the stable channel moves.
 
 1. Update workspace crate versions.
 
-   At the next version bump after 1.3.0, and every bump until removal, recheck
-   the temporary `sqlx-sqlite` backport against published SQLx releases. Record
-   the version checked and the retain/remove decision in the release PR. Once
-   a compatible release accepts patched SQLite bindings, upgrade and remove
-   the vendor directory, Cargo patch/exclusion and dedicated verification
-   references; regenerate the lockfile and pass the full dependency audit and
-   Gateway tests. The exact cleanup procedure and ownership are documented in
-   [the patch maintenance note](https://github.com/sarattha/relayna-gateway/blob/main/vendor/sqlx-sqlite/README.relayna.md#required-review-at-the-next-gateway-version).
-
 2. Update `CHANGELOG.md` with release notes.
 3. Run the full verification stack:
 
    ```bash
-   python3 scripts/validate-release-metadata.py v1.4.0
+   python3 scripts/validate-release-metadata.py v1.5.0
    npm run build:admin-ui
    npm test
    npm run typecheck:admin-ui
@@ -300,7 +306,7 @@ avoids changing the required lint baseline whenever the stable channel moves.
 4. Build the release image:
 
    ```bash
-   docker build -t relayna-gateway:1.4.0 .
+   docker build -t relayna-gateway:1.5.0 .
    ```
 
 5. Commit the final runtime candidate, run the fresh six-size adaptive benchmark
@@ -314,8 +320,8 @@ avoids changing the required lint baseline whenever the stable channel moves.
 7. Create and push the tag at the merged release commit:
 
    ```bash
-   git tag -a v1.4.0 -m "Release v1.4.0"
-   git push origin v1.4.0
+   git tag -a v1.5.0 -m "Release v1.5.0"
+   git push origin v1.5.0
    ```
 
 The GitHub release workflow validates that the tag version, workspace package
@@ -325,11 +331,11 @@ section, publishes the Docker image to GitHub Container Registry, scans the
 image, generates an SBOM, signs the image digest with Cosign keyless signing,
 and attaches provenance.
 
-For `v1.4.0`, the workflow publishes:
+For `v1.5.0`, the workflow publishes:
 
 ```text
-ghcr.io/sarattha/relayna-gateway:1.4.0
-ghcr.io/sarattha/relayna-gateway:1.4
+ghcr.io/sarattha/relayna-gateway:1.5.0
+ghcr.io/sarattha/relayna-gateway:1.5
 ghcr.io/sarattha/relayna-gateway:latest
 ```
 

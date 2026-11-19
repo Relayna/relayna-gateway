@@ -137,7 +137,8 @@ upstream concurrency limits.
 
 The proxy can queue body-bearing requests at their headers before acquiring
 authentication or upstream capacity. Each process bounds the waiting count
-and time. The slot transfers to the retained request body on its first chunk
+and time. A header reservation expires if the first body chunk misses its
+deadline. The slot transfers to the retained request body on its first chunk
 and returns when Pingora releases the final forwarded reference. Streaming
 routes release the reservation once classified. See [waiting for upload
 capacity](operations.md#waiting-for-upload-capacity).

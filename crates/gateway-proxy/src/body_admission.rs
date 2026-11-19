@@ -9,6 +9,7 @@ use tokio::sync::{OwnedSemaphorePermit, Semaphore};
 
 pub const DEFAULT_MAX_BUFFERED_REQUESTS: usize = 8;
 pub const DEFAULT_MAX_INFLIGHT_BUFFER_BYTES: usize = 512 * 1024 * 1024;
+pub const DEFAULT_BODY_UPLOAD_TIMEOUT: Duration = Duration::from_secs(30);
 pub const SMALL_BODY_MAX_BYTES: usize = 256 * 1024;
 const REQUEST_WORKING_OVERHEAD: usize = 64 * 1024;
 
@@ -53,8 +54,69 @@ pub(crate) struct BodyWaitQueue {
 #[derive(Debug)]
 pub(crate) struct UploadSlot {
     header_reservation: Option<gateway_telemetry::BodyGaugeGuard>,
+    admitted_at: Instant,
     _total: OwnedSemaphorePermit,
     large: Option<OwnedSemaphorePermit>,
+}
+
+/// Release reserved capacity even while routing or a downstream body read is pending.
+#[derive(Debug)]
+pub(crate) struct HeaderUploadReservation {
+    slot: Arc<Mutex<Option<UploadSlot>>>,
+    deadline: Instant,
+    timer: tokio::task::JoinHandle<()>,
+}
+
+impl HeaderUploadReservation {
+    pub(crate) fn new(slot: UploadSlot, timeout: Duration) -> Self {
+        let deadline = slot.admitted_at + timeout;
+        let slot = Arc::new(Mutex::new(Some(slot)));
+        let pending = Arc::downgrade(&slot);
+        let timer = tokio::spawn(async move {
+            tokio::time::sleep_until(deadline.into()).await;
+            if let Some(pending) = pending.upgrade() {
+                Self::expire(&pending);
+            }
+        });
+        Self {
+            slot,
+            deadline,
+            timer,
+        }
+    }
+
+    fn expire(slot: &Mutex<Option<UploadSlot>>) {
+        if slot.lock().expect("header reservation").take().is_some() {
+            gateway_telemetry::record_body_admission_rejection("upload_timeout");
+        }
+    }
+
+    pub(crate) fn remaining(&self) -> Duration {
+        self.deadline.saturating_duration_since(Instant::now())
+    }
+
+    pub(crate) fn expired(&self) -> bool {
+        if self.remaining().is_zero() {
+            Self::expire(&self.slot);
+            return true;
+        }
+        false
+    }
+
+    pub(crate) fn into_slot(self) -> GatewayResult<UploadSlot> {
+        let mut slot = self.slot.lock().expect("header reservation");
+        let held = slot.take().ok_or(GatewayError::GatewayOverloaded)?;
+        if self.remaining().is_zero() {
+            return Err(queue_rejection("upload_timeout"));
+        }
+        Ok(held)
+    }
+}
+
+impl Drop for HeaderUploadReservation {
+    fn drop(&mut self) {
+        self.timer.abort();
+    }
 }
 
 impl BodyWaitQueue {
@@ -71,6 +133,7 @@ impl BodyWaitQueue {
         };
         Some(UploadSlot {
             _total: self.slots.clone().try_acquire_owned().ok()?,
+            admitted_at: Instant::now(),
             header_reservation: Some(gateway_telemetry::body_header_slot_reserved()),
             large,
         })
@@ -91,6 +154,7 @@ impl BodyWaitQueue {
             };
             Ok::<_, tokio::sync::AcquireError>(UploadSlot {
                 _total: self.slots.clone().acquire_owned().await?,
+                admitted_at: Instant::now(),
                 header_reservation: Some(gateway_telemetry::body_header_slot_reserved()),
                 large,
             })
@@ -432,9 +496,11 @@ impl BodyAdmissionLease {
 
     pub fn upload_remaining(&self) -> Option<std::time::Duration> {
         self.state.size_policy.map(|policy| {
-            policy
-                .upload_timeout
-                .saturating_sub(self.admitted_at.elapsed())
+            let start = self
+                .slot
+                .as_ref()
+                .map_or(self.admitted_at, |slot| slot.admitted_at);
+            policy.upload_timeout.saturating_sub(start.elapsed())
         })
     }
 
@@ -665,6 +731,53 @@ mod tests {
             _ = future => panic!("expected to wait for a slot"),
             _ = std::future::ready(()) => {}
         }
+    }
+
+    #[tokio::test]
+    async fn expired_header_reservation_returns_capacity_and_cannot_be_promoted() {
+        let controller = bounded_wait(1, Duration::from_secs(3));
+        let queue = controller.wait_queue().unwrap();
+        let reservation =
+            HeaderUploadReservation::new(queue.try_slot(None).unwrap(), Duration::from_millis(25));
+        let next = queue.wait_for_slot(None).await.unwrap();
+        assert!(matches!(
+            reservation.into_slot(),
+            Err(GatewayError::GatewayOverloaded)
+        ));
+        assert!(queue.try_slot(None).is_none());
+        drop(next);
+        assert!(queue.try_slot(None).is_some());
+    }
+
+    #[tokio::test]
+    async fn first_chunk_preserves_deadline_and_cancellation_returns_capacity() {
+        let policy = sized(1, 5, 0).size_policy().unwrap();
+        let controller = BodyAdmissionController::with_policies(
+            1,
+            1024,
+            Some(policy),
+            BodyWaitPolicy {
+                max_waiters: 1,
+                ..BodyWaitPolicy::default()
+            },
+        )
+        .unwrap();
+        let queue = controller.wait_queue().unwrap();
+        let cancelled =
+            HeaderUploadReservation::new(queue.try_slot(None).unwrap(), policy.upload_timeout);
+        drop(cancelled);
+        let mut slot = queue.try_slot(None).unwrap();
+        slot.admitted_at -= Duration::from_secs(5);
+        let reservation = HeaderUploadReservation::new(slot, policy.upload_timeout);
+        let lease = controller
+            .acquire_with_slot(None, Some(reservation.into_slot().unwrap()))
+            .unwrap();
+        assert!(
+            lease.upload_remaining().unwrap() <= policy.upload_timeout - Duration::from_secs(5)
+        );
+        assert!(queue.try_slot(None).is_none());
+        drop(lease);
+        assert!(queue.try_slot(None).is_some());
     }
 
     #[tokio::test]

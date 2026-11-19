@@ -198,7 +198,7 @@ impl Config {
                 )?,
                 upload_timeout: std::time::Duration::from_millis(optional_positive_usize(
                     "GATEWAY_BODY_UPLOAD_TIMEOUT_MS",
-                    30_000,
+                    gateway_proxy::body_admission::DEFAULT_BODY_UPLOAD_TIMEOUT.as_millis() as usize,
                 )? as u64),
             };
             policy.validate(gateway_max_buffered_requests)?;

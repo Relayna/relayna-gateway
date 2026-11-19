@@ -33,7 +33,7 @@ Optional variables:
 | `GATEWAY_BODY_ELASTIC_MAX_REQUESTS` | Optional elastic-mode safety ceiling, at least `GATEWAY_MAX_BUFFERED_REQUESTS`. Requires a working budget. Explicitly replaces the ordinary count ceiling; byte charges determine concurrency below it. Unset retains the ordinary ceiling and upfront workspace reservation. |
 | `GATEWAY_SMALL_BODY_RESERVED_REQUESTS` | With a working-set budget, reserve this many count permits and their estimated working bytes for declared bodies up to 256 KiB. Defaults to `0`; must be below `GATEWAY_MAX_BUFFERED_REQUESTS`. |
 | `GATEWAY_BODY_WORKSPACE_MULTIPLIER` | Estimated temporary workspace in multiples of body size, in addition to allocation capacity and 64 KiB/request overhead. Defaults to `2`; accepts `1`–`16`. Requires a working-set budget. |
-| `GATEWAY_BODY_UPLOAD_TIMEOUT_MS` | Buffered-upload deadline from first admitted chunk, default `30000`, maximum `600000`. Checked on each chunk; HTTP/1 reads also use the remaining deadline. Requires a working-set budget. |
+| `GATEWAY_BODY_UPLOAD_TIMEOUT_MS` | Buffered-upload deadline in milliseconds. Defaults to `30000`, maximum `600000`. Starts at header-slot admission with upload waiting enabled and at the first admitted chunk otherwise. HTTP/1 reads use the remaining time. Setting this variable requires a working-set budget. |
 | `GATEWAY_MAX_UPSTREAM_REQUESTS` | Optional fail-fast process-wide upstream request/stream ceiling, held through completion or cancellation and reused across retries. Unset preserves existing behavior. |
 | `MALLOC_MMAP_THRESHOLD_` | glibc allocator setting; the official Debian image pins `131072` (128 KiB). Set before starting native glibc deployments to match the image's large-allocation reclamation behavior. Other allocators/platforms may ignore it. |
 | `ENTRA_AUTH_DEBUG` | Enables the temporary structured Entra, trusted-Apigee, portal-login, and cookie-session decision trail. Defaults to `false`; see [Entra Authorization Debug Mode](operations/entra-authorization-debug.md). |
@@ -154,6 +154,11 @@ a declared small upload can use protected capacity while large uploads wait.
 A waiting request holds its connection and headers. The proxy pauses body
 reads and acquires its authentication permit after the wait. Client sockets,
 kernel buffers and protocol read-ahead can still consume pod memory.
+
+After a request gets a slot, Gateway allows 30 seconds for the first body
+chunk. A configured working-set upload deadline overrides this interval and
+continues through body receipt. If the reservation expires, the slot becomes
+available immediately and the gateway counts an `upload_timeout` denial.
 
 Bodyless requests, WebSocket upgrades and the internal Accessa admission API
 bypass the upload queue. Body-bearing routes that stream can wait until the
