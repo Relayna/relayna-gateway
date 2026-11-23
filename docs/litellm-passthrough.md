@@ -290,9 +290,14 @@ enablement, identity and limits. Both honor the global LiteLLM blocked-path
 rules for the requested path. Disabling the dedicated route blocks either path
 even if wildcard passthrough would allow it.
 
-For Relayna keys, allow `/v1/audio/transcriptions` in any restrictive key and
-inherited route policies. Gateway checks the multipart `model` and `stream`
-fields against policy before forwarding the original body. Usage has the
+For Relayna keys, allow `/v1/audio/transcriptions` in the key policy and every
+applicable restrictive allowlist. With no applicable saved policy layers,
+Gateway's default allowlist covers chat completions and Responses. In a fresh
+environment, create a project-scoped policy layer that allows transcription
+and assign the virtual key to that project.
+
+Gateway checks the multipart `model` and `stream` fields against policy before
+forwarding the original body. Usage has the
 canonical route identity and no provider token counts. Requests subject to
 input token, output token, or token-per-minute caps are denied because this
 route cannot enforce those caps on audio. Request rate and budget checks still
