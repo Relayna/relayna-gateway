@@ -1,0 +1,30 @@
+[
+  {
+    "displayTitle": "amd64 / comparison / 5 MiB",
+    "url": "https://github.com/sarattha/relayna-gateway/actions/runs/45212589014"
+  },
+  {
+    "displayTitle": "amd64 / full / 5 MiB",
+    "url": "https://github.com/sarattha/relayna-gateway/actions/runs/45212575103"
+  },
+  {
+    "displayTitle": "amd64 / full / 10 MiB",
+    "url": "https://github.com/sarattha/relayna-gateway/actions/runs/45212582216"
+  },
+  {
+    "displayTitle": "amd64 / full / 20 MiB",
+    "url": "https://github.com/sarattha/relayna-gateway/actions/runs/45212587745"
+  },
+  {
+    "displayTitle": "amd64 / full / 40 MiB",
+    "url": "https://github.com/sarattha/relayna-gateway/actions/runs/45212593800"
+  },
+  {
+    "displayTitle": "amd64 / full / 80 MiB",
+    "url": "https://github.com/sarattha/relayna-gateway/actions/runs/45212603612"
+  },
+  {
+    "displayTitle": "amd64 / full / 100 MiB",
+    "url": "https://github.com/sarattha/relayna-gateway/actions/runs/45212612100"
+  }
+]

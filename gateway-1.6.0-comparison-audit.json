@@ -1,0 +1,620 @@
+{
+  "status": "complete",
+  "workflow": "https://github.com/sarattha/relayna-gateway/actions/runs/45212589014",
+  "method": "Same native runner; sequential candidate then baseline; 5 MiB, eight slots/pod, 16 offered/pod, three fresh-pod trials each; original measurements unchanged. Every trial reanalyzed and HTTP-clean.",
+  "limitation": "Round-trip latency includes 12 seconds of deliberate upstream delay. Three trials do not isolate Gateway CPU overhead or establish a production latency SLO or statistical regression bound.",
+  "variants": {
+    "candidate": {
+      "run": {
+        "schema_version": 1,
+        "run_id": "86e3717d90e1",
+        "status": "completed",
+        "stage": "finished",
+        "started_at": "2026-11-23T16:06:11.504407+00:00",
+        "body_mib": [
+          5
+        ],
+        "mode": "sweep",
+        "repetitions": 3,
+        "cluster": "relayna-body-bench-86e3717d90e1",
+        "native_verified": true,
+        "client_deadline_ms": 180000,
+        "condition_timeout_seconds": 300,
+        "trial_timeout_seconds": 600,
+        "resources": {
+          "pods": 2,
+          "cpu_per_pod": 2,
+          "memory_mib_per_pod": 1024,
+          "body_budget_mib_per_pod": 512
+        },
+        "completed_sizes": [
+          5
+        ],
+        "errors": [],
+        "preflight": {
+          "schema_version": 1,
+          "ready": true,
+          "python": "3.12.3",
+          "host": {
+            "system": "Linux",
+            "architecture": "x86_64",
+            "cpu_model": "Intel(R) Xeon(R) 6975P-C"
+          },
+          "tools": {
+            "docker": "/usr/bin/docker",
+            "kind": "/usr/local/bin/kind",
+            "kubectl": "/usr/bin/kubectl"
+          },
+          "docker": {
+            "Architecture": "x86_64",
+            "NCPU": 4,
+            "MemTotal": 16464302080,
+            "KernelVersion": "7.0.0-1014-aws",
+            "ServerVersion": "28.0.4",
+            "OperatingSystem": "Ubuntu 24.04.5 LTS",
+            "CgroupVersion": "2"
+          },
+          "errors": [],
+          "architecture": "amd64"
+        },
+        "architecture": "amd64",
+        "harness_commit": "0bbac005847be624b260d1fd57916237d1a6232b",
+        "harness_dirty": false,
+        "harness_sha256": {
+          "analysis_benchmark.py": "d933758b57e21eb2306da7e5db70f63f74bdf6de4fb42ffe11a002c626645b91",
+          "benchmark.py": "37b017f4ba1998471c944937eaa9620d219b0a48fe319e5bbb8205c8aadbae4a",
+          "capacity_report.py": "7349bcb4959648ad743b167472570d6ec47d3a5540ae6f0f72b8eccb100113fb",
+          "capacity_sweep.py": "85e2cf1a5565c25f881e109a52c727f3eb9d1f9e876bfde16bfe65ad4c6d14ab",
+          "html_report.py": "49f53b81a8ebb44cdb32bb71f71e9ea5509532aadbd4fc5aca83eeea07272276",
+          "plot.py": "f2fe631c87919878c647cd063df519ce8de90e2e18069f25d5766863f7939cb3",
+          "run.py": "5d8a9801e60d1786644cabac8ec65dbfa849800b4dd3f61e9d1751ac102104b1",
+          "summarize.py": "e1a151ee55ab8de246cc5842d5f0fef6c08495611a658083103f377eab3faea8",
+          "summarize_probes.py": "ab6ed60e0d8d3df631556604f176b3dd6a3e8a3543b57d4d124d2b95d3dd5dea",
+          "test_benchmark.py": "3df4226ad8ef6c4f8908e7d4ce067eabddb2ec42ab473e8785f5cb5020ae752a",
+          "mixed_workload.mjs": "370c33e23edad8d3259e45ce54d3b43d60254304863bb2654d4ec9b8396f1584",
+          "mixed_workload.test.mjs": "f6d1b3917266d45a93d11d1246ba939a75e2cebdf3cb34b70b75d105e89f0ab4",
+          "mock.mjs": "564c25aa58de00b2436cf3a16bde0ad8ea459c59a17eb634e571d332aee3aa13",
+          "workload.mjs": "e325faa4119cd222d7aeb31db011b20371865ea5b7da6fe3582a7c564fd0c46b"
+        },
+        "image": {
+          "reference": "relayna-body-benchmark:86e3717d90e1",
+          "loaded_reference": "relayna-body-benchmark:86e3717d90e1",
+          "id": "sha256:913a8cd56e52bf662a4d3a67c287f7c51bec5c9b3600c451967b5330b7c5705d",
+          "architecture": "amd64",
+          "source_commit": "0bbac005847be624b260d1fd57916237d1a6232b",
+          "version": "unknown"
+        },
+        "nodes": [
+          {
+            "architecture": "amd64",
+            "bootID": "90da21bb-00e6-46b9-bc79-e39931d3e116",
+            "containerRuntimeVersion": "containerd://2.3.1",
+            "kernelVersion": "7.0.0-1014-aws",
+            "kubeProxyVersion": "",
+            "kubeletVersion": "v1.36.1",
+            "machineID": "c7be07cc3e254969ba639cd2afc483cb",
+            "operatingSystem": "linux",
+            "osImage": "Debian GNU/Linux 13 (trixie)",
+            "swap": {
+              "capacity": 3221221376
+            },
+            "systemUUID": "7468af47-5236-41cc-b6ef-8bcd5a59f363"
+          }
+        ],
+        "finished_at": "2026-11-23T16:12:27.391032+00:00"
+      },
+      "trials": [
+        {
+          "directory": "slots-0008-attempt-1",
+          "slots": 8,
+          "attempt": 1,
+          "cohort_per_pod": 16,
+          "phase": "fixed",
+          "status": "completed",
+          "resource_failure": false,
+          "client_deadline_ms": 180000,
+          "condition_timeout_seconds": 300,
+          "trial_timeout_seconds": 600,
+          "resource_stable": true,
+          "clean": true,
+          "incomplete": false,
+          "memory_censored": false,
+          "memory_streams": 2,
+          "oom_pods": 0,
+          "terminated_pods": 0,
+          "restarts": 0,
+          "transport_errors": 0,
+          "admission_counter_gap": 0,
+          "successes": 17,
+          "requests": 32,
+          "statuses": {
+            "200": 17,
+            "503": 15
+          },
+          "denial_codes": {
+            "gateway_overloaded": 15,
+            "authentication_overloaded": 0,
+            "source_rate_limit_exceeded": 0
+          },
+          "preauth_denials": 0,
+          "authentication_denials": 0,
+          "source_denials": 0,
+          "rss_peak_mib": 71.20703125,
+          "cgroup_peak_mib": 64.86328125,
+          "buffered_requests_peak": 8,
+          "buffered_bytes_peak_mib": 40.0,
+          "elapsed_ms": 12174.742691,
+          "max_pod_throttled_ms": 0.0,
+          "success_latency_ms": {
+            "count": 17,
+            "min": 12025.673542,
+            "mean": 12119.855619411765,
+            "p50": 12132.954805000001,
+            "p95": 12167.116985999999,
+            "p99": 12167.116985999999,
+            "max": 12167.116985999999
+          },
+          "rejection_latency_ms": {
+            "count": 15,
+            "min": 70.13503199999991,
+            "mean": 115.61461826666667,
+            "p50": 123.98989000000006,
+            "p95": 133.93843400000003,
+            "p99": 133.93843400000003,
+            "max": 133.93843400000003
+          },
+          "concurrency_denials": 15,
+          "byte_denials": 0,
+          "analysis_error": null
+        },
+        {
+          "directory": "slots-0008-attempt-2",
+          "slots": 8,
+          "attempt": 2,
+          "cohort_per_pod": 16,
+          "phase": "fixed",
+          "status": "completed",
+          "resource_failure": false,
+          "client_deadline_ms": 180000,
+          "condition_timeout_seconds": 300,
+          "trial_timeout_seconds": 600,
+          "resource_stable": true,
+          "clean": true,
+          "incomplete": false,
+          "memory_censored": false,
+          "memory_streams": 2,
+          "oom_pods": 0,
+          "terminated_pods": 0,
+          "restarts": 0,
+          "transport_errors": 0,
+          "admission_counter_gap": 0,
+          "successes": 16,
+          "requests": 32,
+          "statuses": {
+            "200": 16,
+            "503": 16
+          },
+          "denial_codes": {
+            "gateway_overloaded": 16,
+            "authentication_overloaded": 0,
+            "source_rate_limit_exceeded": 0
+          },
+          "preauth_denials": 0,
+          "authentication_denials": 0,
+          "source_denials": 0,
+          "rss_peak_mib": 71.42578125,
+          "cgroup_peak_mib": 63.15234375,
+          "buffered_requests_peak": 8,
+          "buffered_bytes_peak_mib": 40.0,
+          "elapsed_ms": 12188.46054,
+          "max_pod_throttled_ms": 0.0,
+          "success_latency_ms": {
+            "count": 16,
+            "min": 12017.964660000001,
+            "mean": 12135.700424812501,
+            "p50": 12148.326304,
+            "p95": 12177.922273,
+            "p99": 12177.922273,
+            "max": 12177.922273
+          },
+          "rejection_latency_ms": {
+            "count": 16,
+            "min": 105.38531499999999,
+            "mean": 117.2701835,
+            "p50": 109.96929,
+            "p95": 140.57703000000004,
+            "p99": 140.57703000000004,
+            "max": 140.57703000000004
+          },
+          "concurrency_denials": 16,
+          "byte_denials": 0,
+          "analysis_error": null
+        },
+        {
+          "directory": "slots-0008-attempt-3",
+          "slots": 8,
+          "attempt": 3,
+          "cohort_per_pod": 16,
+          "phase": "fixed",
+          "status": "completed",
+          "resource_failure": false,
+          "client_deadline_ms": 180000,
+          "condition_timeout_seconds": 300,
+          "trial_timeout_seconds": 600,
+          "resource_stable": true,
+          "clean": true,
+          "incomplete": false,
+          "memory_censored": false,
+          "memory_streams": 2,
+          "oom_pods": 0,
+          "terminated_pods": 0,
+          "restarts": 0,
+          "transport_errors": 0,
+          "admission_counter_gap": 0,
+          "successes": 17,
+          "requests": 32,
+          "statuses": {
+            "200": 17,
+            "503": 15
+          },
+          "denial_codes": {
+            "gateway_overloaded": 15,
+            "authentication_overloaded": 0,
+            "source_rate_limit_exceeded": 0
+          },
+          "preauth_denials": 0,
+          "authentication_denials": 0,
+          "source_denials": 0,
+          "rss_peak_mib": 71.03515625,
+          "cgroup_peak_mib": 66.140625,
+          "buffered_requests_peak": 8,
+          "buffered_bytes_peak_mib": 40.0,
+          "elapsed_ms": 12152.929253,
+          "max_pod_throttled_ms": 0.0,
+          "success_latency_ms": {
+            "count": 17,
+            "min": 12019.152832,
+            "mean": 12091.376487117645,
+            "p50": 12103.204813,
+            "p95": 12144.968895,
+            "p99": 12144.968895,
+            "max": 12144.968895
+          },
+          "rejection_latency_ms": {
+            "count": 15,
+            "min": 90.45964900000001,
+            "mean": 124.14466106666667,
+            "p50": 124.256936,
+            "p95": 142.83887800000002,
+            "p99": 142.83887800000002,
+            "max": 142.83887800000002
+          },
+          "concurrency_denials": 15,
+          "byte_denials": 0,
+          "analysis_error": null
+        }
+      ],
+      "success_latency_ms": {
+        "p50": 12148.326304,
+        "p95": 12177.922273,
+        "p99": 12177.922273
+      },
+      "rejection_p95_ms": 142.83887800000002,
+      "elapsed_ms": 12188.46054,
+      "rss_peak_mib": 71.42578125,
+      "cgroup_peak_mib": 66.140625,
+      "verified_successes": 50,
+      "http_503": 46,
+      "transport_errors": 0,
+      "ooms": 0,
+      "restarts": 0,
+      "clean_trials": 3
+    },
+    "baseline": {
+      "run": {
+        "schema_version": 1,
+        "run_id": "28b96f77afcb",
+        "status": "completed",
+        "stage": "finished",
+        "started_at": "2026-11-23T16:12:27.429086+00:00",
+        "body_mib": [
+          5
+        ],
+        "mode": "sweep",
+        "repetitions": 3,
+        "cluster": "relayna-body-bench-28b96f77afcb",
+        "native_verified": true,
+        "client_deadline_ms": 180000,
+        "condition_timeout_seconds": 300,
+        "trial_timeout_seconds": 600,
+        "resources": {
+          "pods": 2,
+          "cpu_per_pod": 2,
+          "memory_mib_per_pod": 1024,
+          "body_budget_mib_per_pod": 512
+        },
+        "completed_sizes": [
+          5
+        ],
+        "errors": [],
+        "preflight": {
+          "schema_version": 1,
+          "ready": true,
+          "python": "3.12.3",
+          "host": {
+            "system": "Linux",
+            "architecture": "x86_64",
+            "cpu_model": "Intel(R) Xeon(R) 6975P-C"
+          },
+          "tools": {
+            "docker": "/usr/bin/docker",
+            "kind": "/usr/local/bin/kind",
+            "kubectl": "/usr/bin/kubectl"
+          },
+          "docker": {
+            "Architecture": "x86_64",
+            "NCPU": 4,
+            "MemTotal": 16464302080,
+            "KernelVersion": "7.0.0-1014-aws",
+            "ServerVersion": "28.0.4",
+            "OperatingSystem": "Ubuntu 24.04.5 LTS",
+            "CgroupVersion": "2"
+          },
+          "errors": [],
+          "architecture": "amd64"
+        },
+        "architecture": "amd64",
+        "harness_commit": "0bbac005847be624b260d1fd57916237d1a6232b",
+        "harness_dirty": false,
+        "harness_sha256": {
+          "analysis_benchmark.py": "d933758b57e21eb2306da7e5db70f63f74bdf6de4fb42ffe11a002c626645b91",
+          "benchmark.py": "37b017f4ba1998471c944937eaa9620d219b0a48fe319e5bbb8205c8aadbae4a",
+          "capacity_report.py": "7349bcb4959648ad743b167472570d6ec47d3a5540ae6f0f72b8eccb100113fb",
+          "capacity_sweep.py": "85e2cf1a5565c25f881e109a52c727f3eb9d1f9e876bfde16bfe65ad4c6d14ab",
+          "html_report.py": "49f53b81a8ebb44cdb32bb71f71e9ea5509532aadbd4fc5aca83eeea07272276",
+          "plot.py": "f2fe631c87919878c647cd063df519ce8de90e2e18069f25d5766863f7939cb3",
+          "run.py": "5d8a9801e60d1786644cabac8ec65dbfa849800b4dd3f61e9d1751ac102104b1",
+          "summarize.py": "e1a151ee55ab8de246cc5842d5f0fef6c08495611a658083103f377eab3faea8",
+          "summarize_probes.py": "ab6ed60e0d8d3df631556604f176b3dd6a3e8a3543b57d4d124d2b95d3dd5dea",
+          "test_benchmark.py": "3df4226ad8ef6c4f8908e7d4ce067eabddb2ec42ab473e8785f5cb5020ae752a",
+          "mixed_workload.mjs": "370c33e23edad8d3259e45ce54d3b43d60254304863bb2654d4ec9b8396f1584",
+          "mixed_workload.test.mjs": "f6d1b3917266d45a93d11d1246ba939a75e2cebdf3cb34b70b75d105e89f0ab4",
+          "mock.mjs": "564c25aa58de00b2436cf3a16bde0ad8ea459c59a17eb634e571d332aee3aa13",
+          "workload.mjs": "e325faa4119cd222d7aeb31db011b20371865ea5b7da6fe3582a7c564fd0c46b"
+        },
+        "image": {
+          "reference": "ghcr.io/sarattha/relayna-gateway@sha256:fc006aca24ce5891cb9da18e0cd849cc405e367acf6a21b1c86106d77346ad28",
+          "loaded_reference": "relayna-body-benchmark:28b96f77afcb",
+          "id": "sha256:8d89d35aa9cfe7ff4646e486a9fbdfe1e4bf9d354c124ec8fbb291b10915762c",
+          "architecture": "amd64",
+          "source_commit": "62ed379920efafc724df1c4947f1add4202cb4f0",
+          "version": "1.5.0"
+        },
+        "nodes": [
+          {
+            "architecture": "amd64",
+            "bootID": "90da21bb-00e6-46b9-bc79-e39931d3e116",
+            "containerRuntimeVersion": "containerd://2.3.1",
+            "kernelVersion": "7.0.0-1014-aws",
+            "kubeProxyVersion": "",
+            "kubeletVersion": "v1.36.1",
+            "machineID": "bcc91f3bead94e3a8dee34d4f1bcffe5",
+            "operatingSystem": "linux",
+            "osImage": "Debian GNU/Linux 13 (trixie)",
+            "swap": {
+              "capacity": 3221221376
+            },
+            "systemUUID": "8f4db59f-c94d-49cc-8d50-829c953945fa"
+          }
+        ],
+        "finished_at": "2026-11-23T16:15:00.994954+00:00"
+      },
+      "trials": [
+        {
+          "directory": "slots-0008-attempt-1",
+          "slots": 8,
+          "attempt": 1,
+          "cohort_per_pod": 16,
+          "phase": "fixed",
+          "status": "completed",
+          "resource_failure": false,
+          "client_deadline_ms": 180000,
+          "condition_timeout_seconds": 300,
+          "trial_timeout_seconds": 600,
+          "resource_stable": true,
+          "clean": true,
+          "incomplete": false,
+          "memory_censored": false,
+          "memory_streams": 2,
+          "oom_pods": 0,
+          "terminated_pods": 0,
+          "restarts": 0,
+          "transport_errors": 0,
+          "admission_counter_gap": 0,
+          "successes": 18,
+          "requests": 32,
+          "statuses": {
+            "200": 18,
+            "503": 14
+          },
+          "denial_codes": {
+            "authentication_overloaded": 0,
+            "gateway_overloaded": 14,
+            "source_rate_limit_exceeded": 0
+          },
+          "preauth_denials": 0,
+          "authentication_denials": 0,
+          "source_denials": 0,
+          "rss_peak_mib": 70.9140625,
+          "cgroup_peak_mib": 65.73046875,
+          "buffered_requests_peak": 8,
+          "buffered_bytes_peak_mib": 40.0,
+          "elapsed_ms": 12194.820561999999,
+          "max_pod_throttled_ms": 0.0,
+          "success_latency_ms": {
+            "count": 18,
+            "min": 12026.354803999999,
+            "mean": 12144.341442611112,
+            "p50": 12157.695557,
+            "p95": 12182.126362,
+            "p99": 12182.126362,
+            "max": 12182.126362
+          },
+          "rejection_latency_ms": {
+            "count": 14,
+            "min": 87.823216,
+            "mean": 104.62626842857142,
+            "p50": 94.76085499999999,
+            "p95": 140.56685200000004,
+            "p99": 140.56685200000004,
+            "max": 140.56685200000004
+          },
+          "concurrency_denials": 14,
+          "byte_denials": 0,
+          "analysis_error": null
+        },
+        {
+          "directory": "slots-0008-attempt-2",
+          "slots": 8,
+          "attempt": 2,
+          "cohort_per_pod": 16,
+          "phase": "fixed",
+          "status": "completed",
+          "resource_failure": false,
+          "client_deadline_ms": 180000,
+          "condition_timeout_seconds": 300,
+          "trial_timeout_seconds": 600,
+          "resource_stable": true,
+          "clean": true,
+          "incomplete": false,
+          "memory_censored": false,
+          "memory_streams": 2,
+          "oom_pods": 0,
+          "terminated_pods": 0,
+          "restarts": 0,
+          "transport_errors": 0,
+          "admission_counter_gap": 0,
+          "successes": 16,
+          "requests": 32,
+          "statuses": {
+            "200": 16,
+            "503": 16
+          },
+          "denial_codes": {
+            "authentication_overloaded": 0,
+            "gateway_overloaded": 16,
+            "source_rate_limit_exceeded": 0
+          },
+          "preauth_denials": 0,
+          "authentication_denials": 0,
+          "source_denials": 0,
+          "rss_peak_mib": 70.8671875,
+          "cgroup_peak_mib": 65.42578125,
+          "buffered_requests_peak": 8,
+          "buffered_bytes_peak_mib": 40.0,
+          "elapsed_ms": 12177.998093,
+          "max_pod_throttled_ms": 0.0,
+          "success_latency_ms": {
+            "count": 16,
+            "min": 12022.849083,
+            "mean": 12116.014078812499,
+            "p50": 12129.023096,
+            "p95": 12173.724408999999,
+            "p99": 12173.724408999999,
+            "max": 12173.724408999999
+          },
+          "rejection_latency_ms": {
+            "count": 16,
+            "min": 80.32020599999998,
+            "mean": 122.21060675000001,
+            "p50": 124.08063700000002,
+            "p95": 144.07502799999997,
+            "p99": 144.07502799999997,
+            "max": 144.07502799999997
+          },
+          "concurrency_denials": 16,
+          "byte_denials": 0,
+          "analysis_error": null
+        },
+        {
+          "directory": "slots-0008-attempt-3",
+          "slots": 8,
+          "attempt": 3,
+          "cohort_per_pod": 16,
+          "phase": "fixed",
+          "status": "completed",
+          "resource_failure": false,
+          "client_deadline_ms": 180000,
+          "condition_timeout_seconds": 300,
+          "trial_timeout_seconds": 600,
+          "resource_stable": true,
+          "clean": true,
+          "incomplete": false,
+          "memory_censored": false,
+          "memory_streams": 2,
+          "oom_pods": 0,
+          "terminated_pods": 0,
+          "restarts": 0,
+          "transport_errors": 0,
+          "admission_counter_gap": 0,
+          "successes": 16,
+          "requests": 32,
+          "statuses": {
+            "200": 16,
+            "503": 16
+          },
+          "denial_codes": {
+            "authentication_overloaded": 0,
+            "gateway_overloaded": 16,
+            "source_rate_limit_exceeded": 0
+          },
+          "preauth_denials": 0,
+          "authentication_denials": 0,
+          "source_denials": 0,
+          "rss_peak_mib": 71.25,
+          "cgroup_peak_mib": 68.0859375,
+          "buffered_requests_peak": 8,
+          "buffered_bytes_peak_mib": 40.0,
+          "elapsed_ms": 12140.221711999999,
+          "max_pod_throttled_ms": 0.0,
+          "success_latency_ms": {
+            "count": 16,
+            "min": 12024.725103,
+            "mean": 12089.6102528125,
+            "p50": 12104.822843,
+            "p95": 12134.439982,
+            "p99": 12134.439982,
+            "max": 12134.439982
+          },
+          "rejection_latency_ms": {
+            "count": 16,
+            "min": 72.98913500000003,
+            "mean": 118.71313087499998,
+            "p50": 122.577136,
+            "p95": 143.408408,
+            "p99": 143.408408,
+            "max": 143.408408
+          },
+          "concurrency_denials": 16,
+          "byte_denials": 0,
+          "analysis_error": null
+        }
+      ],
+      "success_latency_ms": {
+        "p50": 12157.695557,
+        "p95": 12182.126362,
+        "p99": 12182.126362
+      },
+      "rejection_p95_ms": 144.07502799999997,
+      "elapsed_ms": 12194.820561999999,
+      "rss_peak_mib": 71.25,
+      "cgroup_peak_mib": 68.0859375,
+      "verified_successes": 50,
+      "http_503": 46,
+      "transport_errors": 0,
+      "ooms": 0,
+      "restarts": 0,
+      "clean_trials": 3
+    }
+  }
+}
