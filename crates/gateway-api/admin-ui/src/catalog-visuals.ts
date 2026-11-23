@@ -99,7 +99,8 @@ export function routeCatalogInsights(openaiRoutes, anthropicRoutes, services, id
     distribution: canonical.length ? [
       { label: "Enabled · Gateway managed", value: canonical.filter(route => route.enabled === true && route.mode === "managed_by_gateway").length, tone: "good" },
       { label: "Enabled · direct LiteLLM", value: canonical.filter(route => route.enabled === true && route.mode === "direct_litellm_passthrough").length, tone: "warn" },
-      { label: "Disabled", value: canonical.filter(route => route.enabled === false).length, tone: "bad" },
+      { label: "Disabled", value: canonical.filter(route => route.enabled === false && !route.inherits_wildcard).length, tone: "bad" },
+      { label: "Uses wildcard settings", value: canonical.filter(route => route.inherits_wildcard === true).length, tone: "neutral" },
       { label: "Configuration unknown", value: canonical.filter(route => typeof route.enabled !== "boolean" || (route.enabled === true && !["managed_by_gateway", "direct_litellm_passthrough"].includes(route.mode))).length, tone: "neutral" },
     ] : [],
     caption: "Canonical OpenAI-compatible and Anthropic route settings. Aliases share their canonical policy.",

@@ -98,11 +98,12 @@ const values = visual => visual.distribution.map(item => item.value);
     { enabled: true, mode: "managed_by_gateway" },
     { enabled: true, mode: "direct_litellm_passthrough" },
     { enabled: false, mode: "managed_by_gateway" },
+    { enabled: false, mode: "direct_litellm_passthrough", inherits_wildcard: true },
     { enabled: true, mode: "future-mode" },
     {},
   ];
   const visual = routeCatalogInsights(routes.slice(0, 3), routes.slice(3), [], [{ route: "/litellm/*", access: { websocket: {} } }]);
-  assert.deepEqual(values(visual), [1, 1, 1, 2]);
+  assert.deepEqual(values(visual), [1, 1, 1, 1, 2]);
   assert.equal(values(visual).reduce((sum, value) => sum + value, 0), routes.length);
   assert.equal(visual.items[2].value, 1);
   assert.deepEqual(visual.steps.map(step => step.label), ["Control plane", "Registered services", "Canonical APIs", "LiteLLM fallback"]);
@@ -143,6 +144,22 @@ const values = visual => visual.distribution.map(item => item.value);
   assert.equal(document.querySelector('[data-litellm-mapping-action="disable"]').dataset.mappingId, "mapping-id");
   assert.equal(document.querySelector('[data-litellm-mapping-action="delete"]').dataset.mappingId, "mapping-id");
   assert.equal(document.querySelectorAll("img").length, 0);
+  const option = (value, selected) => `<option value="${esc(value)}"${value === selected ? " selected" : ""}>${esc(value)}</option>`;
+  deps.openaiRouteModeForm = new Function("attr", "option",
+    `${sourceFunction("routeConfigForm")}\n${sourceFunction("openaiRouteModeForm")}\nreturn openaiRouteModeForm;`)(esc, option);
+  deps.anthropicRouteModeForm = () => "";
+  deps.routeIdentityControl = () => "";
+  deps.state = { routeIdentities: [] };
+  const audio = { route_id: "audio-transcriptions", route: "/v1/audio/transcriptions", mode: "direct_litellm_passthrough", enabled: false, inherits_wildcard: true, timeout_ms: 240000, max_request_body_bytes: 8388608 };
+  const responses = { route_id: "responses", route: "/v1/responses", mode: "managed_by_gateway", enabled: true };
+  document.body.innerHTML = render("providerRouteTable")([audio, responses], "openai");
+  assert.match(document.body.textContent, /Uses wildcard settings/);
+  assert.ok(document.querySelector('[aria-label="Enable route /v1/audio/transcriptions"]'));
+  const audioForm = document.querySelector('form[data-route-id="audio-transcriptions"]');
+  assert.deepEqual([...audioForm.elements.mode.options].map(option => option.value), ["direct_litellm_passthrough"]);
+  assert.equal(audioForm.elements.timeout_ms.value, "240000");
+  assert.equal(audioForm.elements.max_request_body_bytes.value, "8388608");
+  assert.equal(document.querySelector('form[data-route-id="responses"]').elements.mode.options.length, 2);
   dom.window.close();
 }
 

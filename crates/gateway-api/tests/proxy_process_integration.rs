@@ -1458,11 +1458,15 @@ async fn complete_body_governance_blocks_restricted_features_before_upstream() {
     let upstream_address = listener.local_addr().unwrap();
     let received = Arc::new(AtomicUsize::new(0));
     let upstream_count = received.clone();
-    let upstream = Router::new().fallback(any(move |_body: Bytes| {
+    let upstream = Router::new().fallback(any(move |body: Bytes| {
         let count = upstream_count.clone();
         async move {
             count.fetch_add(1, Ordering::SeqCst);
-            Json(json!({"choices": [], "usage": {"prompt_tokens": 1, "completion_tokens": 1}}))
+            Json(json!({
+                "choices": [],
+                "usage": {"prompt_tokens": 1, "completion_tokens": 1},
+                "audio_body_preserved": body == transcription_upload(&[("model", "allowed")]),
+            }))
         }
     }));
     let upstream_task = tokio::spawn(async move {
@@ -1509,6 +1513,7 @@ async fn complete_body_governance_blocks_restricted_features_before_upstream() {
                         "/v1/chat/completions".into(),
                         "/v1/responses".into(),
                         "/v1/messages/batches".into(),
+                        "/v1/audio/transcriptions".into(),
                     ]),
                     allow_streaming: Some(false),
                     allow_tools: Some(false),
@@ -1535,7 +1540,9 @@ async fn complete_body_governance_blocks_restricted_features_before_upstream() {
         .with_direct_openai(Some(
             PingoraUpstreamConfig::from_base_url(&failed_url, "direct-secret").unwrap(),
         ))
-        .with_body_admission_limits(2, 1024 * 1024)
+        // Governance checks can start another request while Pingora finishes
+        // releasing the rejected upload from the previous connection.
+        .with_body_admission_limits(8, 8 * 1024 * 1024)
         .unwrap();
     let proxy = RelaynaPingoraProxy::new(
         Arc::new(store.clone()),
@@ -1844,6 +1851,154 @@ async fn complete_body_governance_blocks_restricted_features_before_upstream() {
         "fallback must reuse rather than overwrite its reservation"
     );
     response.bytes().await.unwrap();
+    verify_audio_transcriptions(&store, &client, &proxy_url, &material.raw_key, &received).await;
+
     failed_task.abort();
     upstream_task.abort();
+}
+
+fn transcription_upload(fields: &[(&str, &str)]) -> Vec<u8> {
+    // Put selectors after the file, beyond the request metadata prefix.
+    let mut body = b"--audio-test\r\nContent-Disposition: form-data; name=\"file\"; filename=\"sample.wav\"\r\nContent-Type: audio/wav\r\n\r\n".to_vec();
+    body.extend(std::iter::repeat_n(0, 70_000));
+    for (name, value) in fields {
+        body.extend_from_slice(
+            format!("\r\n--audio-test\r\nContent-Disposition: form-data; name=\"{name}\"\r\n\r\n{value}").as_bytes(),
+        );
+    }
+    body.extend_from_slice(b"\r\n--audio-test--\r\n");
+    body
+}
+
+async fn verify_audio_transcriptions(
+    store: &PostgresStore,
+    client: &reqwest::Client,
+    proxy_url: &str,
+    relayna_key: &str,
+    received: &AtomicUsize,
+) {
+    let route_id = "audio-transcriptions";
+    let canonical = "/v1/audio/transcriptions";
+    let previous_routes = store.list_openai_route_settings().await.unwrap();
+    let audio = previous_routes
+        .iter()
+        .find(|row| row.route_id == route_id)
+        .unwrap();
+    assert_eq!(audio.route, canonical);
+    assert_eq!(audio.mode, OpenAiRouteMode::DirectLiteLlmPassthrough);
+    assert!(audio.inherits_wildcard);
+    let previous_wildcard = store.get_litellm_passthrough_settings().await.unwrap();
+    store
+        .patch_litellm_passthrough_settings(
+            serde_json::from_value(json!({
+                "enabled":true,"authentication_mode":"litellm_bearer",
+                "allowed_paths":[canonical],"allowed_methods":["POST"]
+            }))
+            .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    let upload = |path: &str, key: &str, fields: &[(&str, &str)]| {
+        client
+            .post(format!("{proxy_url}{path}"))
+            .bearer_auth(key)
+            .header("content-type", "multipart/form-data; boundary=audio-test")
+            .body(transcription_upload(fields))
+    };
+    let valid = [("model", "allowed")];
+    let response = upload(canonical, "sk-audio-test-caller", &valid)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(
+        response.status(),
+        StatusCode::OK,
+        "preexisting wildcard traffic still forwards"
+    );
+    assert_eq!(
+        response.json::<Value>().await.unwrap()["audio_body_preserved"],
+        true
+    );
+
+    let enabled = store
+        .set_openai_route_enabled(route_id, true)
+        .await
+        .unwrap()
+        .unwrap();
+    assert!(enabled.enabled && !enabled.inherits_wildcard);
+    let count = received.load(Ordering::SeqCst);
+    for fields in [
+        vec![("model", "forbidden")],
+        vec![("model", "allowed"), ("model", "forbidden")],
+        vec![("model", "allowed"), ("stream", "true")],
+    ] {
+        let response = upload(canonical, relayna_key, &fields)
+            .send()
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::FORBIDDEN);
+        assert_eq!(
+            response.json::<Value>().await.unwrap()["error"]["code"],
+            "policy_denied"
+        );
+    }
+    store
+        .patch_openai_route_config(
+            route_id,
+            serde_json::from_value(json!({"max_request_body_bytes":512})).unwrap(),
+        )
+        .await
+        .unwrap();
+    let response = upload(canonical, relayna_key, &valid).send().await.unwrap();
+    assert_eq!(response.status(), StatusCode::PAYLOAD_TOO_LARGE);
+    store
+        .patch_openai_route_config(
+            route_id,
+            serde_json::from_value(json!({"max_request_body_bytes":audio.max_request_body_bytes}))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(
+        received.load(Ordering::SeqCst),
+        count,
+        "denials stay at Relayna"
+    );
+
+    for (path, key) in [
+        (canonical, relayna_key),
+        ("/audio/transcriptions", "sk-audio-test-caller"),
+    ] {
+        let response = upload(path, key, &valid).send().await.unwrap();
+        assert_eq!(response.status(), StatusCode::OK, "{path}");
+        assert_eq!(
+            response.json::<Value>().await.unwrap()["audio_body_preserved"],
+            true
+        );
+    }
+    store
+        .set_openai_route_enabled(route_id, false)
+        .await
+        .unwrap()
+        .unwrap();
+    let response = upload(canonical, "sk-audio-test-caller", &valid)
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(
+        response.json::<Value>().await.unwrap()["error"]["code"],
+        "disabled_route"
+    );
+    assert_eq!(received.load(Ordering::SeqCst), count + 2);
+
+    sqlx::query("UPDATE openai_route_settings SET enabled = $2, inherits_wildcard = $3, updated_at = $4 WHERE route_id = $1")
+        .bind(route_id).bind(audio.enabled).bind(audio.inherits_wildcard).bind(audio.updated_at)
+        .execute(store.pool()).await.unwrap();
+    store
+        .patch_litellm_passthrough_settings(
+            serde_json::from_value(serde_json::to_value(previous_wildcard).unwrap()).unwrap(),
+        )
+        .await
+        .unwrap();
 }

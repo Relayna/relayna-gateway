@@ -720,7 +720,10 @@ async fn general_service_and_caller_litellm_websocket_transport() {
     }
     // Restore shared settings for the existing integration suites.
     settings(&store, serde_json::to_value(previous_settings).unwrap()).await;
-    for setting in previous_routes {
+    for setting in previous_routes
+        .into_iter()
+        .filter(|route| route.route_id == "responses")
+    {
         store
             .set_openai_route_mode(&setting.route_id, setting.mode)
             .await

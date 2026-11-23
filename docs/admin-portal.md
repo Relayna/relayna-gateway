@@ -516,6 +516,16 @@ Use direct mode only for canonical OpenAI or Anthropic routes that should
 behave closest to LiteLLM while still preserving Gateway governance and
 credential isolation.
 
+For audio transcription, find `/v1/audio/transcriptions` under **Discover →
+Routes**. **Configure** sets the timeout and the request and response byte
+limits. The request limit includes the audio file and multipart form overhead.
+Use **Edit identity** to set the endpoint's authentication requirements, then
+select **Enable** to apply the dedicated route. The row initially shows
+**Uses wildcard settings**, so existing callers continue through wildcard
+passthrough until you enable it. After activation, **Disable** blocks both
+`/v1/audio/transcriptions` and `/audio/transcriptions`. See the
+[transcription setup and request example](litellm-passthrough.md#audio-transcriptions).
+
 ### 7. Create the project
 
 Open Projects and create a project for the application, team, or environment
@@ -648,7 +658,7 @@ First-time setup is complete when:
   model name. These layers are additive governance overlays on top of key
   policy and use neutral defaults unless an operator sets a field.
 - Providers configures LiteLLM and internal-service endpoints with write-only credentials.
-- Routes disables and enables the global OpenAI-compatible LiteLLM routes `/v1/chat/completions` and `/v1/responses`, and lists registered service routes with their allowed methods and credential status.
+- Routes configures the canonical LiteLLM APIs, including `/v1/chat/completions`, `/v1/responses`, and `/v1/audio/transcriptions`, and lists registered service routes with their allowed methods and credential status.
 - Services creates, imports from Relayna Studio, syncs selected Studio catalog
   entries, previews added/changed/removed/invalid import diffs, edits,
   sync-checks, disables, enables, and deletes service registrations. Method

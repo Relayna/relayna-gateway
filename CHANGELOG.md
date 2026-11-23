@@ -4,6 +4,28 @@ All notable changes to Relayna Gateway are documented in this file.
 
 ## Unreleased
 
+## 1.6.0 - Pending release validation
+
+### Added
+
+- Manage LiteLLM audio transcription in **Discover → Routes**. The dedicated
+  direct passthrough route configures enablement, endpoint identity, timeout,
+  and request and response limits for `/v1/audio/transcriptions` and
+  `/audio/transcriptions`.
+- Enforce Relayna-key model and streaming policy on multipart transcription
+  uploads while forwarding the original body to LiteLLM.
+
+### Security
+
+- Update the locked `url` dependency to 2.5.9 for RUSTSEC-2026-0592.
+
+### Compatibility and validation
+
+- The migration preserves existing wildcard passthrough until an operator
+  sets dedicated route enablement. See the
+  [upgrade guide](https://sarattha.github.io/relayna-gateway/deployment/#upgrade-to-160)
+  and [release validation](https://sarattha.github.io/relayna-gateway/benchmarks/v1.6.0/).
+
 ## 1.5.0 - 2026-11-19
 
 ### Added

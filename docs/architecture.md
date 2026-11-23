@@ -271,6 +271,9 @@ PostgreSQL is the source of truth for durable state:
 - Global LiteLLM route enablement and mode selection for
   `/v1/chat/completions`, `/v1/responses`, `/v1/embeddings`, and the canonical
   `/v1/rerank` identity shared by `/rerank`, `/v1/rerank`, and `/v2/rerank`.
+  The direct-only `/v1/audio/transcriptions` route inherits wildcard passthrough
+  until an operator sets dedicated enablement and then shares its settings with
+  `/audio/transcriptions`.
 - LiteLLM wildcard passthrough settings for enablement, path/method
   allowlists, `/ui` exposure, and LiteLLM admin API exposure.
 - Operator token hashes, roles, scopes, and append-only admin audit events.

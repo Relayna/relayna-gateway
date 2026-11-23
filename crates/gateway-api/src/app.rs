@@ -3478,6 +3478,7 @@ fn apply_simulation_policy_patch(
                 "/v1/responses" => Ok(Route::Responses),
                 "/v1/embeddings" => Ok(Route::LiteLlmEmbeddings),
                 "/v1/rerank" => Ok(Route::LiteLlmRerank),
+                "/v1/audio/transcriptions" => Ok(Route::LiteLlmAudioTranscriptions),
                 "/v1/messages" => Ok(Route::AnthropicMessages),
                 "/v1/messages/count_tokens" => Ok(Route::AnthropicMessagesCountTokens),
                 "/v1/messages/batches" => Ok(Route::AnthropicMessageBatches),
@@ -8516,6 +8517,7 @@ mod tests {
                         "/v1/responses" => Some(Route::Responses),
                         "/v1/embeddings" => Some(Route::LiteLlmEmbeddings),
                         "/v1/rerank" => Some(Route::LiteLlmRerank),
+                        "/v1/audio/transcriptions" => Some(Route::LiteLlmAudioTranscriptions),
                         "/v1/messages" => Some(Route::AnthropicMessages),
                         "/v1/messages/count_tokens" => Some(Route::AnthropicMessagesCountTokens),
                         "/v1/messages/batches" => Some(Route::AnthropicMessageBatches),
@@ -9065,6 +9067,7 @@ mod tests {
                 return Ok(None);
             };
             route.enabled = enabled;
+            route.inherits_wildcard = false;
             route.updated_at = Utc::now();
             Ok(Some(route.clone()))
         }
@@ -9078,6 +9081,7 @@ mod tests {
             let Some(route) = routes.iter_mut().find(|route| route.route_id == route_id) else {
                 return Ok(None);
             };
+            gateway_core::route_settings::validate_openai_route_mode(route_id, Some(mode))?;
             route.mode = mode;
             route.updated_at = Utc::now();
             Ok(Some(route.clone()))
@@ -9088,6 +9092,7 @@ mod tests {
             route_id: &str,
             patch: OpenAiRouteConfigPatchRequest,
         ) -> GatewayResult<Option<OpenAiRouteSetting>> {
+            gateway_core::route_settings::validate_openai_route_mode(route_id, patch.mode)?;
             patch_route_config(&self.openai_routes, route_id, patch)
         }
 
@@ -10672,6 +10677,12 @@ mod tests {
     fn default_openai_routes() -> Vec<OpenAiRouteSetting> {
         let now = Utc::now();
         vec![
+            OpenAiRouteSetting {
+                enabled: false,
+                inherits_wildcard: true,
+                mode: OpenAiRouteMode::DirectLiteLlmPassthrough,
+                ..test_route_setting("audio-transcriptions", "/v1/audio/transcriptions", now)
+            },
             test_route_setting("chat-completions", "/v1/chat/completions", now),
             test_route_setting("responses", "/v1/responses", now),
             test_route_setting("embeddings", "/v1/embeddings", now),
@@ -10705,6 +10716,7 @@ mod tests {
             route_id: route_id.to_owned(),
             route: route.to_owned(),
             enabled: true,
+            inherits_wildcard: false,
             mode: OpenAiRouteMode::ManagedByGateway,
             timeout_ms: gateway_core::DEFAULT_LITELLM_ROUTE_TIMEOUT_MS,
             max_request_body_bytes: gateway_core::DEFAULT_LITELLM_ROUTE_REQUEST_BODY_BYTES,
@@ -16647,8 +16659,13 @@ mod tests {
             .await
             .expect("body");
         let value: serde_json::Value = serde_json::from_slice(&body).expect("json");
-        assert_eq!(value.as_array().expect("routes").len(), 4);
-        assert_eq!(value[0]["mode"], "managed_by_gateway");
+        assert_eq!(value.as_array().expect("routes").len(), 5);
+        let audio = &value[0];
+        assert_eq!(audio["route_id"], "audio-transcriptions");
+        assert_eq!(audio["route"], "/v1/audio/transcriptions");
+        assert_eq!(audio["mode"], "direct_litellm_passthrough");
+        assert_eq!(audio["inherits_wildcard"], true);
+        assert_eq!(audio["enabled"], false);
         let rerank = value
             .as_array()
             .expect("routes")
@@ -16720,6 +16737,47 @@ mod tests {
             .expect("body");
         let value: serde_json::Value = serde_json::from_slice(&body).expect("json");
         assert_eq!(value["enabled"], true);
+    }
+
+    #[tokio::test]
+    async fn audio_transcriptions_controls_preserve_wildcard_until_explicit_toggle() {
+        let app = router_with_state(test_state(default_store()));
+        let config = "/admin-ui/admin/openai-routes/audio-transcriptions/config";
+        let response = admin_patch(
+            app.clone(),
+            config,
+            Some(TEST_OPERATOR_TOKEN),
+            r#"{"mode":"managed_by_gateway"}"#,
+        )
+        .await;
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+        let response = admin_patch(
+            app.clone(),
+            config,
+            Some(TEST_OPERATOR_TOKEN),
+            r#"{"timeout_ms":240000,"max_request_body_bytes":8388608}"#,
+        )
+        .await;
+        assert_eq!(response.status(), StatusCode::OK);
+        let value = response_json(response).await;
+        assert_eq!(value["inherits_wildcard"], true);
+        assert_eq!(value["timeout_ms"], 240000);
+        assert_eq!(value["max_request_body_bytes"], 8388608);
+
+        for (action, enabled) in [("enable", true), ("disable", false)] {
+            let response = admin_post(
+                app.clone(),
+                &format!("/admin-ui/admin/openai-routes/audio-transcriptions/{action}"),
+                Some(TEST_OPERATOR_TOKEN),
+                "{}",
+            )
+            .await;
+            assert_eq!(response.status(), StatusCode::OK);
+            let value = response_json(response).await;
+            assert_eq!(value["enabled"], enabled);
+            assert_eq!(value["timeout_ms"], 240000);
+            assert!(value.get("inherits_wildcard").is_none());
+        }
     }
 
     #[tokio::test]

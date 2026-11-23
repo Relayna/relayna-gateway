@@ -120,6 +120,10 @@ The Rust verification helper runs formatting, workspace Clippy/tests and the req
 
 ## Releases and performance evidence
 
+The **1.6.0 candidate** adds [LiteLLM audio transcription controls](docs/litellm-passthrough.md#audio-transcriptions)
+in the Admin UI. See the [upgrade guide](docs/deployment.md#upgrade-to-160)
+and [benchmark status](docs/benchmarks/v1.6.0.md).
+
 Version **1.5.0** adds [bounded waiting for upload bursts](docs/operations.md#waiting-for-upload-capacity)
 and corrects HTTP/1.1 framing for buffered requests eligible for guardrail rewrites.
 See the [upgrade guide](docs/deployment.md#upgrade-to-150) and

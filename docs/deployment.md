@@ -10,6 +10,22 @@ Published v1.0.1 images retain their original contents. Use the current released
 image; see the
 [triage and verification procedure](runtime-image-security.md).
 
+## Upgrade to 1.6.0
+
+1. After publication, roll out `ghcr.io/sarattha/relayna-gateway:1.6.0` with your
+   existing PostgreSQL, Redis, and LiteLLM settings. Gateway applies the
+   PostgreSQL migration at startup and seeds the transcription route.
+2. In **Discover → Routes**, find `/v1/audio/transcriptions`. Existing uploads
+   follow LiteLLM wildcard settings while the row shows **Uses wildcard settings**.
+3. To activate dedicated routing, review **Edit identity** and **Configure**.
+   Set **Max request bytes** above the largest complete multipart upload you
+   expect, including the form overhead. For Relayna-key clients, add the
+   canonical route to any restrictive route allowlists. Select **Enable**.
+
+The dedicated route and its limits apply to both transcription paths.
+[Transcription setup and example](litellm-passthrough.md#audio-transcriptions) ·
+[Release validation](benchmarks/v1.6.0.md).
+
 ## Upgrade to 1.5.0
 
 1. After publication, roll out `ghcr.io/sarattha/relayna-gateway:1.5.0` with your
