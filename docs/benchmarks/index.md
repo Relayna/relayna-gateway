@@ -12,7 +12,7 @@ establish a new capacity result.
 
 | Version | Runtime architecture | Coverage | Results |
 | --- | --- | --- | --- |
-| v1.6.0 | Native arm64 planned | Six-size adaptive validation pending | [Candidate status](v1.6.0.md) |
+| v1.6.0 | Native amd64, separate hosted runners | 239 audited trials, three clean confirmations per size, matched v1.5.0 comparison | [Versioned results](v1.6.0.md) |
 | v1.5.0 | Native amd64 | 265 audited resource trials, same-runner v1.4.0 comparison and mixed-body waiter trials | [Versioned record](v1.5.0.md) |
 | v1.4.0 | Native amd64, separate hosted runners | 263 audited resource trials; six sizes, three stable confirmations each; controlled comparison and durable evidence complete | [Versioned results](v1.4.0.md) |
 | v1.3.0 | Native amd64, separate hosted runners | 207 fresh-pod resource trials; three stable confirmations per size; six clean same-runner comparison trials | [Results and validation](v1.3.0.md) |

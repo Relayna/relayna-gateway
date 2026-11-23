@@ -10,7 +10,7 @@ RUSTSEC-2026-0592.
 
 [Upgrade guide](deployment.md#upgrade-to-160) ·
 [Transcription setup](litellm-passthrough.md#audio-transcriptions) ·
-[Release benchmark status](benchmarks/v1.6.0.md).
+[Release benchmark results](benchmarks/v1.6.0.md).
 
 ## 1.5.0 bounded upload waiting and HTTP/1.1 forwarding
 

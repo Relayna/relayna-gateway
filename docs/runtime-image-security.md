@@ -31,6 +31,20 @@ runtime's resource capacity.
 
 ## Triage of the reported CVEs
 
+### v1.6.0 OpenSSL QUIC findings
+
+Trivy reports two High findings for Distroless's Debian 13.7
+`libssl3t64` package at version `3.5.7-1~deb13u3`. Both require an
+OpenSSL QUIC connection. Gateway binds TCP listeners and uses rustls for
+network TLS. Portal certificate and private-key parsing uses OpenSSL. An
+inspection of the candidate executable's dynamic imports found OpenSSL
+initialization, X.509, and key functions and no OpenSSL QUIC or TLS session
+functions. The package remains installed. The exception applies only to
+these findings for the exact package, version, distribution, and
+architectures, and expires 6 December 2026. See the
+[exception record](security-exceptions.md#active-exceptions) and
+[OpenSSL advisory](https://openssl-library.org/news/secadv/20261117.txt).
+
 ### v1.2.0 zlib update
 
 On 6 November 2026, the unchanged pinned Distroless image failed CI with two

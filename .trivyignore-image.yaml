@@ -1,4 +1,4 @@
-# Temporary Debian-suite false positives for a genuinely patched package.
+# Temporary image findings with documented package or Gateway reachability evidence.
 # Owner, upstream fix, package hashes and removal criteria: docs/security-exceptions.md.
 # Do not omit the exact versions/architectures or extend this to older zlib builds.
 vulnerabilities:
@@ -21,3 +21,21 @@ vulnerabilities:
       Debian marks 1:1.3.dfsg+really1.3.2-4 fixed by the same upstream patch as
       CVE-2026-76844. Only this verified package is excepted; old versions and
       other packages remain blocked. See docs/runtime-image-security.md.
+  - id: CVE-2026-107494
+    purls:
+      - "pkg:deb/debian/libssl3t64@3.5.7-1~deb13u3?arch=amd64&distro=debian-13.7"
+      - "pkg:deb/debian/libssl3t64@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7"
+    expired_at: 2026-12-06
+    statement: >-
+      The finding requires an OpenSSL QUIC connection. Gateway binds TCP
+      listeners and uses rustls for network TLS. OpenSSL handles portal
+      certificate and private-key parsing. See docs/security-exceptions.md.
+  - id: CVE-2026-124709
+    purls:
+      - "pkg:deb/debian/libssl3t64@3.5.7-1~deb13u3?arch=amd64&distro=debian-13.7"
+      - "pkg:deb/debian/libssl3t64@3.5.7-1~deb13u3?arch=arm64&distro=debian-13.7"
+    expired_at: 2026-12-06
+    statement: >-
+      The finding requires an OpenSSL QUIC connection. Gateway binds TCP
+      listeners and uses rustls for network TLS. OpenSSL handles portal
+      certificate and private-key parsing. See docs/security-exceptions.md.

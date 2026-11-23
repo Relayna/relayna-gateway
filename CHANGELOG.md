@@ -4,7 +4,7 @@ All notable changes to Relayna Gateway are documented in this file.
 
 ## Unreleased
 
-## 1.6.0 - Pending release validation
+## 1.6.0 - 2026-11-24
 
 ### Added
 
@@ -18,6 +18,9 @@ All notable changes to Relayna Gateway are documented in this file.
 ### Security
 
 - Update the locked `url` dependency to 2.5.9 for RUSTSEC-2026-0592.
+- Document two time-limited image-scan exceptions for OpenSSL QUIC findings.
+  Gateway uses rustls for network TLS and uses OpenSSL for portal key and
+  certificate handling.
 
 ### Compatibility and validation
 
@@ -25,6 +28,9 @@ All notable changes to Relayna Gateway are documented in this file.
   sets dedicated route enablement. See the
   [upgrade guide](https://sarattha.github.io/relayna-gateway/deployment/#upgrade-to-160)
   and [release validation](https://sarattha.github.io/relayna-gateway/benchmarks/v1.6.0/).
+- Complete 239 fresh-pod trials across six JSON sizes, with three clean
+  confirmations per size. In the matched 5 MiB comparison, v1.6.0 and v1.5.0
+  each verified 50 of 96 requests with eight slots per pod.
 
 ## 1.5.0 - 2026-11-19
 
