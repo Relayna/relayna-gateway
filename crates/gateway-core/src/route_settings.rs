@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 
 pub const CHAT_COMPLETIONS_ROUTE_ID: &str = "chat-completions";
 pub const EMBEDDINGS_ROUTE_ID: &str = "embeddings";
+pub const AUDIO_TRANSCRIPTIONS_ROUTE_ID: &str = "audio-transcriptions";
 pub const RERANK_ROUTE_ID: &str = "rerank";
 pub const RESPONSES_ROUTE_ID: &str = "responses";
 pub const ANTHROPIC_MESSAGES_ROUTE_ID: &str = "messages";
@@ -36,6 +37,8 @@ pub struct OpenAiRouteSetting {
     pub route_id: String,
     pub route: String,
     pub enabled: bool,
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    pub inherits_wildcard: bool,
     pub mode: OpenAiRouteMode,
     pub timeout_ms: i64,
     pub max_request_body_bytes: i64,
@@ -261,6 +264,10 @@ where
 pub trait OpenAiRouteSettingsLookup: Send + Sync {
     async fn route_identity(&self, route: Route) -> GatewayResult<crate::EndpointAccess>;
 
+    async fn audio_transcriptions_inherits_wildcard(&self) -> GatewayResult<bool> {
+        Ok(false)
+    }
+
     async fn openai_route_enabled(&self, route: Route) -> GatewayResult<bool>;
     async fn openai_route_mode(&self, route: Route) -> GatewayResult<OpenAiRouteMode>;
     async fn openai_route_limits(&self, route: Route) -> GatewayResult<LiteLlmRouteLimits>;
@@ -278,6 +285,10 @@ where
     async fn route_identity(&self, route: Route) -> GatewayResult<crate::EndpointAccess> {
         (**self).route_identity(route).await
     }
+    async fn audio_transcriptions_inherits_wildcard(&self) -> GatewayResult<bool> {
+        (**self).audio_transcriptions_inherits_wildcard().await
+    }
+
     async fn openai_route_enabled(&self, route: Route) -> GatewayResult<bool> {
         (**self).openai_route_enabled(route).await
     }
@@ -313,6 +324,7 @@ pub fn openai_route_id(route: Route) -> Option<&'static str> {
         Route::Responses => Some(RESPONSES_ROUTE_ID),
         Route::LiteLlmEmbeddings => Some(EMBEDDINGS_ROUTE_ID),
         Route::LiteLlmRerank => Some(RERANK_ROUTE_ID),
+        Route::LiteLlmAudioTranscriptions => Some(AUDIO_TRANSCRIPTIONS_ROUTE_ID),
         _ => None,
     }
 }
@@ -323,8 +335,20 @@ pub fn openai_route_from_id(route_id: &str) -> Option<Route> {
         RESPONSES_ROUTE_ID => Some(Route::Responses),
         EMBEDDINGS_ROUTE_ID => Some(Route::LiteLlmEmbeddings),
         RERANK_ROUTE_ID => Some(Route::LiteLlmRerank),
+        AUDIO_TRANSCRIPTIONS_ROUTE_ID => Some(Route::LiteLlmAudioTranscriptions),
         _ => None,
     }
+}
+
+pub fn validate_openai_route_mode(
+    route_id: &str,
+    mode: Option<OpenAiRouteMode>,
+) -> GatewayResult<()> {
+    if route_id == AUDIO_TRANSCRIPTIONS_ROUTE_ID && mode == Some(OpenAiRouteMode::ManagedByGateway)
+    {
+        return Err(GatewayError::InvalidProviderConfigPayload);
+    }
+    Ok(())
 }
 
 pub fn anthropic_route_id(route: Route) -> Option<&'static str> {

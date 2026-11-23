@@ -284,17 +284,18 @@ See [LiteLLM policy and rollback](litellm-passthrough.md).
 ### `openai_route_settings`
 
 `openai_route_settings` stores global enablement and mode selection for
-OpenAI-compatible proxy routes and the canonical LiteLLM rerank route.
+OpenAI-compatible proxy routes and the canonical LiteLLM rerank and audio
+transcription routes.
 
 | Key | Details |
 | --- | --- |
 | Primary key | `route_id text`. |
 | Unique keys | `route` is unique. |
-| Checks | `route_id` is limited to `chat-completions`, `responses`, `embeddings`, and `rerank`; `route` is limited to `/v1/chat/completions`, `/v1/responses`, `/v1/embeddings`, and `/v1/rerank`. |
-| Mode | `mode` is `managed_by_gateway` or `direct_litellm_passthrough`. `managed_by_gateway` is the default. |
+| Checks | `route_id` is limited to `chat-completions`, `responses`, `embeddings`, `rerank`, and `audio-transcriptions`; `route` is limited to `/v1/chat/completions`, `/v1/responses`, `/v1/embeddings`, `/v1/rerank`, and `/v1/audio/transcriptions`. |
+| Mode | `mode` is `managed_by_gateway` or `direct_litellm_passthrough`. `managed_by_gateway` is the default. Audio transcription requires `direct_litellm_passthrough`. |
 | Runtime limits | `timeout_ms`, `max_request_body_bytes`, and `max_response_body_bytes` default to 120000, 1048576, and 1048576. These route-level limits apply before virtual-key policy limits; configured key or policy-layer limits can still be stricter. |
-| Seed data | Migrations insert supported routes as enabled and managed by Gateway. |
-| Required data | These rows must exist for operators to toggle global OpenAI-compatible and rerank route availability and direct LiteLLM passthrough mode. `/rerank` and `/v2/rerank` share the `/v1/rerank` row. |
+| Seed data | Migrations seed audio transcription with `inherits_wildcard=true`. Setting dedicated enablement clears this flag. Other OpenAI-compatible routes start enabled and managed by Gateway. |
+| Required data | These rows must exist for operators to toggle global route availability and LiteLLM forwarding. `/rerank` and `/v2/rerank` share the `/v1/rerank` row. `/audio/transcriptions` shares the `/v1/audio/transcriptions` row after dedicated enablement is set. |
 | Runtime role | Both modes preserve Relayna auth, global route enablement, policy, provider/model allowlists, rate limits, and budgets. Direct LiteLLM passthrough skips Gateway guardrail rewriting and token accounting, then forwards directly to LiteLLM with credential translation. |
 
 ### `anthropic_route_settings`

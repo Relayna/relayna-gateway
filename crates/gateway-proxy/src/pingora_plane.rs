@@ -801,7 +801,19 @@ where
             } else {
                 &req.method
             };
-            match Route::resolve_match(route_method, req.uri.path()) {
+            let mut resolved = Route::resolve_match(route_method, req.uri.path());
+            if matches!(&resolved, Ok(matched) if matched.route == Route::LiteLlmAudioTranscriptions)
+            {
+                match self.store.audio_transcriptions_inherits_wildcard().await {
+                    Ok(true) => resolved = Err(GatewayError::UnsupportedRoute),
+                    Ok(false) => {}
+                    Err(error) => {
+                        respond_error(session, error, ctx).await?;
+                        return Ok(true);
+                    }
+                }
+            }
+            match resolved {
                 Ok(matched) => matched,
                 Err(error) => match self.store.litellm_passthrough_settings().await {
                     Ok(settings) if settings.denies_path(req.uri.path()) => {
@@ -1662,7 +1674,19 @@ where
         }
         // Apply the complete original selector before policy cost checks.
         resolve_service_cost_for_ctx(ctx, pricing_selector.as_ref());
-        let analyzed = CompleteRequestBody::new(Bytes::from(raw_body));
+        let analyzed = if route == Some(Route::LiteLlmAudioTranscriptions) {
+            CompleteRequestBody {
+                generation: audio_transcription_analysis(
+                    &raw_body,
+                    ctx.request_content_type.as_deref(),
+                )
+                .await,
+                bytes: Bytes::from(raw_body),
+                tokens: std::sync::OnceLock::new(),
+            }
+        } else {
+            CompleteRequestBody::new(Bytes::from(raw_body))
+        };
         if let Err(error) = retain_request_metadata_workspace(ctx, &analyzed) {
             ctx.guardrail_error = Some(error.clone());
             respond_error(session, error, ctx).await?;
@@ -4275,6 +4299,16 @@ fn check_complete_request_policy(
     if body.len() > matched.max_body_bytes {
         return Err(GatewayError::RequestBodyTooLarge);
     }
+    let audio = matched.route == Route::LiteLlmAudioTranscriptions;
+    // Text token heuristics cannot meter audio or bound the transcript.
+    if audio
+        && (features.model.is_none()
+            || policy.max_input_tokens_per_request.is_some()
+            || policy.max_output_tokens_per_request.is_some()
+            || policy.tpm_limit.is_some())
+    {
+        return Err(GatewayError::PolicyDenied);
+    }
     let generation = matches!(
         matched.route,
         Route::ChatCompletions
@@ -4283,7 +4317,8 @@ fn check_complete_request_policy(
             | Route::LiteLlmEmbeddings
             | Route::LiteLlmRerank
     );
-    let malformed_metadata = analyzed.generation.is_none()
+    let malformed_metadata = !audio
+        && analyzed.generation.is_none()
         && serde_json::from_slice::<serde_json::Value>(body).is_ok_and(|value| value.is_object());
     if malformed_metadata
         || (generation && analyzed.generation.is_none())
@@ -4458,6 +4493,68 @@ struct ResolvedUsageCost {
     cost_source: Option<String>,
     cost_mode: Option<ServiceCostMode>,
     pricing_rule_name: Option<String>,
+}
+
+async fn audio_transcription_analysis(
+    body: &[u8],
+    content_type: Option<&str>,
+) -> Option<gateway_core::GenerationRequestAnalysis> {
+    let boundary = multra::parse_boundary(content_type?).ok()?;
+    let mut multipart = Multipart::with_reader(body, boundary);
+    let mut model = None;
+    let mut stream = None;
+
+    // Inspect the complete form so fields after the audio can select policy,
+    // and reject ambiguous selectors before forwarding the original upload.
+    while let Some(mut field) = multipart.next_field().await.ok()? {
+        let name = field.name().unwrap_or_default();
+        // LiteLLM also recognizes field names with a trailing [].
+        let target = match name.strip_suffix("[]").unwrap_or(name) {
+            "model" if name == "model" => &mut model,
+            "stream" if name == "stream" => &mut stream,
+            "model"
+            | "stream"
+            | "extra_body"
+            | "api_base"
+            | "base_url"
+            | "custom_llm_provider"
+            | "api_key"
+            | "azure_ad_token"
+            | "extra_headers" => return None,
+            _ => continue,
+        };
+        if target.is_some() || field.file_name().is_some() {
+            return None;
+        }
+        let mut value = Vec::new();
+        while let Some(chunk) = field.chunk().await.ok()? {
+            if value.len().saturating_add(chunk.len()) > 1024 {
+                return None;
+            }
+            value.extend_from_slice(&chunk);
+        }
+        *target = Some(String::from_utf8(value).ok()?);
+    }
+
+    let model = model.filter(|value| !value.is_empty() && value.trim() == value)?;
+    let stream = match stream
+        .as_deref()
+        .map(str::trim)
+        .map(str::to_ascii_lowercase)
+        .as_deref()
+    {
+        None | Some("" | "false" | "0" | "off" | "no" | "n" | "f") => false,
+        Some("true" | "1" | "on" | "yes" | "y" | "t") => true,
+        _ => return None,
+    };
+    Some(gateway_core::GenerationRequestAnalysis {
+        features: gateway_core::GenerationFeatures {
+            model: Some(model),
+            stream,
+            ..Default::default()
+        },
+        client_guardrails: None,
+    })
 }
 
 async fn service_pricing_selector(

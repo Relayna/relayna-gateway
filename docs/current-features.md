@@ -1,5 +1,13 @@
 # Current Feature Highlights
 
+## LiteLLM audio transcription controls (1.6.0)
+
+Operators can set dedicated identity, timeout, and upload and response limits
+for LiteLLM transcription in **Discover → Routes**. Enabling the route applies
+direct LiteLLM passthrough to `POST /v1/audio/transcriptions` and
+`POST /audio/transcriptions`. Relayna keys are subject to model and streaming
+policy on multipart uploads. [Operator setup](litellm-passthrough.md#audio-transcriptions).
+
 ## Bounded waiting for uploads (1.5.0)
 
 When all upload slots are in use, a pod can hold additional requests at their

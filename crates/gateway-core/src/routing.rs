@@ -15,6 +15,7 @@ pub enum Route {
     Responses,
     LiteLlmEmbeddings,
     LiteLlmRerank,
+    LiteLlmAudioTranscriptions,
     AnthropicMessages,
     AnthropicMessagesCountTokens,
     AnthropicMessageBatches,
@@ -68,6 +69,14 @@ impl Route {
             }
             "/rerank" | "/v1/rerank" | "/v2/rerank" if method == Method::POST => {
                 Ok(RouteMatch::litellm(Self::LiteLlmRerank))
+            }
+            _ if method == Method::POST
+                && matches!(
+                    path.trim_end_matches('/'),
+                    "/audio/transcriptions" | "/v1/audio/transcriptions"
+                ) =>
+            {
+                Ok(RouteMatch::litellm(Self::LiteLlmAudioTranscriptions))
             }
             "/v1/messages" if method == Method::POST => {
                 Ok(RouteMatch::litellm(Self::AnthropicMessages))
@@ -132,6 +141,7 @@ impl Route {
             Self::Responses => "/v1/responses",
             Self::LiteLlmEmbeddings => "/v1/embeddings",
             Self::LiteLlmRerank => "/v1/rerank",
+            Self::LiteLlmAudioTranscriptions => "/v1/audio/transcriptions",
             Self::AnthropicMessages => "/v1/messages",
             Self::AnthropicMessagesCountTokens => "/v1/messages/count_tokens",
             Self::AnthropicMessageBatches => "/v1/messages/batches",

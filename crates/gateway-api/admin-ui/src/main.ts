@@ -2002,11 +2002,11 @@ function providerRouteTable(rows, family) {
       `<strong><i class="ti ti-route" aria-hidden="true"></i> ${esc(row.route_id)}</strong><div class="subtle"><code>${esc(row.route)}</code></div>`,
       row.route === "/v1/responses" && row.mode === "direct_litellm_passthrough" && state.routeIdentities.some((setting) => setting.route === row.route && setting.access?.websocket) ? '<span class="badge">HTTP + WS</span><div class="subtle">Caller-owned LiteLLM keys only</div>' : '<span class="badge">HTTP</span>',
       routeIdentityControl(row.route),
-      badge(row.enabled === true ? "enabled" : row.enabled === false ? "disabled" : "unknown", row.enabled === true ? "good" : row.enabled === false ? "bad" : "neutral"),
+      row.inherits_wildcard ? badge("Uses wildcard settings") : badge(row.enabled === true ? "enabled" : row.enabled === false ? "disabled" : "unknown", row.enabled === true ? "good" : row.enabled === false ? "bad" : "neutral"),
       modeForm(row),
       time(row.updated_at),
       `<div class="actions">
-        <button ${actionAttr}="${row.enabled ? "disable" : "enable"}" data-route-id="${attr(row.route_id)}" aria-label="${row.enabled ? "Disable" : "Enable"} route ${attr(row.route)}">${row.enabled ? "Disable" : "Enable"}</button>
+        <button ${actionAttr}="${row.enabled ? "disable" : "enable"}" data-route-id="${attr(row.route_id)}"${row.inherits_wildcard ? " data-inherits-wildcard" : ""} aria-label="${row.enabled ? "Disable" : "Enable"} route ${attr(row.route)}">${row.enabled ? "Disable" : "Enable"}</button>
       </div>`,
     ]),
   );
@@ -2023,7 +2023,7 @@ function anthropicRouteModeForm(row) {
 function routeConfigForm(row, dataAttrName) {
   return `<form class="inline-form route-config-form" ${dataAttrName} data-route-id="${attr(row.route_id)}">
     <label class="route-config-field">Mode<select name="mode">
-      ${option("managed_by_gateway", row.mode || "managed_by_gateway")}
+      ${row.route_id === "audio-transcriptions" ? "" : option("managed_by_gateway", row.mode || "managed_by_gateway")}
       ${option("direct_litellm_passthrough", row.mode || "")}
     </select></label>
     <label class="route-config-field">Timeout ms<input name="timeout_ms" type="number" min="1" max="600000" value="${attr(row.timeout_ms ?? 120000)}" title="Timeout ms"></label>
@@ -2059,8 +2059,11 @@ function serviceRouteTimeoutForm(row) {
 }
 
 async function openaiRouteAction(event) {
-  const { routeId, openaiRouteAction: action } = event.currentTarget.dataset;
-  if (!(await confirmAction(`${action} ${routeId}`, "This gateway route change is written to the database."))) return;
+  const { routeId, openaiRouteAction: action, inheritsWildcard } = event.currentTarget.dataset;
+  const detail = inheritsWildcard !== undefined
+    ? "Enabling the dedicated route applies its identity settings, limits, and policy to transcription requests."
+    : "This gateway route change is written to the database.";
+  if (!(await confirmAction(`${action} ${routeId}`, detail))) return;
   await api(`/admin-ui/admin/openai-routes/${routeId}/${action}`, { method: "POST", body: "{}" });
   setNotice(`OpenAI route ${action}d.`, "success");
   await routes();

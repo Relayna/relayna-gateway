@@ -500,6 +500,7 @@ pub const IDENTITY_ROUTES: &[crate::Route] = &[
     crate::Route::Responses,
     crate::Route::LiteLlmEmbeddings,
     crate::Route::LiteLlmRerank,
+    crate::Route::LiteLlmAudioTranscriptions,
     crate::Route::AnthropicMessages,
     crate::Route::AnthropicMessagesCountTokens,
     crate::Route::AnthropicMessageBatches,

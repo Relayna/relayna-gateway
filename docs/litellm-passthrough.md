@@ -244,6 +244,8 @@ When a request reaches the proxy listener, routing is evaluated in this order:
    - `POST /chat/completions` and `POST /v1/chat/completions`
    - `POST /responses` and `POST /v1/responses`
    - `POST /embeddings` and `POST /v1/embeddings`
+   - `POST /audio/transcriptions` and `POST /v1/audio/transcriptions` after the
+     dedicated route is enabled or explicitly disabled
 4. Canonical LiteLLM rerank aliases, governed by one `/v1/rerank` route
    setting:
    - `POST /rerank`
@@ -273,6 +275,41 @@ policy and every applicable restrictive inherited allowlist. Adding it to the ke
 alone does not override a global or project restriction. Use the key policy
 simulator to inspect the final allowed routes if the request returns
 `policy_denied`.
+
+## Audio transcriptions
+
+LiteLLM accepts audio uploads as multipart forms. In **Discover → Routes**,
+find `/v1/audio/transcriptions`. Open **Configure** to set the upstream timeout
+and body limits. Allow room for multipart overhead in **Max request bytes**,
+which defaults to 1 MiB. Select **Enable** to activate the dedicated route in
+`direct_litellm_passthrough` mode. The route initially inherits wildcard
+passthrough settings and keeps that behavior while you prepare its configuration.
+
+Once activated, the versioned and unversioned POST paths share one route's
+enablement, identity and limits. Both honor the global LiteLLM blocked-path
+rules for the requested path. Disabling the dedicated route blocks either path
+even if wildcard passthrough would allow it.
+
+For Relayna keys, allow `/v1/audio/transcriptions` in the key policy and every
+applicable restrictive allowlist. With no applicable saved policy layers,
+Gateway's default allowlist covers chat completions and Responses. In a fresh
+environment, create a project-scoped policy layer that allows transcription
+and assign the virtual key to that project.
+
+Gateway checks the multipart `model` and `stream` fields against policy before
+forwarding the original body. Usage has the
+canonical route identity and no provider token counts. Requests subject to
+input token, output token, or token-per-minute caps are denied because this
+route cannot enforce those caps on audio. Request rate and budget checks still
+apply. Caller-owned LiteLLM bearer keys use LiteLLM authentication under the
+same conditions as other canonical direct routes.
+
+```bash
+curl "${RELAYNA_BASE_URL}/v1/audio/transcriptions" \
+  -H "Authorization: Bearer ${RELAYNA_VIRTUAL_KEY}" \
+  -F "file=@sample.wav" \
+  -F "model=${LITELLM_TRANSCRIPTION_MODEL}"
+```
 
 ## Canonical Route Modes
 

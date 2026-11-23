@@ -1,5 +1,17 @@
 # Releases
 
+## 1.6.0 LiteLLM audio transcription controls
+
+The Routes page adds a dedicated direct LiteLLM route for audio transcription
+with configurable identity, timeout and body limits. Existing wildcard
+traffic continues under its current settings until an operator sets dedicated
+enablement. The release also updates the locked `url` dependency to 2.5.9 for
+RUSTSEC-2026-0592.
+
+[Upgrade guide](deployment.md#upgrade-to-160) ·
+[Transcription setup](litellm-passthrough.md#audio-transcriptions) ·
+[Release benchmark results](benchmarks/v1.6.0.md).
+
 ## 1.5.0 bounded upload waiting and HTTP/1.1 forwarding
 
 Gateway can hold a bounded number of uploads at their headers when another

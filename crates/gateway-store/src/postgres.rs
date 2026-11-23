@@ -2926,7 +2926,7 @@ impl AdminOpenAiRouteStore for PostgresStore {
         let rows = sqlx::query(
             r#"
             SELECT route_id, route, enabled, mode, timeout_ms, max_request_body_bytes,
-                   max_response_body_bytes, updated_at
+                   max_response_body_bytes, updated_at, inherits_wildcard
             FROM openai_route_settings
             ORDER BY route_id
             "#,
@@ -2971,25 +2971,15 @@ impl AdminOpenAiRouteStore for PostgresStore {
             r#"
             UPDATE openai_route_settings
             SET enabled = $2,
+                inherits_wildcard = false,
                 updated_at = now()
             WHERE route_id = $1
+            RETURNING route_id, route, enabled, mode, timeout_ms, max_request_body_bytes,
+                      max_response_body_bytes, updated_at, inherits_wildcard
             "#,
         )
         .bind(route_id)
         .bind(enabled)
-        .execute(&self.pool)
-        .await
-        .map_err(|_| GatewayError::StoreUnavailable)?;
-
-        sqlx::query(
-            r#"
-            SELECT route_id, route, enabled, mode, timeout_ms, max_request_body_bytes,
-                   max_response_body_bytes, updated_at
-            FROM openai_route_settings
-            WHERE route_id = $1
-            "#,
-        )
-        .bind(route_id)
         .fetch_optional(&self.pool)
         .await
         .map_err(|_| GatewayError::StoreUnavailable)?
@@ -3005,6 +2995,7 @@ impl AdminOpenAiRouteStore for PostgresStore {
         if gateway_core::openai_route_from_id(route_id).is_none() {
             return Ok(None);
         }
+        gateway_core::route_settings::validate_openai_route_mode(route_id, Some(mode))?;
 
         sqlx::query(
             r#"
@@ -3023,7 +3014,7 @@ impl AdminOpenAiRouteStore for PostgresStore {
         sqlx::query(
             r#"
             SELECT route_id, route, enabled, mode, timeout_ms, max_request_body_bytes,
-                   max_response_body_bytes, updated_at
+                   max_response_body_bytes, updated_at, inherits_wildcard
             FROM openai_route_settings
             WHERE route_id = $1
             "#,
@@ -3044,6 +3035,7 @@ impl AdminOpenAiRouteStore for PostgresStore {
         if gateway_core::openai_route_from_id(route_id).is_none() {
             return Ok(None);
         }
+        gateway_core::route_settings::validate_openai_route_mode(route_id, patch.mode)?;
         patch.validate()?;
 
         let row = sqlx::query(
@@ -3056,7 +3048,7 @@ impl AdminOpenAiRouteStore for PostgresStore {
                 updated_at = now()
             WHERE route_id = $1
             RETURNING route_id, route, enabled, mode, timeout_ms, max_request_body_bytes,
-                      max_response_body_bytes, updated_at
+                      max_response_body_bytes, updated_at, inherits_wildcard
             "#,
         )
         .bind(route_id)
@@ -3288,6 +3280,16 @@ impl OpenAiRouteSettingsLookup for PostgresStore {
         .unwrap_or_default();
         access.validate(route.as_str())?;
         Ok(access)
+    }
+
+    async fn audio_transcriptions_inherits_wildcard(&self) -> GatewayResult<bool> {
+        sqlx::query_scalar(
+            "SELECT inherits_wildcard FROM openai_route_settings WHERE route_id = $1",
+        )
+        .bind(gateway_core::route_settings::AUDIO_TRANSCRIPTIONS_ROUTE_ID)
+        .fetch_one(&self.pool)
+        .await
+        .map_err(|_| GatewayError::StoreUnavailable)
     }
 
     async fn openai_route_enabled(&self, route: Route) -> GatewayResult<bool> {
@@ -5772,6 +5774,7 @@ fn parse_routes(values: &[String]) -> GatewayResult<Vec<Route>> {
             "/v1/responses" => Ok(Route::Responses),
             "/v1/embeddings" => Ok(Route::LiteLlmEmbeddings),
             "/v1/rerank" => Ok(Route::LiteLlmRerank),
+            "/v1/audio/transcriptions" => Ok(Route::LiteLlmAudioTranscriptions),
             "/litellm/*" => Ok(Route::LiteLlmPassthrough),
             "/v1/messages" => Ok(Route::AnthropicMessages),
             "/v1/messages/count_tokens" => Ok(Route::AnthropicMessagesCountTokens),
@@ -6085,6 +6088,7 @@ fn openai_route_setting_from_row(row: &sqlx::postgres::PgRow) -> GatewayResult<O
         enabled: row
             .try_get("enabled")
             .map_err(|_| GatewayError::StoreUnavailable)?,
+        inherits_wildcard: row.try_get("inherits_wildcard").unwrap_or(false),
         mode: parse_openai_route_mode(&mode)?,
         timeout_ms: row
             .try_get("timeout_ms")
