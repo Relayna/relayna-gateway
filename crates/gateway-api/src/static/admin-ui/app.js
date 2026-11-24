@@ -20583,7 +20583,7 @@ function ConsoleShell() {
 										children: /* @__PURE__ */ (0, import_jsx_runtime$10.jsx)("span", {
 											className: "version-indicator",
 											"aria-label": "Current Relayna Gateway version",
-											children: "v1.7.0"
+											children: "v1.7.1"
 										})
 									}),
 									/* @__PURE__ */ (0, import_jsx_runtime$10.jsx)("small", {
@@ -22679,8 +22679,8 @@ function EntraFields({ value, prefix, active, onChange }) {
 		className: "grid gap-4 sm:grid-cols-2",
 		children: [
 			/* @__PURE__ */ (0, import_jsx_runtime$3.jsx)(Field, {
-				label: prefix === "endpoint" ? "Entra audience (required)" : "Profile audience (optional)",
-				help: prefix === "endpoint" ? help$1.audience : help$1.profileAudience,
+				label: prefix === "endpoint" ? "Entra audience (optional)" : "Profile audience (optional)",
+				help: help$1.audience,
 				children: /* @__PURE__ */ (0, import_jsx_runtime$3.jsx)(Input, {
 					name: name("audience"),
 					value: value.audience,
@@ -22688,8 +22688,7 @@ function EntraFields({ value, prefix, active, onChange }) {
 						...value,
 						audience: event.target.value
 					}),
-					required: active && prefix === "endpoint",
-					placeholder: "api://employees"
+					placeholder: "Use Gateway audience"
 				})
 			}),
 			[
@@ -22744,8 +22743,7 @@ var init_identity_editor = __esmMin((() => {
 		name: "Required display name, up to 120 UTF-8 bytes. Unique on this route ignoring case. Renaming preserves key assignments.",
 		type: "Choose what callers assigned to this profile must provide. Entra + Relayna key requires both a verified Entra identity and the assigned key. Relayna key only requires the assigned key. Accessa requires Entra + Relayna key.",
 		enabled: "Allow assigned keys to use this profile. Turning it off blocks those keys without moving them to another profile.",
-		audience: "Exact expected JWT audience, such as api://employees. No whitespace, up to 512 bytes.",
-		profileAudience: "Leave blank to use the Gateway Entra audience from Settings. Enter an exact audience when the caller uses a different application.",
+		audience: "Leave blank to use the Gateway Entra audience from Settings. Enter an exact audience when the caller uses a different application.",
 		required_scopes: "Optional comma-separated scopes. Every listed scope is required. Blank adds no scope restriction.",
 		required_roles: "Optional comma-separated roles. Every listed role is required. Blank adds no role restriction.",
 		allowed_groups: "Optional comma-separated group IDs. At least one must match. Blank adds no group restriction.",
@@ -23312,7 +23310,7 @@ function profileRow(profile = {}, bindings = []) {
     <label>Profile authentication<select data-profile-type name="${id}.type"><option value="entra_and_relayna_key">Entra + Relayna key</option><option value="relayna_key_only" ${profile.type === "relayna_key_only" ? "selected" : ""}>Relayna key only</option></select></label>
     <label class="check"><input type="checkbox" name="${id}.enabled" ${profile.enabled !== false ? "checked" : ""}> Enabled</label>
     <div class="wide-field form-grid" data-profile-entra ${keyOnly ? "hidden" : ""}>
-    <label>Profile audience (optional)<input ${keyOnly ? "disabled" : ""} name="${id}.audience" value="${escape$1(entra.audience)}" placeholder="api://employees"></label>
+    <label>Profile audience (optional)<input ${keyOnly ? "disabled" : ""} name="${id}.audience" value="${escape$1(entra.audience)}" placeholder="Use Gateway audience"></label>
     ${[
 		"required_scopes",
 		"required_roles",
@@ -25738,7 +25736,7 @@ var init_guidance_content = __esmMin((() => {
 		endpoint_entra_mode: "Choose how this route determines authentication requirements. Gateway setting inherits Settings; No Entra retains the route's credential checks; Require Entra uses one audience policy. Use authentication profiles selects a profile by its assigned Relayna key and denies unassigned callers. Change Profile authentication within each profile to choose Entra + Relayna key or Relayna key only. Saved profiles cannot be removed by switching route modes.",
 		profile_keys_search: "Search by key prefix, UUID, project name or ID, or service. Keys already assigned to a profile are excluded from results. Adding a key clears the search. Apply selection updates this profile’s draft; Cancel discards popup changes. Save the identity form to persist assignments.",
 		profile_binding: "Assign this key to exactly one profile on this route. Unassigned denies access on a profiled route; a disabled profile also denies access. Save applies immediately to new policy reads and does not grant route permissions.",
-		endpoint_audience: "Exact audience required when Require Entra is selected. Other modes ignore this field. This does not add the audience to other endpoints.",
+		endpoint_audience: "Leave blank to use the Gateway Entra audience from Settings. Enter an exact audience to override it for this endpoint.",
 		endpoint_scopes: "Comma-separated scopes. Every listed scope is required; blank adds no scope requirement for this endpoint.",
 		endpoint_roles: "Comma-separated roles. Every listed role is required; blank adds no role requirement for this endpoint.",
 		endpoint_groups: "Comma-separated group IDs. At least one must match; blank adds no group restriction.",
@@ -41496,7 +41494,7 @@ function serviceTypePresets() {
 		{
 			id: "entra_http",
 			label: "Entra-protected HTTP service",
-			description: "HTTP API requiring its own Entra audience. Enter the audience and any required scopes, roles or groups below.",
+			description: "HTTP API requiring Entra. Leave the audience blank to use Gateway Settings. Add scopes, roles or groups as needed.",
 			methods: ["GET", "POST"],
 			mode: "required",
 			timeout: 6e4
@@ -41504,7 +41502,7 @@ function serviceTypePresets() {
 		{
 			id: "apigee_http",
 			label: "Apigee-backed HTTP service",
-			description: "HTTP API requiring Entra identity, also accepting signed Apigee claims. Enter this endpoint’s audience. Trusted Apigee verification must be configured in gateway settings.",
+			description: "HTTP API requiring Entra identity, also accepting signed Apigee claims. Configure trusted Apigee verification in Gateway Settings.",
 			methods: ["GET", "POST"],
 			mode: "required",
 			apigee: true,
@@ -41513,7 +41511,7 @@ function serviceTypePresets() {
 		{
 			id: "accessa_channel",
 			label: "Accessa app/channel (HTTP + WebSocket)",
-			description: "BFF connects through the gateway to the channel adapter. App and channel generate the route; only GET /run supports WebSocket. PUT supports feedback and settings; PATCH supports metadata edits. Enter the Accessa Entra audience and bind a virtual key to this service.",
+			description: "BFF connects through the gateway to the channel adapter. App and channel generate the route; only GET /run supports WebSocket. PUT supports feedback and settings; PATCH supports metadata edits. Bind a virtual key to this service.",
 			methods: [
 				"GET",
 				"POST",
@@ -41552,7 +41550,7 @@ function serviceTypePresets() {
 		{
 			id: "accessa_discovery",
 			label: "Accessa channel discovery (HTTP)",
-			description: "Channel identity discovery at /channel/{channel}/v1/me. App stays blank; enter the channel and its Entra audience. This endpoint does not open WebSockets.",
+			description: "Channel identity discovery at /channel/{channel}/v1/me. Enter the channel and leave the app blank.",
 			methods: ["GET"],
 			mode: "required",
 			accessa: true,
@@ -44103,7 +44101,7 @@ function endpointIdentityFields(access = {}, projectId = "") {
     <option value="disabled" ${savedProfiles ? "disabled" : ""} ${mode === "disabled" ? "selected" : ""}>No Entra</option>
   </select></label>
     <div class="wide-field form-grid" data-endpoint-entra ${mode === "required" ? "" : "hidden"}>
-    <label>Entra audience (required)<input ${mode === "required" ? "required" : "disabled"} name="endpoint_audience" value="${attr(entra.audience || "")}" placeholder="api://accessa"></label>
+    <label>Entra audience (optional)<input ${mode === "required" ? "" : "disabled"} name="endpoint_audience" value="${attr(entra.audience || "")}" placeholder="Use Gateway audience"></label>
     <label>Scopes (optional)<input ${mode === "required" ? "" : "disabled"} name="endpoint_scopes" value="${attr(listValue(entra.required_scopes, ""))}"></label>
     <label>Roles (optional)<input ${mode === "required" ? "" : "disabled"} name="endpoint_roles" value="${attr(listValue(entra.required_roles, ""))}"></label>
     <label>Groups (optional)<input ${mode === "required" ? "" : "disabled"} name="endpoint_groups" value="${attr(listValue(entra.allowed_groups, ""))}"></label>
@@ -44111,7 +44109,7 @@ function endpointIdentityFields(access = {}, projectId = "") {
     ${profileFields(access)}</div>`;
 }
 function endpointIdentityBadge(access = {}) {
-	return access.authentication_profiles ? `<span class="badge good">${esc(access.authentication_profiles.profiles.length)} authentication profiles</span><div class="subtle">Revision ${esc(access.authentication_profiles.revision)} · explicit key bindings</div>` : access.entra ? `<span class="badge good">Entra required</span><div class="subtle">${esc(access.entra.audience)}</div>` : access.skip_entra ? "<span class=\"badge\">No Entra</span>" : "<span class=\"badge warn\">Gateway setting</span>";
+	return access.authentication_profiles ? `<span class="badge good">${esc(access.authentication_profiles.profiles.length)} authentication profiles</span><div class="subtle">Revision ${esc(access.authentication_profiles.revision)} · explicit key bindings</div>` : access.entra ? `<span class="badge good">Entra required</span><div class="subtle">${esc(access.entra.audience ?? "Gateway audience")}</div>` : access.skip_entra ? "<span class=\"badge\">No Entra</span>" : "<span class=\"badge warn\">Gateway setting</span>";
 }
 function routeIdentityControl(route) {
 	const setting = (state.routeIdentities || []).find((item) => item.route === route);
@@ -44182,7 +44180,7 @@ function endpointAccessFields(access, projectId = "") {
     <label>Connections per key per instance<input name="socket_key_connections" type="number" min="1" max="10000" value="${attr(binding.max_connections_per_key ?? 10)}"></label>
     <label>Maximum socket message bytes<input name="socket_frame_bytes" type="number" min="125" max="16777216" value="${attr(binding.max_frame_bytes ?? 1048576)}"></label>
     <fieldset class="wide-field" style="border:0;margin:0;padding:0;min-width:0" data-user-token-forwarding="${attr(JSON.stringify(access.user_token_forwarding || null))}" ${access.accessa ? "" : "disabled hidden"}></fieldset>
-    <div class="help wide-field">Accessa requires Entra and a Relayna key. Use Require Entra with an endpoint audience or assign an Entra authentication profile. A blank app is only for legacy discovery at /channel/{channel}/v1/me. Socket limits apply per gateway instance; the instance ceiling is 4,096. Accessa transport and admission carry no charge; downstream service calls remain metered.</div>
+    <div class="help wide-field">Accessa requires Entra and a Relayna key. Select Require Entra or assign an Entra authentication profile. A blank audience uses the Gateway Entra audience from Settings. A blank app is only for legacy discovery at /channel/{channel}/v1/me. Socket limits apply per gateway instance; the instance ceiling is 4,096. Accessa transport and admission carry no charge; downstream service calls remain metered.</div>
     ${websocketTransportFields(access)}
   `);
 }
@@ -44205,14 +44203,13 @@ function endpointAccessFromForm(form) {
 	const audience = mode === "required" ? String(form.get("endpoint_audience") || "").trim() : "";
 	const accessa = form.has("accessa_enabled");
 	if (accessa && form.has("websocket_enabled")) throw new Error("Choose Accessa or general WebSocket transport, not both.");
-	if (accessa && mode !== "profiles" && !audience) throw new Error("Accessa requires an endpoint Entra audience and Require Entra mode.");
-	if (mode === "required" && !audience) throw new Error("Require Entra needs an endpoint audience.");
 	if (![
 		"inherit",
 		"required",
 		"disabled",
 		"profiles"
 	].includes(mode)) throw new Error("Choose a Route authentication mode.");
+	if (accessa && mode !== "required" && mode !== "profiles") throw new Error("Accessa requires Require Entra mode or an Entra authentication profile.");
 	return {
 		...form.has("websocket_enabled") ? { websocket: {
 			idle_timeout_ms: Number(form.get("websocket_idle_ms")),
@@ -44227,8 +44224,8 @@ function endpointAccessFromForm(form) {
 		} } : {},
 		...mode === "profiles" ? { authentication_profiles: profilesFromForm(form, accessa) } : {},
 		skip_entra: mode === "disabled",
-		entra: audience ? {
-			audience,
+		entra: mode === "required" ? {
+			...audience ? { audience } : {},
 			required_scopes: csv(form.get("endpoint_scopes")),
 			required_roles: csv(form.get("endpoint_roles")),
 			allowed_groups: csv(form.get("endpoint_groups")),

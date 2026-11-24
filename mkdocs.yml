@@ -63,6 +63,7 @@ nav:
   - Runtime Image Security: runtime-image-security.md
   - Benchmarks:
       - Release benchmark history: benchmarks/index.md
+      - v1.7.1 validation: benchmarks/v1.7.1.md
       - v1.7.0 validation: benchmarks/v1.7.0.md
       - v1.6.0 validation: benchmarks/v1.6.0.md
       - v1.5.0 validation: benchmarks/v1.5.0.md

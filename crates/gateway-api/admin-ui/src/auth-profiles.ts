@@ -14,7 +14,7 @@ export function profileRow(profile = {}, bindings = []) {
     <label>Profile authentication<select data-profile-type name="${id}.type"><option value="entra_and_relayna_key">Entra + Relayna key</option><option value="relayna_key_only" ${profile.type === 'relayna_key_only' ? 'selected' : ''}>Relayna key only</option></select></label>
     <label class="check"><input type="checkbox" name="${id}.enabled" ${profile.enabled !== false ? 'checked' : ''}> Enabled</label>
     <div class="wide-field form-grid" data-profile-entra ${keyOnly ? 'hidden' : ''}>
-    <label>Profile audience (optional)<input ${keyOnly ? 'disabled' : ''} name="${id}.audience" value="${escape(entra.audience)}" placeholder="api://employees"></label>
+    <label>Profile audience (optional)<input ${keyOnly ? 'disabled' : ''} name="${id}.audience" value="${escape(entra.audience)}" placeholder="Use Gateway audience"></label>
     ${['required_scopes','required_roles','allowed_groups'].map(name => `<label>${escape({required_scopes:'Scopes (optional)',required_roles:'Roles (optional)',allowed_groups:'Groups (optional)'}[name])}<input ${keyOnly ? 'disabled' : ''} name="${id}.${name}" value="${escape((entra[name] || []).join(', '))}"></label>`).join('')}
     <label class="check"><input type="checkbox" ${keyOnly ? 'disabled' : ''} name="${id}.allow_apigee" ${entra.allow_apigee ? 'checked' : ''}> Accept signed Apigee identity</label></div>
     <p class="help wide-field" data-profile-key-only ${keyOnly ? '' : 'hidden'}>Authenticates the assigned Relayna key. No Entra JWT, audience or claims are used.</p>
@@ -98,7 +98,6 @@ export function syncIdentityFields(root) {
   };
   const endpoint = root.querySelector('[data-endpoint-entra]');
   toggle(endpoint, mode === 'required');
-  endpoint.querySelector('[name="endpoint_audience"]').required = mode === 'required';
   const editor = root.querySelector('[data-profile-editor]');
   toggle(editor, mode === 'profiles');
   for (const row of editor.querySelectorAll('[data-profile-row]')) {

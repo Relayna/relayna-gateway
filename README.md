@@ -120,7 +120,11 @@ The Rust verification helper runs formatting, workspace Clippy/tests and the req
 
 ## Releases and performance evidence
 
-The **1.7.0 candidate** adds [Accessa Phase 1 routing](docs/accessa-channels.md#register-a-channel)
+The **1.7.1 candidate** makes the [endpoint Entra audience optional](docs/accessa-channels.md#endpoint-specific-entra-requirements).
+See the [upgrade guide](docs/deployment.md#upgrade-to-171) and
+[benchmark results](docs/benchmarks/v1.7.1.md).
+
+Version **1.7.0** adds [Accessa Phase 1 routing](docs/accessa-channels.md#register-a-channel)
 and optional Entra profile audiences. See the [upgrade guide](docs/deployment.md#upgrade-to-170)
 and [benchmark results](docs/benchmarks/v1.7.0.md).
 

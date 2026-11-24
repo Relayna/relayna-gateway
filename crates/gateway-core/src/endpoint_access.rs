@@ -209,9 +209,6 @@ impl EndpointAccess {
             return Err(GatewayError::InvalidServicePayload);
         }
         if let Some(policy) = &self.entra {
-            if policy.audience.is_none() {
-                return Err(GatewayError::InvalidServicePayload);
-            }
             policy.validate()?;
         }
         if let Some(binding) = &self.accessa {
@@ -318,7 +315,7 @@ impl EndpointEntraPolicy {
         Ok(())
     }
 
-    /// An omitted profile audience uses the gateway's configured Entra audience.
+    /// An omitted audience uses the gateway's configured Entra audience.
     pub fn expected_audience<'a>(&'a self, default: Option<&'a str>) -> GatewayResult<&'a str> {
         self.audience
             .as_deref()
@@ -507,7 +504,6 @@ mod tests {
         assert_eq!(discovery.accessa.unwrap().run_path(), None);
         let mutations: Vec<fn(&mut EndpointAccess)> = vec![
             |v| v.entra = None,
-            |v| v.entra.as_mut().unwrap().audience = None,
             |v| v.entra.as_mut().unwrap().audience = Some(String::new()),
             |v| v.entra.as_mut().unwrap().audience = Some("x".repeat(513)),
             |v| {
@@ -661,6 +657,7 @@ mod identity_tests {
             for access in [
                 serde_json::json!({}),
                 serde_json::json!({"skip_entra":true}),
+                serde_json::json!({"entra":{}}),
                 serde_json::json!({"entra":{"audience":"api://service"}}),
             ] {
                 let setting: RouteIdentitySetting = serde_json::from_value(

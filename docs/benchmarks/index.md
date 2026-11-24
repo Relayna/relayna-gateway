@@ -12,6 +12,7 @@ establish a new capacity result.
 
 | Version | Runtime architecture | Coverage | Results |
 | --- | --- | --- | --- |
+| v1.7.1 | Native amd64, separate hosted runners | 259 audited trials, three resource-stable confirmations per size | [Versioned results](v1.7.1.md) |
 | v1.7.0 | Native amd64, separate hosted runners | 254 audited trials, three resource-stable confirmations per size | [Versioned results](v1.7.0.md) |
 | v1.6.0 | Native amd64, separate hosted runners | 239 audited trials, three clean confirmations per size, matched v1.5.0 comparison | [Versioned results](v1.6.0.md) |
 | v1.5.0 | Native amd64 | 265 audited resource trials, same-runner v1.4.0 comparison and mixed-body waiter trials | [Versioned record](v1.5.0.md) |

@@ -4,6 +4,20 @@ All notable changes to Relayna Gateway are documented in this file.
 
 ## Unreleased
 
+## 1.7.1 - 2026-11-24
+
+### Fixed
+
+- Let **Require Entra** inherit the Gateway audience when the endpoint audience
+  is blank, including when creating an Accessa service.
+- Explain the inherited audience in both Entra editors.
+
+### Release validation
+
+- Completed 259 native amd64 trials across six JSON sizes, with three
+  resource-stable confirmations per size. See the
+  [audited benchmark results](https://sarattha.github.io/relayna-gateway/benchmarks/v1.7.1/).
+
 ## 1.7.0 - 2026-11-24
 
 ### Added
