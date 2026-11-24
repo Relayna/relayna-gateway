@@ -26,7 +26,7 @@ image; see the
 
 Before rolling back to v1.6.0, remove new route registrations and the
 `http_only` setting from retained bindings, and restore an explicit audience
-on any profile that inherits it.
+on any profile that inherits it. [Release validation](benchmarks/v1.7.0.md).
 
 ## Upgrade to 1.6.0
 

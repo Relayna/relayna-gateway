@@ -8,7 +8,8 @@ its audience blank, Gateway verifies the token against its configured global
 audience. Existing registrations work without a database migration.
 
 [Upgrade guide](deployment.md#upgrade-to-170) ·
-[Accessa channel registration](accessa-channels.md#register-a-channel).
+[Accessa channel registration](accessa-channels.md#register-a-channel) ·
+[Release benchmark results](benchmarks/v1.7.0.md).
 
 ## 1.6.0 LiteLLM audio transcription controls
 

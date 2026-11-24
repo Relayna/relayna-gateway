@@ -19,6 +19,12 @@ All notable changes to Relayna Gateway are documented in this file.
   before saving the new route patterns or inherited-audience profiles. See
   the [upgrade guide](https://sarattha.github.io/relayna-gateway/deployment/#upgrade-to-170).
 
+### Release validation
+
+- Completed 254 native amd64 trials across 5, 10, 20, 40, 80, and 100 MiB JSON,
+  with three resource-stable confirmations per size. See the
+  [audited benchmark results](https://sarattha.github.io/relayna-gateway/benchmarks/v1.7.0/).
+
 ## 1.6.0 - 2026-11-24
 
 ### Added
