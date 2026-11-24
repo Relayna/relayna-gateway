@@ -4,7 +4,8 @@
 
 In **Require Entra** mode, a blank endpoint audience uses the Gateway audience
 from Settings. Explicit overrides and endpoint claim requirements continue to
-apply. [Upgrade guide](deployment.md#upgrade-to-171).
+apply. [Upgrade guide](deployment.md#upgrade-to-171) ·
+[Release benchmark results](benchmarks/v1.7.1.md).
 
 ## 1.7.0 Accessa Phase 1 routing
 

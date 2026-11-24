@@ -17,6 +17,7 @@ patch requires no database migration. After all replicas are upgraded, leave
 **Entra audience** blank in **Require Entra** mode to inherit the Gateway
 audience. Before rolling back to v1.7.0, save an explicit audience on any
 endpoint policy that uses the new fallback. See [endpoint verification](accessa-channels.md#endpoint-specific-entra-requirements).
+[Release validation](benchmarks/v1.7.1.md).
 
 ## Upgrade to 1.7.0
 
