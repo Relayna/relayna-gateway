@@ -1,0 +1,879 @@
+{
+  "runtime_commit": "098141e8366fc071dc53a0bde062f497f39a070a",
+  "trials": 254,
+  "method": "Reanalyze every original trial; validate caps, provenance, full-cost body verification, admission reconciliation and fresh confirmation pods. Require OOM in every adjacent trial for an edge; otherwise retain lower-bound label. Observations unchanged.",
+  "sizes": [
+    {
+      "body_mib": 5,
+      "trials": 46,
+      "slots": 92,
+      "label": "tested lower bound",
+      "stable_trials": 3,
+      "http_clean_trials": 2,
+      "occupied_peak": 92,
+      "rss_peak_mib": 906.89453125,
+      "cgroup_peak_mib": 1011.34765625,
+      "headroom_mib": 12.65234375,
+      "success_latency_ms": {
+        "p50": 13884.105573,
+        "p95": 14225.266258000001,
+        "p99": 14254.789001
+      },
+      "rejection_latency_ms": {
+        "p50": 2236.40964,
+        "p95": 2340.536462,
+        "p99": 2346.931447
+      },
+      "elapsed_ms": 14289.16862,
+      "success_range": [
+        184,
+        184
+      ],
+      "http_503_range": [
+        505,
+        509
+      ],
+      "http_429_range": [
+        7498,
+        7503
+      ],
+      "transport_errors": 1,
+      "confirmed_oom_trials": 0,
+      "confirmed_restarts": 0,
+      "censored_trials": 14,
+      "adjacent_oom_trials": 1,
+      "adjacent_trials": 3,
+      "adjacent_slots": 93,
+      "all_oom_trials": 14,
+      "all_restarts": 25,
+      "all_transport_errors": 3857,
+      "initial_cohort": 512,
+      "final_cohort": 4096
+    },
+    {
+      "body_mib": 10,
+      "trials": 44,
+      "slots": 51,
+      "label": "tested lower bound",
+      "stable_trials": 3,
+      "http_clean_trials": 3,
+      "occupied_peak": 51,
+      "rss_peak_mib": 954.12890625,
+      "cgroup_peak_mib": 1023.29296875,
+      "headroom_mib": 0.70703125,
+      "success_latency_ms": {
+        "p50": 15784.588911,
+        "p95": 16169.162916,
+        "p99": 16184.558962
+      },
+      "rejection_latency_ms": {
+        "p50": 5560.822686,
+        "p95": 5745.2555139999995,
+        "p99": 5756.308036
+      },
+      "elapsed_ms": 16265.717551999998,
+      "success_range": [
+        102,
+        102
+      ],
+      "http_503_range": [
+        995,
+        1015
+      ],
+      "http_429_range": [
+        7075,
+        7095
+      ],
+      "transport_errors": 0,
+      "confirmed_oom_trials": 0,
+      "confirmed_restarts": 0,
+      "censored_trials": 13,
+      "adjacent_oom_trials": 2,
+      "adjacent_trials": 3,
+      "adjacent_slots": 52,
+      "all_oom_trials": 13,
+      "all_restarts": 19,
+      "all_transport_errors": 3418,
+      "initial_cohort": 256,
+      "final_cohort": 4096
+    },
+    {
+      "body_mib": 20,
+      "trials": 44,
+      "slots": 54,
+      "label": "tested lower bound",
+      "stable_trials": 3,
+      "http_clean_trials": 2,
+      "occupied_peak": 54,
+      "rss_peak_mib": 981.62109375,
+      "cgroup_peak_mib": 1013.39453125,
+      "headroom_mib": 10.60546875,
+      "success_latency_ms": {
+        "p50": 14073.973347,
+        "p95": 14353.136179000001,
+        "p99": 14359.011754000001
+      },
+      "rejection_latency_ms": {
+        "p50": 2329.253058,
+        "p95": 2491.300786,
+        "p99": 2863.717259
+      },
+      "elapsed_ms": 14405.44782,
+      "success_range": [
+        50,
+        50
+      ],
+      "http_503_range": [
+        595,
+        685
+      ],
+      "http_429_range": [
+        7457,
+        7511
+      ],
+      "transport_errors": 36,
+      "confirmed_oom_trials": 0,
+      "confirmed_restarts": 0,
+      "censored_trials": 15,
+      "adjacent_oom_trials": 2,
+      "adjacent_trials": 3,
+      "adjacent_slots": 55,
+      "all_oom_trials": 15,
+      "all_restarts": 22,
+      "all_transport_errors": 2839,
+      "initial_cohort": 128,
+      "final_cohort": 4096
+    },
+    {
+      "body_mib": 40,
+      "trials": 45,
+      "slots": 45,
+      "label": "tested lower bound",
+      "stable_trials": 3,
+      "http_clean_trials": 3,
+      "occupied_peak": 45,
+      "rss_peak_mib": 967.98046875,
+      "cgroup_peak_mib": 1018.45703125,
+      "headroom_mib": 5.54296875,
+      "success_latency_ms": {
+        "p50": 13879.540418,
+        "p95": 14173.392023,
+        "p99": 14185.977314
+      },
+      "rejection_latency_ms": {
+        "p50": 2297.566123,
+        "p95": 2436.330074,
+        "p99": 2454.853509
+      },
+      "elapsed_ms": 14228.006490000002,
+      "success_range": [
+        24,
+        24
+      ],
+      "http_503_range": [
+        676,
+        698
+      ],
+      "http_429_range": [
+        7470,
+        7492
+      ],
+      "transport_errors": 0,
+      "confirmed_oom_trials": 0,
+      "confirmed_restarts": 0,
+      "censored_trials": 18,
+      "adjacent_oom_trials": 2,
+      "adjacent_trials": 3,
+      "adjacent_slots": 46,
+      "all_oom_trials": 18,
+      "all_restarts": 30,
+      "all_transport_errors": 3476,
+      "initial_cohort": 64,
+      "final_cohort": 4096
+    },
+    {
+      "body_mib": 80,
+      "trials": 46,
+      "slots": 29,
+      "label": "tested lower bound",
+      "stable_trials": 3,
+      "http_clean_trials": 1,
+      "occupied_peak": 29,
+      "rss_peak_mib": 972.8046875,
+      "cgroup_peak_mib": 1012.0546875,
+      "headroom_mib": 11.9453125,
+      "success_latency_ms": {
+        "p50": 14127.085513,
+        "p95": 14229.209628,
+        "p99": 14229.209628
+      },
+      "rejection_latency_ms": {
+        "p50": 2447.276256,
+        "p95": 2595.99863,
+        "p99": 2599.892763
+      },
+      "elapsed_ms": 14280.159949,
+      "success_range": [
+        12,
+        12
+      ],
+      "http_503_range": [
+        695,
+        729
+      ],
+      "http_429_range": [
+        7451,
+        7483
+      ],
+      "transport_errors": 10,
+      "confirmed_oom_trials": 0,
+      "confirmed_restarts": 0,
+      "censored_trials": 9,
+      "adjacent_oom_trials": 1,
+      "adjacent_trials": 3,
+      "adjacent_slots": 30,
+      "all_oom_trials": 9,
+      "all_restarts": 13,
+      "all_transport_errors": 2584,
+      "initial_cohort": 32,
+      "final_cohort": 4096
+    },
+    {
+      "body_mib": 100,
+      "trials": 29,
+      "slots": 1023,
+      "label": "tested lower bound",
+      "stable_trials": 3,
+      "http_clean_trials": 3,
+      "occupied_peak": 255,
+      "rss_peak_mib": 758.99609375,
+      "cgroup_peak_mib": 921.42578125,
+      "headroom_mib": 102.57421875,
+      "success_latency_ms": {
+        "p50": 13713.341876999999,
+        "p95": 14052.347962,
+        "p99": 14052.347962
+      },
+      "rejection_latency_ms": {
+        "p50": 1705.6085209999999,
+        "p95": 3241.1891529999994,
+        "p99": 4502.1582180000005
+      },
+      "elapsed_ms": 14308.56515,
+      "success_range": [
+        10,
+        10
+      ],
+      "http_503_range": [
+        589,
+        620
+      ],
+      "http_429_range": [
+        3466,
+        3497
+      ],
+      "transport_errors": 0,
+      "confirmed_oom_trials": 0,
+      "confirmed_restarts": 0,
+      "censored_trials": 1,
+      "adjacent_oom_trials": 1,
+      "adjacent_trials": 3,
+      "adjacent_slots": 1024,
+      "all_oom_trials": 1,
+      "all_restarts": 1,
+      "all_transport_errors": 39,
+      "initial_cohort": 32,
+      "final_cohort": 2048
+    }
+  ],
+  "provenance": [
+    {
+      "schema_version": 1,
+      "run_id": "cab44da7381b",
+      "status": "completed",
+      "stage": "finished",
+      "started_at": "2026-11-24T04:35:09.577656+00:00",
+      "body_mib": [
+        5
+      ],
+      "mode": "capacity",
+      "repetitions": 3,
+      "cluster": "relayna-body-bench-cab44da7381b",
+      "native_verified": true,
+      "client_deadline_ms": 180000,
+      "condition_timeout_seconds": 300,
+      "trial_timeout_seconds": 600,
+      "resources": {
+        "pods": 2,
+        "cpu_per_pod": 2,
+        "memory_mib_per_pod": 1024,
+        "body_budget_mib_per_pod": 512
+      },
+      "completed_sizes": [
+        5
+      ],
+      "errors": [],
+      "preflight": {
+        "schema_version": 1,
+        "ready": true,
+        "python": "3.12.3",
+        "host": {
+          "system": "Linux",
+          "architecture": "x86_64",
+          "cpu_model": "Intel(R) Xeon(R) 6975P-C"
+        },
+        "tools": {
+          "docker": "/usr/bin/docker",
+          "kind": "/usr/local/bin/kind",
+          "kubectl": "/usr/bin/kubectl"
+        },
+        "docker": {
+          "Architecture": "x86_64",
+          "NCPU": 4,
+          "MemTotal": 16464306176,
+          "KernelVersion": "7.0.0-1014-aws",
+          "ServerVersion": "28.0.4",
+          "OperatingSystem": "Ubuntu 24.04.5 LTS",
+          "CgroupVersion": "2"
+        },
+        "errors": [],
+        "architecture": "amd64"
+      },
+      "architecture": "amd64",
+      "harness_commit": "098141e8366fc071dc53a0bde062f497f39a070a",
+      "harness_dirty": false,
+      "harness_sha256": {
+        "analysis_benchmark.py": "d933758b57e21eb2306da7e5db70f63f74bdf6de4fb42ffe11a002c626645b91",
+        "benchmark.py": "37b017f4ba1998471c944937eaa9620d219b0a48fe319e5bbb8205c8aadbae4a",
+        "capacity_report.py": "7349bcb4959648ad743b167472570d6ec47d3a5540ae6f0f72b8eccb100113fb",
+        "capacity_sweep.py": "85e2cf1a5565c25f881e109a52c727f3eb9d1f9e876bfde16bfe65ad4c6d14ab",
+        "html_report.py": "49f53b81a8ebb44cdb32bb71f71e9ea5509532aadbd4fc5aca83eeea07272276",
+        "plot.py": "f2fe631c87919878c647cd063df519ce8de90e2e18069f25d5766863f7939cb3",
+        "run.py": "5d8a9801e60d1786644cabac8ec65dbfa849800b4dd3f61e9d1751ac102104b1",
+        "summarize.py": "e1a151ee55ab8de246cc5842d5f0fef6c08495611a658083103f377eab3faea8",
+        "summarize_probes.py": "ab6ed60e0d8d3df631556604f176b3dd6a3e8a3543b57d4d124d2b95d3dd5dea",
+        "test_benchmark.py": "3df4226ad8ef6c4f8908e7d4ce067eabddb2ec42ab473e8785f5cb5020ae752a",
+        "mixed_workload.mjs": "370c33e23edad8d3259e45ce54d3b43d60254304863bb2654d4ec9b8396f1584",
+        "mixed_workload.test.mjs": "f6d1b3917266d45a93d11d1246ba939a75e2cebdf3cb34b70b75d105e89f0ab4",
+        "mock.mjs": "564c25aa58de00b2436cf3a16bde0ad8ea459c59a17eb634e571d332aee3aa13",
+        "workload.mjs": "e325faa4119cd222d7aeb31db011b20371865ea5b7da6fe3582a7c564fd0c46b"
+      },
+      "image": {
+        "reference": "relayna-body-benchmark:cab44da7381b",
+        "loaded_reference": "relayna-body-benchmark:cab44da7381b",
+        "id": "sha256:3eb147d33276ca48fb2a2585b6bf9b2b0bed89e15e68b96b46443f5ca532c8d9",
+        "architecture": "amd64",
+        "source_commit": "098141e8366fc071dc53a0bde062f497f39a070a",
+        "version": "unknown"
+      },
+      "nodes": [
+        {
+          "architecture": "amd64",
+          "bootID": "1c60b970-1477-4dd7-986d-475f262decb2",
+          "containerRuntimeVersion": "containerd://2.3.1",
+          "kernelVersion": "7.0.0-1014-aws",
+          "kubeProxyVersion": "",
+          "kubeletVersion": "v1.36.1",
+          "machineID": "5bc56b666b40488396e0c46959b7d24f",
+          "operatingSystem": "linux",
+          "osImage": "Debian GNU/Linux 13 (trixie)",
+          "swap": {
+            "capacity": 3221221376
+          },
+          "systemUUID": "039f6dc8-9d6e-4c9e-93a5-d73a4646fdd4"
+        }
+      ],
+      "finished_at": "2026-11-24T05:06:26.761503+00:00"
+    },
+    {
+      "schema_version": 1,
+      "run_id": "5691bb139538",
+      "status": "completed",
+      "stage": "finished",
+      "started_at": "2026-11-24T04:35:00.940754+00:00",
+      "body_mib": [
+        10
+      ],
+      "mode": "capacity",
+      "repetitions": 3,
+      "cluster": "relayna-body-bench-5691bb139538",
+      "native_verified": true,
+      "client_deadline_ms": 180000,
+      "condition_timeout_seconds": 300,
+      "trial_timeout_seconds": 600,
+      "resources": {
+        "pods": 2,
+        "cpu_per_pod": 2,
+        "memory_mib_per_pod": 1024,
+        "body_budget_mib_per_pod": 512
+      },
+      "completed_sizes": [
+        10
+      ],
+      "errors": [],
+      "preflight": {
+        "schema_version": 1,
+        "ready": true,
+        "python": "3.12.3",
+        "host": {
+          "system": "Linux",
+          "architecture": "x86_64",
+          "cpu_model": "AMD EPYC 7763 64-Core Processor"
+        },
+        "tools": {
+          "docker": "/usr/bin/docker",
+          "kind": "/usr/local/bin/kind",
+          "kubectl": "/usr/bin/kubectl"
+        },
+        "docker": {
+          "Architecture": "x86_64",
+          "NCPU": 4,
+          "MemTotal": 16760344576,
+          "KernelVersion": "7.0.0-1017-azure",
+          "ServerVersion": "28.0.4",
+          "OperatingSystem": "Ubuntu 24.04.5 LTS",
+          "CgroupVersion": "2"
+        },
+        "errors": [],
+        "architecture": "amd64"
+      },
+      "architecture": "amd64",
+      "harness_commit": "098141e8366fc071dc53a0bde062f497f39a070a",
+      "harness_dirty": false,
+      "harness_sha256": {
+        "analysis_benchmark.py": "d933758b57e21eb2306da7e5db70f63f74bdf6de4fb42ffe11a002c626645b91",
+        "benchmark.py": "37b017f4ba1998471c944937eaa9620d219b0a48fe319e5bbb8205c8aadbae4a",
+        "capacity_report.py": "7349bcb4959648ad743b167472570d6ec47d3a5540ae6f0f72b8eccb100113fb",
+        "capacity_sweep.py": "85e2cf1a5565c25f881e109a52c727f3eb9d1f9e876bfde16bfe65ad4c6d14ab",
+        "html_report.py": "49f53b81a8ebb44cdb32bb71f71e9ea5509532aadbd4fc5aca83eeea07272276",
+        "plot.py": "f2fe631c87919878c647cd063df519ce8de90e2e18069f25d5766863f7939cb3",
+        "run.py": "5d8a9801e60d1786644cabac8ec65dbfa849800b4dd3f61e9d1751ac102104b1",
+        "summarize.py": "e1a151ee55ab8de246cc5842d5f0fef6c08495611a658083103f377eab3faea8",
+        "summarize_probes.py": "ab6ed60e0d8d3df631556604f176b3dd6a3e8a3543b57d4d124d2b95d3dd5dea",
+        "test_benchmark.py": "3df4226ad8ef6c4f8908e7d4ce067eabddb2ec42ab473e8785f5cb5020ae752a",
+        "mixed_workload.mjs": "370c33e23edad8d3259e45ce54d3b43d60254304863bb2654d4ec9b8396f1584",
+        "mixed_workload.test.mjs": "f6d1b3917266d45a93d11d1246ba939a75e2cebdf3cb34b70b75d105e89f0ab4",
+        "mock.mjs": "564c25aa58de00b2436cf3a16bde0ad8ea459c59a17eb634e571d332aee3aa13",
+        "workload.mjs": "e325faa4119cd222d7aeb31db011b20371865ea5b7da6fe3582a7c564fd0c46b"
+      },
+      "image": {
+        "reference": "relayna-body-benchmark:5691bb139538",
+        "loaded_reference": "relayna-body-benchmark:5691bb139538",
+        "id": "sha256:7da3ad6ae38f0c0893a0f50c85c98c54e9de8cebfe608769054c492201d786b7",
+        "architecture": "amd64",
+        "source_commit": "098141e8366fc071dc53a0bde062f497f39a070a",
+        "version": "unknown"
+      },
+      "nodes": [
+        {
+          "architecture": "amd64",
+          "bootID": "807d24e1-39f0-4bbe-ba51-34e28f5cacd1",
+          "containerRuntimeVersion": "containerd://2.3.1",
+          "kernelVersion": "7.0.0-1017-azure",
+          "kubeProxyVersion": "",
+          "kubeletVersion": "v1.36.1",
+          "machineID": "856263c863724f94ae50d61b5860e76b",
+          "operatingSystem": "linux",
+          "osImage": "Debian GNU/Linux 13 (trixie)",
+          "swap": {
+            "capacity": 3221221376
+          },
+          "systemUUID": "4cc59f74-cec7-4b47-affe-5fe10674a946"
+        }
+      ],
+      "finished_at": "2026-11-24T05:09:52.411360+00:00"
+    },
+    {
+      "schema_version": 1,
+      "run_id": "359cd019579d",
+      "status": "completed",
+      "stage": "finished",
+      "started_at": "2026-11-24T04:35:06.636923+00:00",
+      "body_mib": [
+        20
+      ],
+      "mode": "capacity",
+      "repetitions": 3,
+      "cluster": "relayna-body-bench-359cd019579d",
+      "native_verified": true,
+      "client_deadline_ms": 180000,
+      "condition_timeout_seconds": 300,
+      "trial_timeout_seconds": 600,
+      "resources": {
+        "pods": 2,
+        "cpu_per_pod": 2,
+        "memory_mib_per_pod": 1024,
+        "body_budget_mib_per_pod": 512
+      },
+      "completed_sizes": [
+        20
+      ],
+      "errors": [],
+      "preflight": {
+        "schema_version": 1,
+        "ready": true,
+        "python": "3.12.3",
+        "host": {
+          "system": "Linux",
+          "architecture": "x86_64",
+          "cpu_model": "Intel(R) Xeon(R) 6975P-C"
+        },
+        "tools": {
+          "docker": "/usr/bin/docker",
+          "kind": "/usr/local/bin/kind",
+          "kubectl": "/usr/bin/kubectl"
+        },
+        "docker": {
+          "Architecture": "x86_64",
+          "NCPU": 4,
+          "MemTotal": 16464306176,
+          "KernelVersion": "7.0.0-1014-aws",
+          "ServerVersion": "28.0.4",
+          "OperatingSystem": "Ubuntu 24.04.5 LTS",
+          "CgroupVersion": "2"
+        },
+        "errors": [],
+        "architecture": "amd64"
+      },
+      "architecture": "amd64",
+      "harness_commit": "098141e8366fc071dc53a0bde062f497f39a070a",
+      "harness_dirty": false,
+      "harness_sha256": {
+        "analysis_benchmark.py": "d933758b57e21eb2306da7e5db70f63f74bdf6de4fb42ffe11a002c626645b91",
+        "benchmark.py": "37b017f4ba1998471c944937eaa9620d219b0a48fe319e5bbb8205c8aadbae4a",
+        "capacity_report.py": "7349bcb4959648ad743b167472570d6ec47d3a5540ae6f0f72b8eccb100113fb",
+        "capacity_sweep.py": "85e2cf1a5565c25f881e109a52c727f3eb9d1f9e876bfde16bfe65ad4c6d14ab",
+        "html_report.py": "49f53b81a8ebb44cdb32bb71f71e9ea5509532aadbd4fc5aca83eeea07272276",
+        "plot.py": "f2fe631c87919878c647cd063df519ce8de90e2e18069f25d5766863f7939cb3",
+        "run.py": "5d8a9801e60d1786644cabac8ec65dbfa849800b4dd3f61e9d1751ac102104b1",
+        "summarize.py": "e1a151ee55ab8de246cc5842d5f0fef6c08495611a658083103f377eab3faea8",
+        "summarize_probes.py": "ab6ed60e0d8d3df631556604f176b3dd6a3e8a3543b57d4d124d2b95d3dd5dea",
+        "test_benchmark.py": "3df4226ad8ef6c4f8908e7d4ce067eabddb2ec42ab473e8785f5cb5020ae752a",
+        "mixed_workload.mjs": "370c33e23edad8d3259e45ce54d3b43d60254304863bb2654d4ec9b8396f1584",
+        "mixed_workload.test.mjs": "f6d1b3917266d45a93d11d1246ba939a75e2cebdf3cb34b70b75d105e89f0ab4",
+        "mock.mjs": "564c25aa58de00b2436cf3a16bde0ad8ea459c59a17eb634e571d332aee3aa13",
+        "workload.mjs": "e325faa4119cd222d7aeb31db011b20371865ea5b7da6fe3582a7c564fd0c46b"
+      },
+      "image": {
+        "reference": "relayna-body-benchmark:359cd019579d",
+        "loaded_reference": "relayna-body-benchmark:359cd019579d",
+        "id": "sha256:bd55d8f8feded73a9e5ca178e6214b1d6a1f02b20763d664f270870de601a17d",
+        "architecture": "amd64",
+        "source_commit": "098141e8366fc071dc53a0bde062f497f39a070a",
+        "version": "unknown"
+      },
+      "nodes": [
+        {
+          "architecture": "amd64",
+          "bootID": "6d82ea51-3e25-4acf-a32b-9bf365d00fc1",
+          "containerRuntimeVersion": "containerd://2.3.1",
+          "kernelVersion": "7.0.0-1014-aws",
+          "kubeProxyVersion": "",
+          "kubeletVersion": "v1.36.1",
+          "machineID": "429cbd96da534bd09db67d9064f2ce61",
+          "operatingSystem": "linux",
+          "osImage": "Debian GNU/Linux 13 (trixie)",
+          "swap": {
+            "capacity": 3221221376
+          },
+          "systemUUID": "e73db18a-983c-4cfe-9456-561401a2b5eb"
+        }
+      ],
+      "finished_at": "2026-11-24T05:05:53.845756+00:00"
+    },
+    {
+      "schema_version": 1,
+      "run_id": "6ca0dc75f484",
+      "status": "completed",
+      "stage": "finished",
+      "started_at": "2026-11-24T04:35:12.476974+00:00",
+      "body_mib": [
+        40
+      ],
+      "mode": "capacity",
+      "repetitions": 3,
+      "cluster": "relayna-body-bench-6ca0dc75f484",
+      "native_verified": true,
+      "client_deadline_ms": 180000,
+      "condition_timeout_seconds": 300,
+      "trial_timeout_seconds": 600,
+      "resources": {
+        "pods": 2,
+        "cpu_per_pod": 2,
+        "memory_mib_per_pod": 1024,
+        "body_budget_mib_per_pod": 512
+      },
+      "completed_sizes": [
+        40
+      ],
+      "errors": [],
+      "preflight": {
+        "schema_version": 1,
+        "ready": true,
+        "python": "3.12.3",
+        "host": {
+          "system": "Linux",
+          "architecture": "x86_64",
+          "cpu_model": "Intel(R) Xeon(R) 6975P-C"
+        },
+        "tools": {
+          "docker": "/usr/bin/docker",
+          "kind": "/usr/local/bin/kind",
+          "kubectl": "/usr/bin/kubectl"
+        },
+        "docker": {
+          "Architecture": "x86_64",
+          "NCPU": 4,
+          "MemTotal": 16464306176,
+          "KernelVersion": "7.0.0-1014-aws",
+          "ServerVersion": "28.0.4",
+          "OperatingSystem": "Ubuntu 24.04.5 LTS",
+          "CgroupVersion": "2"
+        },
+        "errors": [],
+        "architecture": "amd64"
+      },
+      "architecture": "amd64",
+      "harness_commit": "098141e8366fc071dc53a0bde062f497f39a070a",
+      "harness_dirty": false,
+      "harness_sha256": {
+        "analysis_benchmark.py": "d933758b57e21eb2306da7e5db70f63f74bdf6de4fb42ffe11a002c626645b91",
+        "benchmark.py": "37b017f4ba1998471c944937eaa9620d219b0a48fe319e5bbb8205c8aadbae4a",
+        "capacity_report.py": "7349bcb4959648ad743b167472570d6ec47d3a5540ae6f0f72b8eccb100113fb",
+        "capacity_sweep.py": "85e2cf1a5565c25f881e109a52c727f3eb9d1f9e876bfde16bfe65ad4c6d14ab",
+        "html_report.py": "49f53b81a8ebb44cdb32bb71f71e9ea5509532aadbd4fc5aca83eeea07272276",
+        "plot.py": "f2fe631c87919878c647cd063df519ce8de90e2e18069f25d5766863f7939cb3",
+        "run.py": "5d8a9801e60d1786644cabac8ec65dbfa849800b4dd3f61e9d1751ac102104b1",
+        "summarize.py": "e1a151ee55ab8de246cc5842d5f0fef6c08495611a658083103f377eab3faea8",
+        "summarize_probes.py": "ab6ed60e0d8d3df631556604f176b3dd6a3e8a3543b57d4d124d2b95d3dd5dea",
+        "test_benchmark.py": "3df4226ad8ef6c4f8908e7d4ce067eabddb2ec42ab473e8785f5cb5020ae752a",
+        "mixed_workload.mjs": "370c33e23edad8d3259e45ce54d3b43d60254304863bb2654d4ec9b8396f1584",
+        "mixed_workload.test.mjs": "f6d1b3917266d45a93d11d1246ba939a75e2cebdf3cb34b70b75d105e89f0ab4",
+        "mock.mjs": "564c25aa58de00b2436cf3a16bde0ad8ea459c59a17eb634e571d332aee3aa13",
+        "workload.mjs": "e325faa4119cd222d7aeb31db011b20371865ea5b7da6fe3582a7c564fd0c46b"
+      },
+      "image": {
+        "reference": "relayna-body-benchmark:6ca0dc75f484",
+        "loaded_reference": "relayna-body-benchmark:6ca0dc75f484",
+        "id": "sha256:d20361d0ed5832557e95f9d73cdf51167290b80899409f253c5bb0f38927d685",
+        "architecture": "amd64",
+        "source_commit": "098141e8366fc071dc53a0bde062f497f39a070a",
+        "version": "unknown"
+      },
+      "nodes": [
+        {
+          "architecture": "amd64",
+          "bootID": "7a853fbd-98e3-4d0a-ae56-653ff94f48c2",
+          "containerRuntimeVersion": "containerd://2.3.1",
+          "kernelVersion": "7.0.0-1014-aws",
+          "kubeProxyVersion": "",
+          "kubeletVersion": "v1.36.1",
+          "machineID": "cbe62dd2c54c4d7e97a43f84a910ded7",
+          "operatingSystem": "linux",
+          "osImage": "Debian GNU/Linux 13 (trixie)",
+          "swap": {
+            "capacity": 3221221376
+          },
+          "systemUUID": "15c85605-d261-4985-af75-ad0257ec4e17"
+        }
+      ],
+      "finished_at": "2026-11-24T05:05:27.359380+00:00"
+    },
+    {
+      "schema_version": 1,
+      "run_id": "920b2f1cd5a9",
+      "status": "completed",
+      "stage": "finished",
+      "started_at": "2026-11-24T04:35:12.824195+00:00",
+      "body_mib": [
+        80
+      ],
+      "mode": "capacity",
+      "repetitions": 3,
+      "cluster": "relayna-body-bench-920b2f1cd5a9",
+      "native_verified": true,
+      "client_deadline_ms": 180000,
+      "condition_timeout_seconds": 300,
+      "trial_timeout_seconds": 600,
+      "resources": {
+        "pods": 2,
+        "cpu_per_pod": 2,
+        "memory_mib_per_pod": 1024,
+        "body_budget_mib_per_pod": 512
+      },
+      "completed_sizes": [
+        80
+      ],
+      "errors": [],
+      "preflight": {
+        "schema_version": 1,
+        "ready": true,
+        "python": "3.12.3",
+        "host": {
+          "system": "Linux",
+          "architecture": "x86_64",
+          "cpu_model": "Intel(R) Xeon(R) 6975P-C"
+        },
+        "tools": {
+          "docker": "/usr/bin/docker",
+          "kind": "/usr/local/bin/kind",
+          "kubectl": "/usr/bin/kubectl"
+        },
+        "docker": {
+          "Architecture": "x86_64",
+          "NCPU": 4,
+          "MemTotal": 16464289792,
+          "KernelVersion": "7.0.0-1014-aws",
+          "ServerVersion": "28.0.4",
+          "OperatingSystem": "Ubuntu 24.04.5 LTS",
+          "CgroupVersion": "2"
+        },
+        "errors": [],
+        "architecture": "amd64"
+      },
+      "architecture": "amd64",
+      "harness_commit": "098141e8366fc071dc53a0bde062f497f39a070a",
+      "harness_dirty": false,
+      "harness_sha256": {
+        "analysis_benchmark.py": "d933758b57e21eb2306da7e5db70f63f74bdf6de4fb42ffe11a002c626645b91",
+        "benchmark.py": "37b017f4ba1998471c944937eaa9620d219b0a48fe319e5bbb8205c8aadbae4a",
+        "capacity_report.py": "7349bcb4959648ad743b167472570d6ec47d3a5540ae6f0f72b8eccb100113fb",
+        "capacity_sweep.py": "85e2cf1a5565c25f881e109a52c727f3eb9d1f9e876bfde16bfe65ad4c6d14ab",
+        "html_report.py": "49f53b81a8ebb44cdb32bb71f71e9ea5509532aadbd4fc5aca83eeea07272276",
+        "plot.py": "f2fe631c87919878c647cd063df519ce8de90e2e18069f25d5766863f7939cb3",
+        "run.py": "5d8a9801e60d1786644cabac8ec65dbfa849800b4dd3f61e9d1751ac102104b1",
+        "summarize.py": "e1a151ee55ab8de246cc5842d5f0fef6c08495611a658083103f377eab3faea8",
+        "summarize_probes.py": "ab6ed60e0d8d3df631556604f176b3dd6a3e8a3543b57d4d124d2b95d3dd5dea",
+        "test_benchmark.py": "3df4226ad8ef6c4f8908e7d4ce067eabddb2ec42ab473e8785f5cb5020ae752a",
+        "mixed_workload.mjs": "370c33e23edad8d3259e45ce54d3b43d60254304863bb2654d4ec9b8396f1584",
+        "mixed_workload.test.mjs": "f6d1b3917266d45a93d11d1246ba939a75e2cebdf3cb34b70b75d105e89f0ab4",
+        "mock.mjs": "564c25aa58de00b2436cf3a16bde0ad8ea459c59a17eb634e571d332aee3aa13",
+        "workload.mjs": "e325faa4119cd222d7aeb31db011b20371865ea5b7da6fe3582a7c564fd0c46b"
+      },
+      "image": {
+        "reference": "relayna-body-benchmark:920b2f1cd5a9",
+        "loaded_reference": "relayna-body-benchmark:920b2f1cd5a9",
+        "id": "sha256:b8d74d4fe2eac38b08f0064290ff10b11c576b1ef868275a1b2f40140ed8f25a",
+        "architecture": "amd64",
+        "source_commit": "098141e8366fc071dc53a0bde062f497f39a070a",
+        "version": "unknown"
+      },
+      "nodes": [
+        {
+          "architecture": "amd64",
+          "bootID": "fd0701b2-f9c1-46ba-b1a2-578987890897",
+          "containerRuntimeVersion": "containerd://2.3.1",
+          "kernelVersion": "7.0.0-1014-aws",
+          "kubeProxyVersion": "",
+          "kubeletVersion": "v1.36.1",
+          "machineID": "99ff3476cb27403e9038ba579a6f0861",
+          "operatingSystem": "linux",
+          "osImage": "Debian GNU/Linux 13 (trixie)",
+          "swap": {
+            "capacity": 3221221376
+          },
+          "systemUUID": "e8eb8b80-d007-4d0b-bd17-a507502eb433"
+        }
+      ],
+      "finished_at": "2026-11-24T05:08:12.286402+00:00"
+    },
+    {
+      "schema_version": 1,
+      "run_id": "7b01d5a0620a",
+      "status": "completed",
+      "stage": "finished",
+      "started_at": "2026-11-24T04:35:00.538556+00:00",
+      "body_mib": [
+        100
+      ],
+      "mode": "capacity",
+      "repetitions": 3,
+      "cluster": "relayna-body-bench-7b01d5a0620a",
+      "native_verified": true,
+      "client_deadline_ms": 180000,
+      "condition_timeout_seconds": 300,
+      "trial_timeout_seconds": 600,
+      "resources": {
+        "pods": 2,
+        "cpu_per_pod": 2,
+        "memory_mib_per_pod": 1024,
+        "body_budget_mib_per_pod": 512
+      },
+      "completed_sizes": [
+        100
+      ],
+      "errors": [],
+      "preflight": {
+        "schema_version": 1,
+        "ready": true,
+        "python": "3.12.3",
+        "host": {
+          "system": "Linux",
+          "architecture": "x86_64",
+          "cpu_model": "AMD EPYC 9V45 96-Core Processor"
+        },
+        "tools": {
+          "docker": "/usr/bin/docker",
+          "kind": "/usr/local/bin/kind",
+          "kubectl": "/usr/bin/kubectl"
+        },
+        "docker": {
+          "Architecture": "x86_64",
+          "NCPU": 4,
+          "MemTotal": 16760344576,
+          "KernelVersion": "7.0.0-1017-azure",
+          "ServerVersion": "28.0.4",
+          "OperatingSystem": "Ubuntu 24.04.5 LTS",
+          "CgroupVersion": "2"
+        },
+        "errors": [],
+        "architecture": "amd64"
+      },
+      "architecture": "amd64",
+      "harness_commit": "098141e8366fc071dc53a0bde062f497f39a070a",
+      "harness_dirty": false,
+      "harness_sha256": {
+        "analysis_benchmark.py": "d933758b57e21eb2306da7e5db70f63f74bdf6de4fb42ffe11a002c626645b91",
+        "benchmark.py": "37b017f4ba1998471c944937eaa9620d219b0a48fe319e5bbb8205c8aadbae4a",
+        "capacity_report.py": "7349bcb4959648ad743b167472570d6ec47d3a5540ae6f0f72b8eccb100113fb",
+        "capacity_sweep.py": "85e2cf1a5565c25f881e109a52c727f3eb9d1f9e876bfde16bfe65ad4c6d14ab",
+        "html_report.py": "49f53b81a8ebb44cdb32bb71f71e9ea5509532aadbd4fc5aca83eeea07272276",
+        "plot.py": "f2fe631c87919878c647cd063df519ce8de90e2e18069f25d5766863f7939cb3",
+        "run.py": "5d8a9801e60d1786644cabac8ec65dbfa849800b4dd3f61e9d1751ac102104b1",
+        "summarize.py": "e1a151ee55ab8de246cc5842d5f0fef6c08495611a658083103f377eab3faea8",
+        "summarize_probes.py": "ab6ed60e0d8d3df631556604f176b3dd6a3e8a3543b57d4d124d2b95d3dd5dea",
+        "test_benchmark.py": "3df4226ad8ef6c4f8908e7d4ce067eabddb2ec42ab473e8785f5cb5020ae752a",
+        "mixed_workload.mjs": "370c33e23edad8d3259e45ce54d3b43d60254304863bb2654d4ec9b8396f1584",
+        "mixed_workload.test.mjs": "f6d1b3917266d45a93d11d1246ba939a75e2cebdf3cb34b70b75d105e89f0ab4",
+        "mock.mjs": "564c25aa58de00b2436cf3a16bde0ad8ea459c59a17eb634e571d332aee3aa13",
+        "workload.mjs": "e325faa4119cd222d7aeb31db011b20371865ea5b7da6fe3582a7c564fd0c46b"
+      },
+      "image": {
+        "reference": "relayna-body-benchmark:7b01d5a0620a",
+        "loaded_reference": "relayna-body-benchmark:7b01d5a0620a",
+        "id": "sha256:e7480e8b2308e7b589a41714cada8581e728d2dec3da3f0e3b01b4cae844d053",
+        "architecture": "amd64",
+        "source_commit": "098141e8366fc071dc53a0bde062f497f39a070a",
+        "version": "unknown"
+      },
+      "nodes": [
+        {
+          "architecture": "amd64",
+          "bootID": "138e2f7c-a132-474b-914b-0ad19f3e941d",
+          "containerRuntimeVersion": "containerd://2.3.1",
+          "kernelVersion": "7.0.0-1017-azure",
+          "kubeProxyVersion": "",
+          "kubeletVersion": "v1.36.1",
+          "machineID": "44907cfc6d8842b585e8caabd3731892",
+          "operatingSystem": "linux",
+          "osImage": "Debian GNU/Linux 13 (trixie)",
+          "swap": {
+            "capacity": 3221221376
+          },
+          "systemUUID": "04838380-8890-41e9-b48f-29e83471c236"
+        }
+      ],
+      "finished_at": "2026-11-24T04:57:52.249457+00:00"
+    }
+  ]
+}
