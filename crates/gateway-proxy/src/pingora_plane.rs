@@ -923,12 +923,21 @@ where
             }
         }
         ctx.route = Some(matched.route);
+        if ctx
+            .access
+            .accessa
+            .as_ref()
+            .is_some_and(|binding| !binding.allows_path(&req.method, req.uri.path()))
+        {
+            respond_error(session, GatewayError::UnsupportedRoute, ctx).await?;
+            return Ok(true);
+        }
         if upgrade {
             let accessa = ctx
                 .access
                 .accessa
                 .as_ref()
-                .is_some_and(|binding| binding.run_path().as_deref() == Some(req.uri.path()));
+                .is_some_and(|binding| binding.allows_run_socket(req.uri.path()));
             let general = ctx.access.websocket.is_some()
                 && ctx.access.accessa.is_none()
                 && ctx.foundry.is_none()
@@ -1132,7 +1141,13 @@ where
         }
         if let Some(endpoint) = endpoint_policy.as_ref() {
             ctx.traffic.diagnostics.entra =
-                Some(gateway_core::traffic::EntraDiagnostics::endpoint(endpoint));
+                Some(gateway_core::traffic::EntraDiagnostics::endpoint(
+                    endpoint,
+                    auth.config
+                        .entra_auth
+                        .as_ref()
+                        .map(|config| config.audience.as_str()),
+                ));
             match self
                 .verify_endpoint_identity(req, now, &auth, &ctx.request_id, endpoint)
                 .await

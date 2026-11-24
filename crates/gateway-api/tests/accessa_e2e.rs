@@ -463,7 +463,10 @@ async fn accessa_mock_chain_and_endpoint_regressions() {
         let request:ServiceCreateRequest=serde_json::from_value(json!({"name":name,"project_id":project.id,"route_pattern":format!("/app/tara/channel/{channel}/v1/*"),"upstream_base_url":upstream,"credential":"mock-adapter-only","allowed_methods":["GET","POST"],"timeout_ms":1000,"max_body_bytes":512,
             "access":{"entra":{"audience":"api://accessa","required_scopes":["run"],"required_roles":["invoke"],"allowed_groups":["staff"]},"accessa":{"app":"tara","channel":channel,"idle_timeout_ms":10000,"max_connections":2,"max_connections_per_key":1,"max_frame_bytes":4096}}})).unwrap();
         let response = store.create_service(request).await.unwrap();
-        assert_eq!(response.access.entra.unwrap().audience, "api://accessa");
+        assert_eq!(
+            response.access.entra.unwrap().audience.as_deref(),
+            Some("api://accessa")
+        );
         let material = VirtualKeyMaterial::generate().unwrap();
         let created=store.create_admin_key(serde_json::from_value(json!({"owner_type":"project","project_id":project.id,"service_names":[name],"policy":{"allowed_routes":["/services/*"],"allowed_providers":["internal-service"],"allowed_services":[name],"allow_streaming":true,"rpm_limit":100,"monthly_budget_usd":5}})).unwrap(),&material).await.unwrap();
         key_ids.push(created.id);
@@ -1137,12 +1140,17 @@ async fn accessa_mock_chain_and_endpoint_regressions() {
     // a new revision blocks subsequent admissions on the already-open socket.
     let service = store.get_service(&service_names[1]).await.unwrap().unwrap();
     let mut access = serde_json::to_value(service.access).unwrap();
-    let entra = access["entra"].take();
+    let mut entra = access["entra"].take();
+    entra.as_object_mut().unwrap().remove("audience");
     access["authentication_profiles"] = json!({"revision":0,"profiles":[{"id":"channel-users","name":"Channel users","enabled":true,"type":"entra_and_relayna_key","entra":entra}],"bindings":[{"key_id":key_ids[1],"profile_id":"channel-users"}]});
+    let channel = format!("/app/tara/channel/{}", channels[1]);
     let service = store
         .patch_service(
             &service_names[1],
-            serde_json::from_value(json!({"access":access})).unwrap(),
+            serde_json::from_value(json!({
+                "access":access, "route_pattern": format!("{channel}/agent/*")
+            }))
+            .unwrap(),
         )
         .await
         .unwrap()
@@ -1156,8 +1164,29 @@ async fn accessa_mock_chain_and_endpoint_regressions() {
             .revision,
         1
     );
-    let path = format!("/app/tara/channel/{}/v1/run", channels[1]);
-    let (mut profiled, _) = connect_async(direct_request(&token, &keys[1], &path))
+    let path = format!("{channel}/agent/qa/v1/run");
+    let inherited = sign("api://internal", "run", expiry);
+    assert!(connect_async(direct_request(&token, &keys[1], &path))
+        .await
+        .is_err());
+    for suffix in ["/agent/qa/v1/card", "/agent/qa/v1/runs"] {
+        let path = format!("{channel}{suffix}");
+        let method = if suffix.ends_with("/card") {
+            http::Method::GET
+        } else {
+            http::Method::POST
+        };
+        let response = client
+            .request(method, format!("{gateway}{path}"))
+            .bearer_auth(&inherited)
+            .header("x-relayna-key", &keys[1])
+            .send()
+            .await
+            .unwrap();
+        assert_eq!(response.status(), 200);
+        assert_eq!(response.json::<Value>().await.unwrap()["path"], path);
+    }
+    let (mut profiled, _) = connect_async(direct_request(&inherited, &keys[1], &path))
         .await
         .unwrap();
     let conversation = Uuid::new_v4().to_string();
@@ -1171,19 +1200,54 @@ async fn accessa_mock_chain_and_endpoint_regressions() {
     let before = state.dispatches.load(Ordering::SeqCst);
     let mut access = serde_json::to_value(service.access).unwrap();
     access["authentication_profiles"]["profiles"][0]["enabled"] = json!(false);
-    store
+    let service = store
         .patch_service(
             &service_names[1],
             serde_json::from_value(json!({"access":access})).unwrap(),
         )
         .await
+        .unwrap()
         .unwrap();
     profiled.send(Message::Text(json!({"command":"turn","turn_id":Uuid::new_v4().to_string(),"conversation_id":conversation,"message":"must not dispatch"}).to_string().into())).await.unwrap();
     assert_eq!(next_json(&mut profiled).await["type"], "error");
     assert_eq!(state.dispatches.load(Ordering::SeqCst), before);
     profiled.close(None).await.unwrap();
-    assert!(connect_async(direct_request(&token, &keys[1], &path))
+    assert!(connect_async(direct_request(&inherited, &keys[1], &path))
         .await
         .is_err());
+    let mut access = serde_json::to_value(service.access).unwrap();
+    access["authentication_profiles"]["profiles"][0]["enabled"] = json!(true);
+    access["accessa"]["http_only"] = json!(true);
+    let service = store
+        .patch_service(
+            &service_names[1],
+            serde_json::from_value(json!({"access":access})).unwrap(),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+    assert!(connect_async(direct_request(&inherited, &keys[1], &path))
+        .await
+        .is_err());
+    store
+        .patch_service(
+            &service_names[1],
+            serde_json::from_value(json!({
+                "access":service.access, "route_pattern":channel, "allowed_methods":["GET"]
+            }))
+            .unwrap(),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+    let response = client
+        .get(format!("{gateway}{channel}"))
+        .bearer_auth(&inherited)
+        .header("x-relayna-key", &keys[1])
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(response.status(), 200);
+    assert_eq!(response.json::<Value>().await.unwrap()["path"], channel);
     println!("Accessa E2E: two adapters, BFF, Router, agent, Entra isolation, heartbeat, limits, revocation, budget and replay passed");
 }

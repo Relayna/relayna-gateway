@@ -571,12 +571,13 @@ impl EntraJwtVerifier {
                 "tenant_mismatch",
             ));
         }
-        if !audience_contains(
-            &claims.aud,
-            endpoint.map_or(self.config.audience.as_str(), |policy| {
-                policy.audience.as_str()
-            }),
-        ) {
+        let audience = match endpoint {
+            Some(policy) => policy
+                .expected_audience(Some(&self.config.audience))
+                .map_err(|error| ClaimValidationFailure::new(error, "audience_not_configured"))?,
+            None => &self.config.audience,
+        };
+        if !audience_contains(&claims.aud, audience) {
             return Err(ClaimValidationFailure::new(
                 GatewayError::InvalidEntraAudience,
                 "audience_mismatch",
@@ -671,7 +672,7 @@ impl EntraJwtVerifier {
                 .timestamp()
                 .saturating_sub(self.config.clock_skew_seconds);
             endpoint
-                .authorize(&identity, authorization_time)
+                .authorize(&identity, authorization_time, Some(&self.config.audience))
                 .map_err(|error| {
                     ClaimValidationFailure::new(error, "endpoint_authorization_failed")
                 })?;
@@ -1637,7 +1638,7 @@ mod tests {
         claims["aud"] = json!(["api://another", "api://accessa"]);
         let token = token(&key, claims);
         let mut policy = crate::EndpointEntraPolicy {
-            audience: "api://accessa".to_owned(),
+            audience: Some("api://accessa".to_owned()),
             required_scopes: vec!["gateway.invoke".to_owned()],
             required_roles: vec![],
             allowed_groups: vec![],
@@ -1653,7 +1654,7 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(identity.audiences, vec!["api://another", "api://accessa"]);
-        policy.audience = "api://internal-service".to_owned();
+        policy.audience = Some("api://internal-service".to_owned());
         assert_eq!(
             verifier
                 .verify_token_for_endpoint(
@@ -1680,7 +1681,7 @@ mod tests {
             let mut config = config();
             config.clock_skew_seconds = skew;
             let policy = crate::EndpointEntraPolicy {
-                audience: config.audience.clone(),
+                audience: Some(config.audience.clone()),
                 required_scopes: vec!["gateway.invoke".into()],
                 required_roles: vec![],
                 allowed_groups: config.allowed_groups.clone(),

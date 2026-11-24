@@ -148,7 +148,8 @@ impl UserTokenForwarding {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct EndpointEntraPolicy {
-    pub audience: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub audience: Option<String>,
     #[serde(default)]
     pub required_scopes: Vec<String>,
     #[serde(default)]
@@ -165,6 +166,8 @@ pub struct AccessaBinding {
     /// None is the channel discovery endpoint, which cannot open run sockets.
     pub app: Option<String>,
     pub channel: String,
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub http_only: bool,
     pub idle_timeout_ms: u64,
     /// Per gateway process. The instance ceiling is shared by all bindings.
     pub max_connections: usize,
@@ -206,16 +209,10 @@ impl EndpointAccess {
             return Err(GatewayError::InvalidServicePayload);
         }
         if let Some(policy) = &self.entra {
-            if !valid_claim(&policy.audience)
-                || policy
-                    .required_scopes
-                    .iter()
-                    .chain(&policy.required_roles)
-                    .chain(&policy.allowed_groups)
-                    .any(|value| !valid_claim(value))
-            {
+            if policy.audience.is_none() {
                 return Err(GatewayError::InvalidServicePayload);
             }
+            policy.validate()?;
         }
         if let Some(binding) = &self.accessa {
             if (self.entra.is_none() && self.authentication_profiles.is_none())
@@ -228,7 +225,7 @@ impl EndpointAccess {
                 || !(1..=10_000).contains(&binding.max_connections)
                 || !(1..=binding.max_connections).contains(&binding.max_connections_per_key)
                 || !(125..=16_777_216).contains(&binding.max_frame_bytes)
-                || route_pattern != binding.route_pattern()
+                || !binding.accepts_route_pattern(route_pattern)
             {
                 return Err(GatewayError::InvalidServicePayload);
             }
@@ -238,24 +235,107 @@ impl EndpointAccess {
 }
 
 impl AccessaBinding {
+    fn channel_path(&self) -> Option<String> {
+        self.app
+            .as_ref()
+            .map(|app| format!("/app/{app}/channel/{}", self.channel))
+    }
+
     pub fn route_pattern(&self) -> String {
-        match &self.app {
-            Some(app) => format!("/app/{app}/channel/{}/v1/*", self.channel),
+        match self.channel_path() {
+            Some(path) => format!("{path}/v1/*"),
             None => format!("/channel/{}/v1/me", self.channel),
         }
     }
 
+    pub fn accepts_route_pattern(&self, pattern: &str) -> bool {
+        let Some(path) = self.channel_path() else {
+            return pattern == self.route_pattern();
+        };
+        if pattern == path {
+            return true;
+        }
+        match pattern.strip_prefix(&path) {
+            Some("/v1/*" | "/agent/*") => true,
+            Some(suffix) => suffix
+                .strip_prefix("/agent/")
+                .and_then(|suffix| suffix.strip_suffix("/v1/*"))
+                .is_some_and(valid_segment),
+            None => false,
+        }
+    }
+
+    pub fn allows_path(&self, method: &http::Method, path: &str) -> bool {
+        let Some(channel_path) = self.channel_path() else {
+            return path == self.route_pattern();
+        };
+        match path.strip_prefix(&channel_path) {
+            Some("") => *method == http::Method::GET,
+            Some(suffix) => {
+                suffix == "/v1" || suffix.starts_with("/v1/") || agent_endpoint(suffix).is_some()
+            }
+            None => false,
+        }
+    }
+
+    pub fn allows_run_socket(&self, path: &str) -> bool {
+        !self.http_only
+            && self.channel_path().is_some_and(|channel_path| {
+                path.strip_prefix(&channel_path).is_some_and(|suffix| {
+                    suffix == "/v1/run" || agent_endpoint(suffix) == Some("run")
+                })
+            })
+    }
+
     pub fn run_path(&self) -> Option<String> {
-        self.app
-            .as_ref()
-            .map(|app| format!("/app/{app}/channel/{}/v1/run", self.channel))
+        self.channel_path()
+            .filter(|_| !self.http_only)
+            .map(|path| format!("{path}/v1/run"))
     }
 }
 
+fn agent_endpoint(suffix: &str) -> Option<&str> {
+    let (agent, endpoint) = suffix.strip_prefix("/agent/")?.split_once('/')?;
+    valid_segment(agent).then_some(())?;
+    endpoint.strip_prefix("v1/")
+}
+
 impl EndpointEntraPolicy {
+    pub(crate) fn validate(&self) -> GatewayResult<()> {
+        if self
+            .audience
+            .as_deref()
+            .is_some_and(|audience| !valid_claim(audience))
+            || self
+                .required_scopes
+                .iter()
+                .chain(&self.required_roles)
+                .chain(&self.allowed_groups)
+                .any(|value| !valid_claim(value))
+        {
+            return Err(GatewayError::InvalidServicePayload);
+        }
+        Ok(())
+    }
+
+    /// An omitted profile audience uses the gateway's configured Entra audience.
+    pub fn expected_audience<'a>(&'a self, default: Option<&'a str>) -> GatewayResult<&'a str> {
+        self.audience
+            .as_deref()
+            .or(default)
+            .filter(|audience| !audience.trim().is_empty())
+            .ok_or(GatewayError::InvalidConfiguration)
+    }
+
     /// Check claims only after JWT signature or Apigee HMAC verification.
-    pub fn authorize(&self, identity: &EntraIdentityContext, now: i64) -> GatewayResult<()> {
-        if !identity.audiences.iter().any(|aud| aud == &self.audience) {
+    pub fn authorize(
+        &self,
+        identity: &EntraIdentityContext,
+        now: i64,
+        default_audience: Option<&str>,
+    ) -> GatewayResult<()> {
+        let audience = self.expected_audience(default_audience)?;
+        if !identity.audiences.iter().any(|aud| aud == audience) {
             return Err(GatewayError::InvalidEntraAudience);
         }
         if identity.expires_at.is_none_or(|exp| exp <= now) {
@@ -427,8 +507,9 @@ mod tests {
         assert_eq!(discovery.accessa.unwrap().run_path(), None);
         let mutations: Vec<fn(&mut EndpointAccess)> = vec![
             |v| v.entra = None,
-            |v| v.entra.as_mut().unwrap().audience.clear(),
-            |v| v.entra.as_mut().unwrap().audience = "x".repeat(513),
+            |v| v.entra.as_mut().unwrap().audience = None,
+            |v| v.entra.as_mut().unwrap().audience = Some(String::new()),
+            |v| v.entra.as_mut().unwrap().audience = Some("x".repeat(513)),
             |v| {
                 v.entra
                     .as_mut()
@@ -451,7 +532,7 @@ mod tests {
         assert!(!valid_segment(&"x".repeat(65)));
         assert!(valid_segment("valid_1-2"));
         let policy = good.entra.unwrap();
-        assert!(policy.authorize(&identity(), 100).is_ok());
+        assert!(policy.authorize(&identity(), 100, None).is_ok());
         for (field, value, expected) in [
             (
                 "audiences",
@@ -479,7 +560,7 @@ mod tests {
             let mut claims = serde_json::to_value(identity()).unwrap();
             claims[field] = value;
             assert_eq!(
-                policy.authorize(&serde_json::from_value(claims).unwrap(), 100),
+                policy.authorize(&serde_json::from_value(claims).unwrap(), 100, None),
                 Err(expected)
             );
         }
@@ -489,8 +570,42 @@ mod tests {
             allowed_groups: vec![],
             ..policy
         };
-        assert!(policy.authorize(&identity(), 100).is_ok());
+        assert!(policy.authorize(&identity(), 100, None).is_ok());
         assert!(serde_json::from_value::<EndpointAccess>(json!({"unknown":true})).is_err());
+    }
+
+    #[test]
+    fn accessa_phase_one_routes_stay_within_the_bound_channel() {
+        use http::Method;
+
+        let access = access();
+        let mut binding = access.accessa.as_ref().unwrap().clone();
+        let channel = "/app/tara/channel/web";
+        for suffix in ["", "/v1/*", "/agent/*", "/agent/qa/v1/*"] {
+            access.validate(&format!("{channel}{suffix}")).unwrap();
+        }
+        for suffix in ["/*", "2/agent/*", "/agent/qa/*", "/agent/qa/extra/v1/*"] {
+            assert!(access.validate(&format!("{channel}{suffix}")).is_err());
+        }
+        assert!(binding.allows_path(&Method::GET, channel));
+        assert!(!binding.allows_path(&Method::POST, channel));
+        for suffix in ["/v1/run", "/agent/qa/v1/run"] {
+            assert!(binding.allows_run_socket(&format!("{channel}{suffix}")));
+        }
+        for suffix in [
+            "/agent/qa/v1/card",
+            "/agent/qa/v1/runs",
+            "/agent/qa/v1/run/extra",
+        ] {
+            let path = format!("{channel}{suffix}");
+            assert!(binding.allows_path(&Method::GET, &path));
+            assert!(!binding.allows_run_socket(&path));
+        }
+        assert!(!binding.allows_path(&Method::GET, &format!("{channel}/agent/qa/v2/card")));
+        binding.http_only = true;
+        let run = format!("{channel}/agent/qa/v1/run");
+        assert!(binding.allows_path(&Method::GET, &run));
+        assert!(!binding.allows_run_socket(&run));
     }
 }
 

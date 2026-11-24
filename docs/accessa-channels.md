@@ -1,9 +1,14 @@
 # Accessa channels and endpoint identity
 
-A channel backend (BFF) opens `GET /app/{app}/channel/{channel}/v1/run`
-through the gateway. Gateway connects to that channel's adapter; the adapter
-connects to Accessa Router, which dispatches the agent. Browser clients connect
-to their BFF and never receive the Relayna virtual key.
+A channel backend (BFF) opens a run socket through Gateway at
+`GET /app/{app}/channel/{channel}/v1/run` for the default agent or
+`GET /app/{app}/channel/{channel}/agent/{agent}/v1/run` for a named agent.
+Gateway connects to the channel's adapter, which connects to Accessa Router to
+dispatch the agent. Browser clients connect to their BFF, which holds the Relayna
+virtual key.
+
+The app, channel and agent path model follows the November Phase 1 decision and
+the client route inventory on the [Accessa Phase 1 board](https://www.figma.com/board/dpgtpunTKAkuIKyK3e7k0F/accessa-phase1?node-id=316-2).
 
 ```mermaid
 sequenceDiagram
@@ -54,16 +59,50 @@ Example fragment (alongside the existing name, upstream, credential and methods)
 }
 ```
 
-Services and Routes show **HTTP**, **WS**, or **HTTP + WS** labels. An Accessa
-prefix supports both when GET is enabled, and the exact WS run path is displayed.
-Other endpoints (including SSE) use HTTP. These labels describe saved transport
-configuration; the enabled/disabled state is shown separately.
+Register the path families the adapter serves. For example, with **Accessa app**
+`tara` and **Accessa channel** `cortex-frontend`, use these route patterns and
+point each service at the Cortex channel adapter.
 
-Create a distinct registration for each app/channel binding. Route and binding
-must match exactly. For identity discovery, set `app: null` and register exactly
-`/channel/{channel}/v1/me`; that registration cannot open a run socket.
+| Route pattern | Examples |
+| --- | --- |
+| `/app/tara/channel/cortex-frontend/v1/*` | `GET …/v1/me`, `GET …/v1/agents`, `POST …/v1/runs` and WebSocket `GET …/v1/run` for the default agent |
+| `/app/tara/channel/cortex-frontend/agent/*` | `GET …/agent/qa/v1/card`, `POST …/agent/qa/v1/runs` and WebSocket `GET …/agent/qa/v1/run` |
+| `/app/tara/channel/cortex-frontend` | `GET` channel metadata |
 
-The channel key's effective policy must explicitly list the registered service
+For a service that covers only `qa`, use
+`/app/tara/channel/cortex-frontend/agent/qa/v1/*` in place of the agent
+wildcard. The **Accessa app** remains `tara`.
+The adapter and Router resolve the default agent, enforce agent membership and
+handle the request and response schemas. Gateway preserves the received path and
+query when forwarding.
+
+For HTTP-only bindings, including CAI Phase 1, set `access.accessa.http_only`
+to `true` or select **Disable Accessa WebSocket upgrades**. For CAI, register
+the three path families for each app (`tara` and `docgen`) on channel `cai`,
+assign the CAI key to an Entra profile on each service and enable verified user
+token forwarding. Configure a request timeout longer than the adapter's
+long-poll wait. Each operation can use the default or named-agent path:
+
+| CAI operation under `/v1` | Adapter behavior |
+| --- | --- |
+| `POST /runs` | Submits a run and returns `202` with the turn and conversation IDs. |
+| `GET /runs/{turn_id}?wait=25` | Long-polls for status or a result. |
+| `POST /runs/{turn_id}/answers` | Sends answers for a turn waiting for input. |
+| `POST /runs/{turn_id}/cancel` | Cancels the turn. |
+
+Gateway forwards `x-accessa-call-depth` to the adapter. Accessa Router enforces
+the depth limit. Legacy `/channel/{channel}/v1/me` registrations with
+`app: null` remain available.
+
+Services and Routes show the configured transport and the run path when
+WebSockets and GET are enabled.
+
+Upgrade all Gateway replicas before adding Phase 1 registrations or selecting
+HTTP-only transport. Before rolling back to v1.6.0 or earlier, remove the new
+route registrations, remove `http_only` from retained bindings, and restore
+an explicit audience on any profiles that inherit the Gateway audience.
+
+The channel key's effective policy must explicitly list every registered service it calls
 in `allowed_services`, permit `/services/*` and `internal-service`, and enable
 streaming for run sockets. Empty service allowlists do not grant channel access.
 Keep keys on the BFF server. Existing `/services/{name}` aliases cannot bypass
@@ -78,6 +117,13 @@ apply. A service's `access.entra` replaces the global audience, scope, role and
 group requirements **for that endpoint only**. Every listed scope and role is
 required; any listed group may match. Empty lists add no requirement. Other
 endpoints retain their own requirements; audiences are never combined globally.
+
+When using **Entra + Relayna key** authentication profiles, omit
+`profiles[].entra.audience` to use the Gateway Entra audience from Settings.
+Set it explicitly when Accessa tokens target a different application. The
+assigned Relayna key, verified Entra identity and profile claim checks are
+still required. The standalone **Require Entra** mode requires an explicit
+endpoint audience.
 
 For an internal service behind Apigee, configure its own audience, for example
 `api://internal-service`, and its own scopes/roles. Set `allow_apigee: true` only
@@ -316,13 +362,15 @@ service settings rather than a separate server-side type.
 | Relayna HTTP service | GET/POST, gateway identity setting, 120-second timeout, `/health` check |
 | Entra-protected HTTP service | GET/POST with an endpoint-specific Entra audience |
 | Apigee-backed HTTP service | Entra-required HTTP, also accepting signed Apigee identity |
-| Accessa app/channel | GET/POST, Entra required, HTTP plus the exact WebSocket run endpoint |
-| Accessa channel discovery | GET `/channel/{channel}/v1/me`, Entra required, HTTP only |
+| Accessa app/channel | `…/v1/*`, Entra required, HTTP and the default-agent run socket |
+| Accessa agent routes | `…/agent/*`, Entra required, HTTP and named-agent run sockets |
+| Accessa channel metadata | GET `/app/{app}/channel/{channel}`, Entra required |
+| Accessa channel discovery | Legacy GET `/channel/{channel}/v1/me`, Entra required, HTTP only |
 | Custom configuration | Keep the current settings and adjust them manually |
 
-HTTP presets suggest `/services/{name}/*`. Accessa suggests
-`/app/{app}/channel/{channel}/v1/*` from its app and channel fields; discovery has
-no app binding. Name/app/channel edits update a suggested route until you edit
+HTTP presets suggest `/services/{name}/*`. Accessa presets generate their
+route using the app and channel fields. Legacy discovery uses only the channel.
+Name/app/channel edits update a suggested route until you edit
 that route manually. Choosing another preset replaces the route and the preset's
 method, timeout, health and identity defaults. Name, upstream URL, credentials and
 pricing stay intact. Entra audiences/scopes are not guessed; supply your actual

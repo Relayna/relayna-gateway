@@ -4,6 +4,21 @@ All notable changes to Relayna Gateway are documented in this file.
 
 ## Unreleased
 
+## 1.7.0 - 2026-11-24
+
+### Added
+
+- Support Accessa Phase 1 channel metadata, named-agent routes and HTTP-only
+  bindings for CAI. See [Accessa channels](docs/accessa-channels.md).
+- Let an Entra authentication profile inherit the configured Gateway audience
+  when its profile audience is blank.
+
+### Compatibility
+
+- Existing registrations work with the new Gateway. Upgrade all replicas
+  before saving the new route patterns or inherited-audience profiles. See
+  the [upgrade guide](https://sarattha.github.io/relayna-gateway/deployment/#upgrade-to-170).
+
 ## 1.6.0 - 2026-11-24
 
 ### Added

@@ -64,15 +64,13 @@ impl<S, R> RelaynaPingoraProxy<S, R> {
                 &config,
                 context,
             )?;
-            if auth
+            let entra = auth
                 .config
                 .entra_auth
                 .as_ref()
-                .is_none_or(|config| config.tenant_id != identity.tenant_id)
-            {
-                return Err(GatewayError::InvalidEntraIssuer);
-            }
-            policy.authorize(&identity, now.timestamp())?;
+                .filter(|config| config.tenant_id == identity.tenant_id)
+                .ok_or(GatewayError::InvalidEntraIssuer)?;
+            policy.authorize(&identity, now.timestamp(), Some(&entra.audience))?;
             return Ok(identity);
         }
         let authorization =
@@ -343,11 +341,22 @@ where
         {
             return Err(GatewayError::PolicyDenied);
         }
-        snapshot
+        let entra = snapshot
             .access
             .identity_for_key(snapshot.key_id)?
-            .ok_or(GatewayError::InvalidConfiguration)?
-            .authorize(&snapshot.identity, now.timestamp())?;
+            .ok_or(GatewayError::InvalidConfiguration)?;
+        let auth = if entra.audience.is_none() {
+            Some(self.auth_runtime.snapshot()?)
+        } else {
+            None
+        };
+        entra.authorize(
+            &snapshot.identity,
+            now.timestamp(),
+            auth.as_ref()
+                .and_then(|auth| auth.config.entra_auth.as_ref())
+                .map(|config| config.audience.as_str()),
+        )?;
         if let Some(profile) = &mut ctx.traffic.diagnostics.authentication_profile {
             profile.outcome = "verified".into();
         }
@@ -984,7 +993,7 @@ mod endpoint_tests {
             connection_limits: Arc::new(ConnectionLimits::default()),
         };
         let mut policy = EndpointEntraPolicy {
-            audience: "internal".into(),
+            audience: Some("internal".into()),
             required_scopes: vec!["internal.invoke".into()],
             required_roles: vec![],
             allowed_groups: vec![],

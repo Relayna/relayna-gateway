@@ -16,7 +16,7 @@ assert.equal(result.profiles[1].entra,undefined);
 assert.throws(()=>profilesFromForm(form,true),/Accessa/);
 form.set('automation.keys',id);assert.throws(()=>profilesFromForm(form),/assigned more than once/);form.delete('automation.keys');
 form.set('automation.id','employees');assert.throws(()=>profilesFromForm(form),/already used/);form.set('automation.id','automation');
-form.set('employee.audience','');assert.throws(()=>profilesFromForm(form),/audience/);form.set('employee.audience','api://employees');
+form.set('employee.audience','');assert.equal('audience' in profilesFromForm(form).profiles[0].entra,false);form.set('employee.audience','api://employees');
 form.delete('employee.enabled');assert.equal(profilesFromForm(form).profiles[0].enabled,false);
 form.set('employee.required_roles',Array(65).fill('role').join(','));assert.throws(()=>profilesFromForm(form),/at most 64/);
 assert.throws(()=>profilesFromForm(new FormData()),/^Error: Add at least one authentication profile before saving\.$/);
@@ -110,7 +110,7 @@ const change=target=>handlers.change({target:{matches:()=>true,closest:()=>root,
 const submitted=()=>{const data=new FormData();for(const c of profileControls)if(!c.disabled&&(c.type!=='checkbox'||c.checked))data.append(c.name,c.value);return data;};
 syncIdentityFields(root);
 assert.equal(endpoint.hidden,true);assert.equal(endpointAudience.disabled,true);
-assert.equal(editor.hidden,false);assert.equal(entraGroup.hidden,false);assert.equal(profileControls[5].required,true);
+assert.equal(editor.hidden,false);assert.equal(entraGroup.hidden,false);assert.equal(profileControls[5].required,false);
 assert.equal(profilesFromForm(submitted()).profiles[0].entra.audience,'api://employees');
 profileControls[3].value='relayna_key_only';change(profileControls[3]);
 assert.equal(entraGroup.hidden,true);assert.equal(profileControls[5].disabled,true);assert.equal(profileControls[5].required,false);assert.equal(keyHint.hidden,false);
@@ -127,8 +127,8 @@ for(const selected of ['inherit','disabled','required']) {
 mode.value='profiles';change(mode);assert.equal(profileControls[1].value,'automation');assert.equal(profileControls[1].disabled,false);
 assert.match(profileRow({type:'relayna_key_only'}), /data-profile-entra hidden/);
 assert.match(profileRow({type:'relayna_key_only'}), /input disabled name="profile-\d+\.audience"/);
-assert.match(profileRow(), /input required name="profile-\d+\.audience"/);
-console.log('ok - dynamic identity modes hide and exclude inactive controls, require Entra audience only, and preserve drafts');
+assert.match(profileRow(), /Profile audience \(optional\)<input\s+name="profile-\d+\.audience"/);
+console.log('ok - dynamic identity modes hide and exclude inactive controls and preserve drafts');
 
 const {profileKeyOptions,selectedKeyIds,loadProfileKeys,refreshProfileKeys}=await import(`data:text/javascript;base64,${Buffer.from(compiled).toString('base64')}`);
 const secondId='00000000-0000-0000-0000-000000000002';
@@ -172,7 +172,6 @@ for (const [field, value, message] of [
   ['name', 'Staff\u0085Name', /contains control characters.*retype/],
   ['id', 'bad id', /Stable profile ID must use.*Correct it/],
   ['type', 'invalid', /Profile authentication/],
-  ['audience', '', /Profile 1.*Staff.*enter a Profile audience/],
   ['audience', 'api://with space', /audience must contain no whitespace/],
   ['audience', 'api://with\u0085space', /audience must contain no whitespace/],
   ['audience', 'é'.repeat(257), /at most 512 UTF-8 bytes/],
@@ -184,6 +183,11 @@ for (const [field, value, message] of [
   const data = validProfile(); data.set(`one.${field}`, value);
   assert.throws(() => profilesFromForm(data), message);
 }
+const inherited = validProfile();
+inherited.set('one.audience', ' ');
+const inheritedProfile = profilesFromForm(inherited, true).profiles[0];
+assert.equal(inheritedProfile.type, 'entra_and_relayna_key');
+assert.equal('audience' in inheritedProfile.entra, false);
 const utf8Boundary = validProfile();
 utf8Boundary.set('one.name', 'é'.repeat(60));
 utf8Boundary.set('one.audience', 'é'.repeat(256));

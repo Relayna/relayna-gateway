@@ -47,8 +47,8 @@ all its assigned keys; callers do not fall back to another profile.
    does **not** grant a route permission that the key's effective policy denies.
 4. For Entra profiles, configure the gateway's Entra verifier under
    **Settings → Entra ID and Apigee front door**. Tenant, issuer, discovery/JWKS
-   and accepted signing algorithms are shared; profile audiences and claims
-   are configured separately. See [Entra setup](../entra-id-auth.md).
+   and accepted signing algorithms are shared. A profile uses the Gateway
+   audience from Settings unless it specifies its own. See [Entra setup](../entra-id-auth.md).
 
 Once profiles have been saved on a route, switching that route back to gateway
 defaults, Require Entra or No Entra is unavailable. Plan key assignments before
@@ -76,9 +76,9 @@ an assigned Relayna key.
 2. Leave **Stable profile ID** blank to generate it on save, or enter a custom ID.
 3. Choose **Profile authentication → Entra + Relayna key** and keep **Enabled**
    checked if this profile should accept requests.
-4. Set **Profile audience** to the exact expected `aud` claim in the caller's
-   access token. `api://employees` in the screenshot is an example, not a value
-   to copy for every deployment. Use the actual audience issued for your API.
+4. Leave **Profile audience** blank to use the Gateway Entra audience from
+   Settings, or enter the exact `aud` claim expected in the caller's access token.
+   The screenshot shows an explicit audience for an employee application.
 5. Configure **Scopes**, **Roles** and **Groups** only where needed. Use commas
    between entries. Every listed scope and role is required; at least one listed
    group must match. Blank lists add no requirement of that kind.
@@ -91,8 +91,8 @@ an assigned Relayna key.
 
 [![Entra plus Relayna key profile with an example audience and embeddings.invoke scope, optional roles and groups, and the Select keys action](../assets/screenshots/authentication-profiles/02-entra-profile.jpg)](../assets/screenshots/authentication-profiles/02-entra-profile.jpg)
 
-*Entra fields appear for this type. Audience is required; the claim lists are
-optional. The illustrated draft has not yet assigned its caller keys.*
+*Entra fields appear for this type. The illustrated draft shows an explicit
+audience and a scope. The caller keys are still unassigned.*
 
 Call the configured endpoint with both credentials:
 
@@ -146,7 +146,7 @@ to a key-only request. See the [credential contract](#credential-contract).
 | **Profile name** | Required display name, unique on the route ignoring case and surrounding whitespace; up to 120 UTF-8 bytes. Renaming preserves assignments. |
 | **Stable profile ID** | Optional in the UI for new profiles. Blank generates a name-derived ID plus a random suffix, e.g. `internal-automation-a1b2c3d4`. Custom IDs use 1–64 ASCII letters, numbers, hyphens or underscores and must be unique on the route. |
 | **Enabled** | Off denies all keys assigned to this profile. It does not move them elsewhere. |
-| **Profile audience** | Required for Entra profiles; exact JWT audience, no whitespace, at most 512 UTF-8 bytes. |
+| **Profile audience** | Optional. Blank uses the Gateway Entra audience. An explicit audience must match exactly and contain at most 512 UTF-8 bytes without whitespace. |
 | **Scopes / Roles** | Optional comma-separated lists. All listed scopes and all listed roles must be present. |
 | **Groups** | Optional comma-separated group IDs. At least one listed group must match. |
 | **Assigned keys** | Existing Relayna keys that select this profile on this route. Empty means the profile has no callers. |
@@ -251,7 +251,7 @@ See [LiteLLM passthrough](../litellm-passthrough.md).
 
 | Task | Steps and effect |
 | --- | --- |
-| Change Entra to key-only (or back) | Edit **Profile authentication** inside the profile. For Entra, fill the audience and review claims; for key-only, Entra fields disappear. Save identity. Inactive field values survive switching within the open draft, but are omitted from a key-only save. |
+| Change Entra to key-only (or back) | Edit **Profile authentication** inside the profile. For Entra, review the effective audience and claims. For key-only, Entra fields disappear. Save identity. Inactive field values survive switching within the open draft, but are omitted from a key-only save. |
 | Rename a profile | Change **Profile name**, keep the stable ID, and save. Key assignments stay attached. |
 | Temporarily deny callers | Uncheck **Enabled** and save. All assigned keys are denied; there is no fallback. Re-enable and save to restore the profile's access. |
 | Remove a profile with keys | Move or remove its assignments first. If it is the last saved profile, add a replacement. Select **Remove profile**, then Save identity. |
@@ -279,7 +279,7 @@ the error identifies the affected profile and the draft remains open.*
 | Symptom or message | Cause | What to do |
 | --- | --- | --- |
 | No authentication profiles / at least one needed | The route is in profile mode with an empty draft. | Select Add profile, enter its settings and assign callers before Save identity. |
-| Missing/duplicate name or invalid audience | A named profile field failed validation. | Correct the field identified in the message. Use unique names and an exact, nonblank Entra audience without whitespace. |
+| Missing/duplicate name or invalid audience | A named profile field failed validation. | Correct the field identified in the message. Use unique names and, when setting an audience, enter its exact value without whitespace. |
 | Key missing from search results | Search is blank, the key is selected/assigned elsewhere, or it is ineligible for the service's project. | Enter a query, check Selected keys and other profiles, and check project ownership. Use Retry loading keys after a lookup failure. |
 | Selection was not applied | A selected key became ineligible or is assigned elsewhere. | Resolve the named key conflict, or cancel and reopen the selector to refresh it. |
 | Authentication settings changed after opening | Another write changed the saved revision. | Copy changes you want to keep, close without saving, reopen the latest configuration and reapply. Do not blindly retry a stale revision. |
@@ -335,6 +335,8 @@ responses provide the effective saved configuration and revision. For example:
 }
 ```
 
+Omitting `entra.audience` in a profile inherits the Gateway Entra audience.
+Apply that configuration only after all Gateway replicas support it.
 The empty bindings above deliberately deny every key. Add objects containing
 `key_id` and `profile_id` for the approved callers before enabling production
 traffic. Revision zero is used for initial opt-in. Subsequent writes submit the

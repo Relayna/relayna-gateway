@@ -28,6 +28,8 @@ const workspaceVersion = readFileSync(join(root, "Cargo.toml"), "utf8").match(/^
 const releaseVersionPattern = `v${workspaceVersion.replaceAll(".", "\\.")}`;
 const uiDir = join(root, "crates/gateway-api/src/static/admin-ui");
 const sourceDir = join(root, "crates/gateway-api/admin-ui/src");
+const catalogVisuals = readFileSync(join(sourceDir, "catalog-visuals.ts"), "utf8");
+const { accessaRunPath } = await import(`data:text/javascript;base64,${Buffer.from(catalogVisuals).toString("base64")}`);
 const html = readFileSync(join(uiDir, "index.html"), "utf8");
 const deployedJs = readFileSync(join(uiDir, "app.js"), "utf8");
 const sourceJs = readFileSync(join(sourceDir, "main.ts"), "utf8");
@@ -1041,7 +1043,7 @@ test("endpoint access form preserves isolated audiences and channel limits", () 
 
 
 test("protocol labels distinguish Accessa run sockets from ordinary HTTP endpoints", () => {
-  const render = new Function(`${sourceFunction("esc")}\n${sourceFunction("serviceProtocolSummary")}\nreturn serviceProtocolSummary;`)();
+  const render = new Function("accessaRunPath", `${sourceFunction("esc")}\n${sourceFunction("serviceProtocolSummary")}\nreturn serviceProtocolSummary;`)(accessaRunPath);
   const http = '<span class="badge">HTTP</span>';
   assert.equal(render({}), http);
   assert.equal(render({ route_pattern: "/services/internal/*", allowed_methods: ["GET"], access: { entra: { audience: "internal" } } }), http);
@@ -1058,6 +1060,10 @@ test("protocol labels distinguish Accessa run sockets from ordinary HTTP endpoin
   assert.equal(render({ ...service, allowed_methods: undefined }), http);
   assert.equal(render({ ...service, route_pattern: "/services/alias/*" }), http);
   assert.match(render({ ...service, enabled: false }), />HTTP \+ WS</, "protocol and availability remain separate");
+  const agent = { ...service, route_pattern: "/app/tara/channel/web/agent/*" };
+  assert.match(render(agent), /agent\/\{agent\}\/v1\/run/);
+  assert.equal(render({ ...agent, access: { accessa: { ...agent.access.accessa, http_only: true } } }), http);
+  assert.equal(render({ ...service, route_pattern: "/app/tara/channel/web" }), http);
   const hostile = { ...service, route_pattern: '/app/tara/channel/<img>/v1/*', access: { accessa: { app: "tara", channel: "<img>" } } };
   assert.match(render(hostile), /&lt;img&gt;/);
   assert.doesNotMatch(render(hostile), /<img>/);
@@ -1122,7 +1128,7 @@ test("service presets produce supported access contracts and preserve operator-o
   const api = new Function(`${names.map(sourceFunction).join("\n")}\nreturn {serviceTypePresets, applyServiceTypePreset, updateServiceRouteSuggestion, bindServiceTypePresets, endpointAccessFromForm};`)();
   const fields = {};
   const identity = { open: false };
-  const fieldNames = ["service_type", "name", "route_pattern", "upstream_base_url", "credential", "cost_mode", "timeout_ms", "health_check_path", "endpoint_entra_mode", "endpoint_audience", "endpoint_scopes", "endpoint_roles", "endpoint_groups", "endpoint_apigee", "accessa_enabled", "accessa_app", "accessa_channel", "socket_idle_ms", "socket_connections", "socket_key_connections", "socket_frame_bytes", "websocket_enabled"];
+  const fieldNames = ["service_type", "name", "route_pattern", "upstream_base_url", "credential", "cost_mode", "timeout_ms", "health_check_path", "endpoint_entra_mode", "endpoint_audience", "endpoint_scopes", "endpoint_roles", "endpoint_groups", "endpoint_apigee", "accessa_enabled", "accessa_app", "accessa_channel", "accessa_http_only", "socket_idle_ms", "socket_connections", "socket_key_connections", "socket_frame_bytes", "websocket_enabled"];
   for (const name of fieldNames) {
     const label = { hidden: false };
     fields[name] = { value: "", checked: false, events: {}, dispatchEvent(event) { this.lastEvent = event; }, closest: (tag) => tag === "details" ? identity : label, addEventListener(event, fn) { this.events[event] = fn; } };
@@ -1137,7 +1143,7 @@ test("service presets produce supported access contracts and preserve operator-o
   const access = () => {
     const data = new FormData();
     for (const [name, field] of Object.entries(fields)) {
-      if (["accessa_enabled", "endpoint_apigee", "websocket_enabled"].includes(name)) { if(field.checked) data.set(name,"on"); }
+      if (["accessa_enabled", "accessa_http_only", "endpoint_apigee", "websocket_enabled"].includes(name)) { if(field.checked) data.set(name,"on"); }
       else data.set(name,String(field.value));
     }
     return api.endpointAccessFromForm(data);
@@ -1145,8 +1151,8 @@ test("service presets produce supported access contracts and preserve operator-o
   const select = type => { fields.service_type.value = type; api.applyServiceTypePreset(form,type); };
   api.bindServiceTypePresets(form);
   assert.equal(fields.accessa_app.closest("label").hidden,true);
-  assert.equal(api.serviceTypePresets().length,7);
-  for (const type of ["internal_http","relayna_http","entra_http","apigee_http","accessa_channel","accessa_discovery"]) {
+  assert.equal(api.serviceTypePresets().length,9);
+  for (const type of ["internal_http","relayna_http","entra_http","apigee_http","accessa_channel","accessa_agents","accessa_metadata","accessa_discovery"]) {
     select(type);
     assert.equal(fields.upstream_base_url.value,"http://orders:8080");
     assert.equal(fields.credential.value,"operator-entered");
@@ -1169,6 +1175,15 @@ test("service presets produce supported access contracts and preserve operator-o
       assert.deepEqual(methods.filter(m=>m.checked).map(m=>m.value),["GET","POST","PUT","PATCH","DELETE"]);
       assert.equal(access().accessa.app,"tara");
       assert.equal(access().accessa.max_frame_bytes,1048576);
+    }
+    if(type==="accessa_agents") {
+      assert.equal(fields.route_pattern.value,"/app/tara/channel/web/agent/*");
+      fields.accessa_http_only.checked=true;
+      assert.equal(access().accessa.http_only,true);
+    }
+    if(type==="accessa_metadata") {
+      assert.equal(fields.route_pattern.value,"/app/tara/channel/web");
+      assert.deepEqual(methods.filter(m=>m.checked).map(m=>m.value),["GET"]);
     }
     if(type==="accessa_discovery") {
       assert.equal(fields.route_pattern.value,"/channel/web/v1/me");
@@ -1227,7 +1242,7 @@ test("editing an ordinary service reveals and enables forwarding controls immedi
   const bind = new Function(`${sourceFunction("updateServiceTransportFields")}\n${sourceFunction("bindServiceTransportFields")}\nreturn bindServiceTransportFields;`)();
   const fields = new Map();
   const forwarding = {hidden:true,disabled:true};
-  for (const name of ["accessa_app","accessa_channel","socket_idle_ms","socket_connections","socket_key_connections","socket_frame_bytes"]) {
+  for (const name of ["accessa_app","accessa_channel","accessa_http_only","socket_idle_ms","socket_connections","socket_key_connections","socket_frame_bytes"]) {
     const label = {hidden:true}; fields.set(name,{closest:()=>label});
   }
   let change;

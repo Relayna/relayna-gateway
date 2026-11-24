@@ -1,5 +1,15 @@
 # Releases
 
+## 1.7.0 Accessa Phase 1 routing
+
+Gateway supports channel metadata, named-agent HTTP and WebSocket routes,
+and HTTP-only bindings for CAI. When an Entra authentication profile leaves
+its audience blank, Gateway verifies the token against its configured global
+audience. Existing registrations work without a database migration.
+
+[Upgrade guide](deployment.md#upgrade-to-170) ·
+[Accessa channel registration](accessa-channels.md#register-a-channel).
+
 ## 1.6.0 LiteLLM audio transcription controls
 
 The Routes page adds a dedicated direct LiteLLM route for audio transcription
