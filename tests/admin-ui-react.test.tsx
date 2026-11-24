@@ -488,7 +488,7 @@ describe("identity editor", () => {
     initial.mode = "required";
     const { form } = await editor(initial);
     fireEvent.change(
-      screen.getByRole("textbox", { name: "Entra audience (required)" }),
+      screen.getByRole("textbox", { name: "Entra audience (optional)" }),
       { target: { value: "api://old" } },
     );
     const mode = screen.getByRole("combobox", { name: "Route authentication mode" });
@@ -504,11 +504,15 @@ describe("identity editor", () => {
     const initial = draft();
     initial.mode = "required";
     const { form } = await editor(initial);
-    fireEvent.change(
-      screen.getByRole("textbox", { name: "Entra audience (required)" }),
-      { target: { value: "api://route" } },
-    );
+    const audience = screen.getByRole<HTMLInputElement>("textbox", {
+      name: "Entra audience (optional)",
+    });
+    expect(audience.required).toBe(false);
+    fireEvent.change(audience, { target: { value: "api://route" } });
     expect(new FormData(form).get("endpoint_audience")).toBe("api://route");
+    fireEvent.change(audience, { target: { value: "" } });
+    expect(form.checkValidity()).toBe(true);
+    expect(new FormData(form).get("endpoint_audience")).toBe("");
   });
 });
 describe("shared console and accessibility", () => {
@@ -656,7 +660,7 @@ describe("shared console and accessibility", () => {
       cleanup = mountIdentityEditor(host, async () => catalog);
     });
     fireEvent.change(
-      screen.getByRole("textbox", { name: "Entra audience (required)" }),
+      screen.getByRole("textbox", { name: "Entra audience (optional)" }),
       { target: { value: "api://new" } },
     );
     expect(form.dataset.dirty).toBe("true");
@@ -747,13 +751,13 @@ describe("lifecycle and server error regressions", () => {
       dispose = mountIdentityEditor(host, async () => catalog);
     });
     fireEvent.change(
-      screen.getByRole("textbox", { name: "Entra audience (required)" }),
+      screen.getByRole("textbox", { name: "Entra audience (optional)" }),
       { target: { value: "api://standalone" } },
     );
     expect(
       (
         screen.getByRole("textbox", {
-          name: "Entra audience (required)",
+          name: "Entra audience (optional)",
         }) as HTMLInputElement
       ).value,
     ).toBe("api://standalone");

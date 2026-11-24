@@ -5,9 +5,10 @@ traffic while keeping Relayna virtual keys as the policy, budget, rate-limit,
 guardrail, and usage anchor.
 
 Services and Routes can now select **Require Entra**, **No Entra**, or **Use existing
-gateway setting** independently. Protected endpoints choose their own audience,
-scopes, roles and groups; shared Settings still defines issuer, tenant and JWKS
-trust. See [per-endpoint verification](accessa-channels.md#entra-verification-for-every-request-plane-endpoint)
+gateway setting** independently. Protected endpoints can override the Gateway
+audience and define their own scopes, roles and groups. Settings defines the
+default audience and shared issuer, tenant and JWKS trust. See
+[per-endpoint verification](accessa-channels.md#entra-verification-for-every-request-plane-endpoint)
 for configuration, API examples, passthrough behavior and rollout notes.
 The gateway-wide behavior below applies to endpoints using the existing gateway setting.
 

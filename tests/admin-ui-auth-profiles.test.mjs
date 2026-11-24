@@ -121,7 +121,7 @@ assert.deepEqual(profilesFromForm(submitted()).profiles[0].entra.required_scopes
 for(const selected of ['inherit','disabled','required']) {
   mode.value=selected;change(mode);
   assert.equal(editor.hidden,true);assert.equal(profileControls.every(c=>c.disabled),true);
-  assert.equal(endpoint.hidden,selected!=='required');assert.equal(endpointAudience.required,selected==='required');
+  assert.equal(endpoint.hidden,selected!=='required');assert.equal(endpointAudience.required,false);
   assert.equal(submitted().has('profile_slot'),false,'inactive profile drafts do not submit');
 }
 mode.value='profiles';change(mode);assert.equal(profileControls[1].value,'automation');assert.equal(profileControls[1].disabled,false);

@@ -10,6 +10,14 @@ Published v1.0.1 images retain their original contents. Use the current released
 image; see the
 [triage and verification procedure](runtime-image-security.md).
 
+## Upgrade to 1.7.1
+
+Roll out `ghcr.io/sarattha/relayna-gateway:1.7.1` after publication. This
+patch requires no database migration. After all replicas are upgraded, leave
+**Entra audience** blank in **Require Entra** mode to inherit the Gateway
+audience. Before rolling back to v1.7.0, save an explicit audience on any
+endpoint policy that uses the new fallback. See [endpoint verification](accessa-channels.md#endpoint-specific-entra-requirements).
+
 ## Upgrade to 1.7.0
 
 1. After publication, roll out `ghcr.io/sarattha/relayna-gateway:1.7.0` with your

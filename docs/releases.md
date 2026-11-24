@@ -1,5 +1,11 @@
 # Releases
 
+## 1.7.1 Optional endpoint Entra audience
+
+In **Require Entra** mode, a blank endpoint audience uses the Gateway audience
+from Settings. Explicit overrides and endpoint claim requirements continue to
+apply. [Upgrade guide](deployment.md#upgrade-to-171).
+
 ## 1.7.0 Accessa Phase 1 routing
 
 Gateway supports channel metadata, named-agent HTTP and WebSocket routes,

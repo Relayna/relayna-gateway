@@ -1019,13 +1019,14 @@ test("endpoint access form preserves isolated audiences and channel limits", () 
   assert.deepEqual(parse(form), { skip_entra: false, entra: null, accessa: null });
   form.set("endpoint_entra_mode", "required");
   form.set("accessa_enabled", "on");
-  assert.throws(() => parse(form), /requires an endpoint Entra audience/);
   for (const [key, value] of Object.entries({ endpoint_audience: " api://accessa ", endpoint_scopes: "run, read", endpoint_roles: "invoke", endpoint_groups: "staff", accessa_app: "tara", accessa_channel: "web", socket_idle_ms: "30000", socket_connections: "10", socket_key_connections: "2", socket_frame_bytes: "4096" })) form.set(key, value);
   assert.deepEqual(parse(form), {
     skip_entra: false,
     entra: { audience: "api://accessa", required_scopes: ["run", "read"], required_roles: ["invoke"], allowed_groups: ["staff"], allow_apigee: false },
     accessa: { app: "tara", channel: "web", idle_timeout_ms: 30000, max_connections: 10, max_connections_per_key: 2, max_frame_bytes: 4096 },
   });
+  form.delete("endpoint_audience");
+  assert.deepEqual(parse(form).entra, { required_scopes: ["run", "read"], required_roles: ["invoke"], allowed_groups: ["staff"], allow_apigee: false });
   form.set("forward_user_token", "on");
   form.set("user_token_header", "X-Employee-JWT");
   assert.deepEqual(parse(form).user_token_forwarding, {enabled:true,header:"x-employee-jwt"});
@@ -1104,7 +1105,7 @@ test("endpoint identity controls select explicit modes without retaining hidden 
   form.set("endpoint_entra_mode", "required");
   assert.equal(parse(form).entra.audience, "api://old");
   form.set("endpoint_audience", "");
-  assert.throws(() => parse(form), /needs an endpoint audience/);
+  assert.deepEqual(parse(form).entra, { required_scopes: ["old"], required_roles: [], allowed_groups: [], allow_apigee: false });
   form.set("endpoint_entra_mode", "invalid");
   assert.throws(() => parse(form), /Choose a Route authentication mode/);
   form.set("endpoint_entra_mode", "disabled");
@@ -1118,6 +1119,7 @@ test("endpoint identity controls select explicit modes without retaining hidden 
   const badge = new Function(`${sourceFunction("esc")}\n${sourceFunction("endpointIdentityBadge")}\nreturn endpointIdentityBadge;`)();
   assert.match(badge(), /Gateway setting/);
   assert.match(badge({ skip_entra: true }), /No Entra/);
+  assert.match(badge({ entra: {} }), /Gateway audience/);
   assert.match(badge({ entra: { audience: "<unsafe>" } }), /&lt;unsafe&gt;/);
   assert.match(sourceFunction("routes"), /route-identities/);
   assert.match(sourceFunction("editRouteIdentity"), /method: "PUT"/);
@@ -1157,7 +1159,7 @@ test("service presets produce supported access contracts and preserve operator-o
     assert.equal(fields.upstream_base_url.value,"http://orders:8080");
     assert.equal(fields.credential.value,"operator-entered");
     assert.equal(fields.cost_mode.value,"fixed");
-    assert.equal(fields.endpoint_audience.value, "", "audiences must be supplied by the operator");
+    assert.equal(fields.endpoint_audience.value, "", "an empty field uses the Gateway audience");
     assert.equal(fields.accessa_enabled.checked,type.startsWith("accessa_"));
     if (["internal_http","relayna_http"].includes(type)) {
       assert.equal(fields.route_pattern.value,"/services/orders/*");
@@ -1165,7 +1167,7 @@ test("service presets produce supported access contracts and preserve operator-o
       assert.equal(identity.open,false);
     } else {
       assert.equal(identity.open,true);
-      assert.throws(access,/audience/);
+      assert.equal(Object.hasOwn(access().entra, "audience"), false);
       fields.endpoint_audience.value="api://orders";
       assert.equal(access().entra.audience,"api://orders");
       assert.equal(access().entra.allow_apigee,type==="apigee_http");

@@ -814,6 +814,36 @@ async fn accessa_mock_chain_and_endpoint_regressions() {
             .status(),
         401
     );
+    // Require Entra also supports inheritance without switching to profiles.
+    let saved = store.get_service(&service_names[0]).await.unwrap().unwrap();
+    let mut access = saved.access;
+    access.entra.as_mut().unwrap().audience = None;
+    let saved = store
+        .patch_service(
+            &service_names[0],
+            serde_json::from_value(json!({"access":access})).unwrap(),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+    assert!(saved.access.entra.unwrap().audience.is_none());
+    let url = format!(
+        "{gateway}/app/tara/channel/{}/v1/conversations",
+        channels[0]
+    );
+    let inherited = sign("api://internal", "run", expiry);
+    let wrong_scope = sign("api://internal", "wrong", expiry);
+    for (jwt, status) in [(&inherited, 200), (&token, 401), (&wrong_scope, 403)] {
+        let response = client
+            .get(&url)
+            .bearer_auth(jwt)
+            .header("x-relayna-key", &keys[0])
+            .send()
+            .await
+            .unwrap();
+        assert_eq!(response.status(), status);
+    }
+
     // The same gateway selects a different audience for an ordinary Apigee service.
     store.patch_service(&service_names[0], serde_json::from_value(json!({
         "route_pattern":format!("/internal-test/{suffix}/*"),
@@ -1165,7 +1195,6 @@ async fn accessa_mock_chain_and_endpoint_regressions() {
         1
     );
     let path = format!("{channel}/agent/qa/v1/run");
-    let inherited = sign("api://internal", "run", expiry);
     assert!(connect_async(direct_request(&token, &keys[1], &path))
         .await
         .is_err());
@@ -1249,5 +1278,6 @@ async fn accessa_mock_chain_and_endpoint_regressions() {
         .unwrap();
     assert_eq!(response.status(), 200);
     assert_eq!(response.json::<Value>().await.unwrap()["path"], channel);
+
     println!("Accessa E2E: two adapters, BFF, Router, agent, Entra isolation, heartbeat, limits, revocation, budget and replay passed");
 }

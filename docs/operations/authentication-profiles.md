@@ -28,7 +28,7 @@ The route authentication choices are:
 | Route authentication mode | Meaning |
 | --- | --- |
 | **Use existing gateway setting** | Inherit the existing gateway-wide authentication behavior. |
-| **Require Entra** | Apply one endpoint-specific Entra audience/claim policy to callers, retaining the route's credential checks. |
+| **Require Entra** | Apply one Entra policy to all callers, retaining the route's credential checks. A blank audience uses the Gateway audience. |
 | **No Entra** | Skip Entra verification while retaining the route's other credential and policy checks. This is not the same as a key-only profile. |
 | **Use authentication profiles** | Authenticate a Relayna key, find its explicit assignment on this route, then enforce that profile's requirements. Unassigned keys are denied. |
 

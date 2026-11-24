@@ -45,8 +45,6 @@ const help = {
   enabled:
     "Allow assigned keys to use this profile. Turning it off blocks those keys without moving them to another profile.",
   audience:
-    "Exact expected JWT audience, such as api://employees. No whitespace, up to 512 bytes.",
-  profileAudience:
     "Leave blank to use the Gateway Entra audience from Settings. Enter an exact audience when the caller uses a different application.",
   required_scopes:
     "Optional comma-separated scopes. Every listed scope is required. Blank adds no scope restriction.",
@@ -472,10 +470,10 @@ function EntraFields({
       <Field
         label={
           prefix === "endpoint"
-            ? "Entra audience (required)"
+            ? "Entra audience (optional)"
             : "Profile audience (optional)"
         }
-        help={prefix === "endpoint" ? help.audience : help.profileAudience}
+        help={help.audience}
       >
         <Input
           name={name("audience")}
@@ -483,8 +481,7 @@ function EntraFields({
           onChange={(event) =>
             onChange({ ...value, audience: event.target.value })
           }
-          required={active && prefix === "endpoint"}
-          placeholder="api://employees"
+          placeholder="Use Gateway audience"
         />
       </Field>
       {(["required_scopes", "required_roles", "allowed_groups"] as const).map(

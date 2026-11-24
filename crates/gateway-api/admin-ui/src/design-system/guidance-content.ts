@@ -69,7 +69,7 @@ const shared: Record<string, string> = {
   endpoint_entra_mode: "Choose how this route determines authentication requirements. Gateway setting inherits Settings; No Entra retains the route's credential checks; Require Entra uses one audience policy. Use authentication profiles selects a profile by its assigned Relayna key and denies unassigned callers. Change Profile authentication within each profile to choose Entra + Relayna key or Relayna key only. Saved profiles cannot be removed by switching route modes.",
   profile_keys_search: "Search by key prefix, UUID, project name or ID, or service. Keys already assigned to a profile are excluded from results. Adding a key clears the search. Apply selection updates this profile’s draft; Cancel discards popup changes. Save the identity form to persist assignments.",
   profile_binding: "Assign this key to exactly one profile on this route. Unassigned denies access on a profiled route; a disabled profile also denies access. Save applies immediately to new policy reads and does not grant route permissions.",
-  endpoint_audience: "Exact audience required when Require Entra is selected. Other modes ignore this field. This does not add the audience to other endpoints.",
+  endpoint_audience: "Leave blank to use the Gateway Entra audience from Settings. Enter an exact audience to override it for this endpoint.",
   endpoint_scopes: "Comma-separated scopes. Every listed scope is required; blank adds no scope requirement for this endpoint.",
   endpoint_roles: "Comma-separated roles. Every listed role is required; blank adds no role requirement for this endpoint.",
   endpoint_groups: "Comma-separated group IDs. At least one must match; blank adds no group restriction.",

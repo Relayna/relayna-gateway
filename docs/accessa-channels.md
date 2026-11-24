@@ -113,17 +113,16 @@ an Accessa binding.
 Send the user access token in `Authorization: Bearer ...` and the channel
 virtual key in the existing configured Relayna key header (normally
 `x-relayna-key`). Global issuer, tenant, algorithm and JWKS configuration still
-apply. A service's `access.entra` replaces the global audience, scope, role and
-group requirements **for that endpoint only**. Every listed scope and role is
-required; any listed group may match. Empty lists add no requirement. Other
-endpoints retain their own requirements; audiences are never combined globally.
+apply. In **Require Entra** mode, leave **Entra audience** blank to use the
+Gateway Entra audience from Settings. In the API, omit `access.entra.audience`
+and keep the `access.entra` object. **Entra + Relayna key** profiles use the
+same fallback when `profiles[].entra.audience` is omitted. Set an explicit
+audience when Accessa tokens target a different application.
 
-When using **Entra + Relayna key** authentication profiles, omit
-`profiles[].entra.audience` to use the Gateway Entra audience from Settings.
-Set it explicitly when Accessa tokens target a different application. The
-assigned Relayna key, verified Entra identity and profile claim checks are
-still required. The standalone **Require Entra** mode requires an explicit
-endpoint audience.
+The endpoint or profile defines its scope, role and group checks. Every listed
+scope and role is required, and at least one listed group must match. An empty
+list adds no requirement of that kind. The request still needs a verified Entra
+identity and an authorized Relayna key.
 
 For an internal service behind Apigee, configure its own audience, for example
 `api://internal-service`, and its own scopes/roles. Set `allow_apigee: true` only
@@ -297,7 +296,7 @@ OpenAI, Anthropic, direct OpenAI, LiteLLM passthrough and built-in service alias
 | Selection | Result |
 | --- | --- |
 | Use authentication profiles | Select an explicitly assigned profile by Relayna key. Accessa supports Entra + Relayna key profiles only. |
-| Require Entra | Verify this endpoint's audience, scopes, roles and groups. |
+| Require Entra | Verify the endpoint's audience override or the Gateway audience, plus its configured scopes, roles and groups. |
 | No Entra | Skip Entra for this endpoint; retain its credential and policy checks. |
 | Use existing gateway setting | Preserve the released gateway-wide behavior. |
 
@@ -312,7 +311,8 @@ for profile fields, key assignment and maintenance. Once saved, profiles cannot
 be removed by switching back to the other route authentication modes.
 
 For a service without saved profiles, `access: {"skip_entra": true}` selects No Entra. `access: {}` restores
-legacy behavior. `access: {"entra": {"audience": "api://service"}}` requires Entra.
+legacy behavior. `access: {"entra": {}}` requires Entra with the Gateway audience.
+Set `access.entra.audience` to override it.
 `skip_entra` cannot be combined with `entra` or an Accessa binding. Accessa always
 requires its own Entra policy. Service aliases use the same saved service policy.
 
@@ -360,7 +360,7 @@ service settings rather than a separate server-side type.
 | --- | --- |
 | Internal HTTP service | GET/POST, gateway identity setting, 60-second timeout |
 | Relayna HTTP service | GET/POST, gateway identity setting, 120-second timeout, `/health` check |
-| Entra-protected HTTP service | GET/POST with an endpoint-specific Entra audience |
+| Entra-protected HTTP service | GET/POST with an optional Entra audience override |
 | Apigee-backed HTTP service | Entra-required HTTP, also accepting signed Apigee identity |
 | Accessa app/channel | `…/v1/*`, Entra required, HTTP and the default-agent run socket |
 | Accessa agent routes | `…/agent/*`, Entra required, HTTP and named-agent run sockets |
@@ -373,8 +373,8 @@ route using the app and channel fields. Legacy discovery uses only the channel.
 Name/app/channel edits update a suggested route until you edit
 that route manually. Choosing another preset replaces the route and the preset's
 method, timeout, health and identity defaults. Name, upstream URL, credentials and
-pricing stay intact. Entra audiences/scopes are not guessed; supply your actual
-application requirements. Accessa virtual keys still need an explicit service
+pricing stay intact. Set an audience override or claims when required by the
+application. Accessa virtual keys still need an explicit service
 binding. Relayna HTTP forwards to the runtime's HTTP API; the runtime owns task
 and agent execution. Generic WebSockets and arbitrary protocol adapters are not
 introduced by these presets. Existing services continue to use their saved
