@@ -11,7 +11,7 @@ import { keyLifecycle, reliability, fetchComplete } from "./monitoring";
 import { mountTraffic, trafficDuration } from "./traffic";
 import { mountHealthGatewayStatus, mountTrafficGatewayStatus } from "./gateway-status";
 import { chartColor, installChartTheme, mountMonitorChart, usageChartsShell, usageRanking, usageSummaryView, usageTrendConfigs } from "./monitoring-visuals";
-import { catalogCredentialState, catalogServiceTransport, projectCatalogInsights, providerCatalogInsights, serviceCatalogInsights, routeCatalogInsights } from "./catalog-visuals";
+import { accessaRunPath, catalogCredentialState, catalogServiceTransport, projectCatalogInsights, providerCatalogInsights, serviceCatalogInsights, routeCatalogInsights } from "./catalog-visuals";
 import { keyGovernanceSnapshot, guardrailGovernanceSnapshot, memberAccessSnapshot, managedIdentitySnapshot, auditSampleSnapshot, settingsGovernanceSnapshot } from "./governance-visuals";
 import { ownerCatalogInsights, ownerDashboardInsights, ownerUsageDistribution, ownerRequestProfile, ownerIncidentSeries, ownerIncidentDescription } from "./owner-visuals";
 import { installComponentGuidance } from "./design-system/guidance";
@@ -2136,13 +2136,16 @@ function serviceTypePresets() {
     { id: "entra_http", label: "Entra-protected HTTP service", description: "HTTP API requiring its own Entra audience. Enter the audience and any required scopes, roles or groups below.", methods: ["GET", "POST"], mode: "required", timeout: 60000 },
     { id: "apigee_http", label: "Apigee-backed HTTP service", description: "HTTP API requiring Entra identity, also accepting signed Apigee claims. Enter this endpoint’s audience. Trusted Apigee verification must be configured in gateway settings.", methods: ["GET", "POST"], mode: "required", apigee: true, timeout: 60000 },
     { id: "accessa_channel", label: "Accessa app/channel (HTTP + WebSocket)", description: "BFF connects through the gateway to the channel adapter. App and channel generate the route; only GET /run supports WebSocket. PUT supports feedback and settings; PATCH supports metadata edits. Enter the Accessa Entra audience and bind a virtual key to this service.", methods: ["GET", "POST", "PUT", "PATCH", "DELETE"], mode: "required", accessa: true, app: "tara", channel: "web", timeout: 60000 },
+    { id: "accessa_agents", label: "Accessa agent routes", description: "Routes requests under /agent/{agent}/v1/ to the channel adapter, including agent cards and runs.", methods: ["GET", "POST"], mode: "required", accessa: true, app: "tara", channel: "web", timeout: 60000 },
+    { id: "accessa_metadata", label: "Accessa channel metadata (HTTP)", description: "GET the channel metadata at /app/{app}/channel/{channel}.", methods: ["GET"], mode: "required", accessa: true, app: "tara", channel: "web", timeout: 60000 },
     { id: "accessa_discovery", label: "Accessa channel discovery (HTTP)", description: "Channel identity discovery at /channel/{channel}/v1/me. App stays blank; enter the channel and its Entra audience. This endpoint does not open WebSockets.", methods: ["GET"], mode: "required", accessa: true, app: "", channel: "web", timeout: 60000 },
     { id: "custom", label: "Custom configuration", description: "Configure HTTP, opt-in WebSocket transport, or an Accessa route directly. Keeps current values so you can customize a preset." },
   ];
 }
 
 function suggestedServiceRoute(type, name, app, channel) {
-  if (type === "accessa_channel") return app && channel ? `/app/${app}/channel/${channel}/v1/*` : "";
+  const accessaSuffix = { accessa_channel: "/v1/*", accessa_agents: "/agent/*", accessa_metadata: "" }[type];
+  if (accessaSuffix !== undefined) return app && channel ? `/app/${app}/channel/${channel}${accessaSuffix}` : "";
   if (type === "accessa_discovery") return channel ? `/channel/${channel}/v1/me` : "";
   return type && type !== "custom" && name ? `/services/${name}/*` : "";
 }
@@ -2162,6 +2165,7 @@ function applyServiceTypePreset(form, type) {
   for (const field of ["endpoint_audience", "endpoint_scopes", "endpoint_roles", "endpoint_groups"]) set(field, "");
   check("endpoint_apigee", !!preset.apigee);
   check("accessa_enabled", !!preset.accessa);
+  check("accessa_http_only", false);
   check("websocket_enabled", false);
   set("accessa_app", preset.app || "");
   set("accessa_channel", preset.channel || "");
@@ -2192,7 +2196,7 @@ function updateServiceTransportFields(form) {
   const enabled = form.elements.namedItem("accessa_enabled").checked;
   const forwarding = form.querySelector("[data-user-token-forwarding]");
   if (forwarding) { forwarding.hidden = !enabled; forwarding.disabled = !enabled; }
-  for (const name of ["accessa_app", "accessa_channel", "socket_idle_ms", "socket_connections", "socket_key_connections", "socket_frame_bytes"]) {
+  for (const name of ["accessa_app", "accessa_channel", "accessa_http_only", "socket_idle_ms", "socket_connections", "socket_key_connections", "socket_frame_bytes"]) {
     form.elements.namedItem(name).closest("label").hidden = !enabled;
   }
 }
@@ -3021,13 +3025,11 @@ function serviceProtocolSummary(service) {
   if (service.access?.websocket && !service.access?.accessa && !service.foundry && (service.allowed_methods || []).includes("GET")) {
     return `<span class="badge">HTTP + WS</span><div class="subtle"><span class="badge">WS</span> GET <code>${esc(service.route_pattern)}</code></div>`;
   }
-  const binding = service.access?.accessa;
-  const prefix = binding?.app ? `/app/${binding.app}/channel/${binding.channel}/v1/` : null;
-  const hasRunSocket = prefix && service.route_pattern === `${prefix}*` && (service.allowed_methods || []).includes("GET");
-  if (!hasRunSocket) return '<span class="badge">HTTP</span>';
+  const runPath = accessaRunPath(service);
+  if (!runPath) return '<span class="badge">HTTP</span>';
   return `<span class="badge">HTTP + WS</span>
     <div class="subtle">HTTP: registered methods</div>
-    <div class="subtle"><span class="badge">WS</span> GET <code>${esc(`${prefix}run`)}</code></div>`;
+    <div class="subtle"><span class="badge">WS</span> GET <code>${esc(runPath)}</code></div>`;
 }
 
 function serviceTable(rows) {
@@ -4555,12 +4557,13 @@ function endpointAccessFields(access, projectId = "") {
     <label class="check"><input name="accessa_enabled" type="checkbox" ${access.accessa ? "checked" : ""}> Accessa channel binding</label>
     <label>Accessa app<input name="accessa_app" value="${attr(binding.app || "")}" placeholder="tara"></label>
     <label>Accessa channel<input name="accessa_channel" value="${attr(binding.channel || "")}" placeholder="tara-frontend"></label>
+    <label class="check"><input name="accessa_http_only" type="checkbox" ${binding.http_only ? "checked" : ""}> Disable Accessa WebSocket upgrades</label>
     <label>Socket idle timeout ms<input name="socket_idle_ms" type="number" min="100" max="600000" value="${attr(binding.idle_timeout_ms ?? 60000)}"></label>
     <label>Connections per route per instance<input name="socket_connections" type="number" min="1" max="10000" value="${attr(binding.max_connections ?? 100)}"></label>
     <label>Connections per key per instance<input name="socket_key_connections" type="number" min="1" max="10000" value="${attr(binding.max_connections_per_key ?? 10)}"></label>
     <label>Maximum socket message bytes<input name="socket_frame_bytes" type="number" min="125" max="16777216" value="${attr(binding.max_frame_bytes ?? 1048576)}"></label>
     <fieldset class="wide-field" style="border:0;margin:0;padding:0;min-width:0" data-user-token-forwarding="${attr(JSON.stringify(access.user_token_forwarding || null))}" ${access.accessa ? "" : "disabled hidden"}></fieldset>
-    <div class="help wide-field">With Require Entra, all listed scopes and roles are required; any listed group may match. Apigee must sign audience and expiry claims. Accessa requires Require Entra and an audience; a blank app is only for /channel/{channel}/v1/me. Socket limits apply per gateway instance; the instance ceiling is 4,096. Accessa transport and admission carry no charge; downstream service calls remain metered.</div>
+    <div class="help wide-field">Accessa requires Entra and a Relayna key. Use Require Entra with an endpoint audience or assign an Entra authentication profile. A blank app is only for legacy discovery at /channel/{channel}/v1/me. Socket limits apply per gateway instance; the instance ceiling is 4,096. Accessa transport and admission carry no charge; downstream service calls remain metered.</div>
     ${websocketTransportFields(access)}
   `);
 }
@@ -4605,6 +4608,7 @@ function endpointAccessFromForm(form) {
     } : null,
     accessa: accessa ? {
       app: nullableString(form.get("accessa_app")), channel: String(form.get("accessa_channel") || "").trim(),
+      ...(form.has("accessa_http_only") ? { http_only: true } : {}),
       idle_timeout_ms: Number(form.get("socket_idle_ms")), max_connections: Number(form.get("socket_connections")),
       max_connections_per_key: Number(form.get("socket_key_connections")), max_frame_bytes: Number(form.get("socket_frame_bytes")),
     } : null,

@@ -4,7 +4,7 @@ import { JSDOM } from "jsdom";
 
 const source = readFileSync(new URL("../crates/gateway-api/admin-ui/src/catalog-visuals.ts", import.meta.url), "utf8");
 const {
-  catalogCredentialState, catalogServiceTransport, projectCatalogInsights,
+  accessaRunPath, catalogCredentialState, catalogServiceTransport, projectCatalogInsights,
   providerCatalogInsights, serviceCatalogInsights, routeCatalogInsights,
 } = await import(`data:text/javascript;base64,${Buffer.from(source).toString("base64")}`);
 const main = readFileSync(new URL("../crates/gateway-api/admin-ui/src/main.ts", import.meta.url), "utf8");
@@ -14,7 +14,7 @@ function sourceFunction(name) {
   return main.slice(start, main.indexOf("\n}", start) + 2);
 }
 const esc = new Function(`${sourceFunction("esc")}\nreturn esc;`)();
-const protocolSummary = new Function("esc", `${sourceFunction("serviceProtocolSummary")}\nreturn serviceProtocolSummary;`)(esc);
+const protocolSummary = new Function("esc", "accessaRunPath", `${sourceFunction("serviceProtocolSummary")}\nreturn serviceProtocolSummary;`)(esc, accessaRunPath);
 const values = visual => visual.distribution.map(item => item.value);
 
 {

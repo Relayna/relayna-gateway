@@ -20583,7 +20583,7 @@ function ConsoleShell() {
 										children: /* @__PURE__ */ (0, import_jsx_runtime$10.jsx)("span", {
 											className: "version-indicator",
 											"aria-label": "Current Relayna Gateway version",
-											children: "v1.6.0"
+											children: "v1.7.0"
 										})
 									}),
 									/* @__PURE__ */ (0, import_jsx_runtime$10.jsx)("small", {
@@ -22679,8 +22679,8 @@ function EntraFields({ value, prefix, active, onChange }) {
 		className: "grid gap-4 sm:grid-cols-2",
 		children: [
 			/* @__PURE__ */ (0, import_jsx_runtime$3.jsx)(Field, {
-				label: prefix === "endpoint" ? "Entra audience (required)" : "Profile audience (required)",
-				help: help$1.audience,
+				label: prefix === "endpoint" ? "Entra audience (required)" : "Profile audience (optional)",
+				help: prefix === "endpoint" ? help$1.audience : help$1.profileAudience,
 				children: /* @__PURE__ */ (0, import_jsx_runtime$3.jsx)(Input, {
 					name: name("audience"),
 					value: value.audience,
@@ -22688,7 +22688,7 @@ function EntraFields({ value, prefix, active, onChange }) {
 						...value,
 						audience: event.target.value
 					}),
-					required: active,
+					required: active && prefix === "endpoint",
 					placeholder: "api://employees"
 				})
 			}),
@@ -22744,7 +22744,8 @@ var init_identity_editor = __esmMin((() => {
 		name: "Required display name, up to 120 UTF-8 bytes. Unique on this route ignoring case. Renaming preserves key assignments.",
 		type: "Choose what callers assigned to this profile must provide. Entra + Relayna key requires both a verified Entra identity and the assigned key. Relayna key only requires the assigned key. Accessa requires Entra + Relayna key.",
 		enabled: "Allow assigned keys to use this profile. Turning it off blocks those keys without moving them to another profile.",
-		audience: "Exact expected JWT audience, such as api://employees. Required for Entra; no whitespace, up to 512 bytes. Tenant, issuer and JWKS come from Settings.",
+		audience: "Exact expected JWT audience, such as api://employees. No whitespace, up to 512 bytes.",
+		profileAudience: "Leave blank to use the Gateway Entra audience from Settings. Enter an exact audience when the caller uses a different application.",
 		required_scopes: "Optional comma-separated scopes. Every listed scope is required. Blank adds no scope restriction.",
 		required_roles: "Optional comma-separated roles. Every listed role is required. Blank adds no role restriction.",
 		allowed_groups: "Optional comma-separated group IDs. At least one must match. Blank adds no group restriction.",
@@ -23311,7 +23312,7 @@ function profileRow(profile = {}, bindings = []) {
     <label>Profile authentication<select data-profile-type name="${id}.type"><option value="entra_and_relayna_key">Entra + Relayna key</option><option value="relayna_key_only" ${profile.type === "relayna_key_only" ? "selected" : ""}>Relayna key only</option></select></label>
     <label class="check"><input type="checkbox" name="${id}.enabled" ${profile.enabled !== false ? "checked" : ""}> Enabled</label>
     <div class="wide-field form-grid" data-profile-entra ${keyOnly ? "hidden" : ""}>
-    <label>Profile audience (required)<input ${keyOnly ? "disabled" : "required"} name="${id}.audience" value="${escape$1(entra.audience)}" placeholder="api://employees"></label>
+    <label>Profile audience (optional)<input ${keyOnly ? "disabled" : ""} name="${id}.audience" value="${escape$1(entra.audience)}" placeholder="api://employees"></label>
     ${[
 		"required_scopes",
 		"required_roles",
@@ -23365,7 +23366,7 @@ function profilesFromForm(form, accessa = false) {
 		if (ids.has(id)) throw new Error(`${label}: Stable profile ID “${id}” is already used by another profile on this route. Choose a different ID.`);
 		if (names.has(name.toLowerCase())) throw new Error(`${label}: Profile name is already used on this route (ignoring case). Choose a different name.`);
 		if (!["entra_and_relayna_key", "relayna_key_only"].includes(type)) throw new Error(`${label}: select Entra + Relayna key or Relayna key only under Profile authentication.`);
-		if (accessa && type !== "entra_and_relayna_key") throw new Error(`${label}: Accessa profiles require Entra + Relayna key. Change Profile authentication and enter a Profile audience.`);
+		if (accessa && type !== "entra_and_relayna_key") throw new Error(`${label}: Accessa profiles require Entra + Relayna key. Change Profile authentication.`);
 		ids.add(id);
 		names.add(name.toLowerCase());
 		const profile = {
@@ -23376,10 +23377,9 @@ function profilesFromForm(form, accessa = false) {
 		};
 		if (type === "entra_and_relayna_key") {
 			const audience = read("audience");
-			if (!audience) throw new Error(`${label}: enter a Profile audience for Entra + Relayna key, such as api://employees.`);
 			if (/\p{White_Space}/u.test(audience) || bytes(audience) > 512) throw new Error(`${label}: Profile audience must contain no whitespace and be at most 512 UTF-8 bytes. Correct the audience.`);
 			profile.entra = {
-				audience,
+				...audience ? { audience } : {},
 				allow_apigee: form.has(`${slot}.allow_apigee`)
 			};
 			for (const field of [
@@ -24865,9 +24865,17 @@ function catalogCredentialState(row) {
 function catalogServiceTransport(service) {
 	if (!Array.isArray(service.allowed_methods)) return "unknown";
 	if (service.foundry || !service.allowed_methods.includes("GET")) return "http";
-	const accessa = service.access?.accessa;
-	if (accessa) return accessa.app && service.route_pattern === `/app/${accessa.app}/channel/${accessa.channel}/v1/*` ? "accessa-websocket" : "http";
+	if (service.access?.accessa) return accessaRunPath(service) ? "accessa-websocket" : "http";
 	return service.access?.websocket ? "websocket" : "http";
+}
+function accessaRunPath(service) {
+	const binding = service.access?.accessa;
+	if (!binding?.app || binding.http_only || !service.allowed_methods?.includes("GET")) return null;
+	const channel = `/app/${binding.app}/channel/${binding.channel}`;
+	const pattern = service.route_pattern;
+	if (pattern === `${channel}/agent/*`) return `${channel}/agent/{agent}/v1/run`;
+	if (pattern.startsWith(`${channel}/`) && pattern.endsWith("/v1/*")) return `${pattern.slice(0, -1)}run`;
+	return null;
 }
 function projectCatalogInsights(projects, services) {
 	const unknownLinks = projects.some((project) => !Array.isArray(project.service_names));
@@ -25719,7 +25727,7 @@ var init_guidance_content = __esmMin((() => {
 		name: "Required display name, up to 120 UTF-8 bytes. Unique on this route ignoring case. You can rename it without changing its stable ID or key assignments.",
 		type: "Entra + Relayna key requires a verified Entra identity and an assigned key. Relayna key only requires the assigned key, with no Entra audience or claims. Accessa supports only Entra + Relayna key.",
 		enabled: "Allow assigned keys to use this profile. Turning it off blocks every assigned key; it does not move callers to another profile.",
-		audience: "Required for Entra profiles. Exact expected JWT audience, such as api://employees; no spaces, up to 512 bytes. Tenant, issuer and JWKS come from Settings.",
+		audience: "Leave blank to use the Gateway Entra audience from Settings. A profile audience overrides that value and allows up to 512 UTF-8 bytes without whitespace.",
 		required_scopes: "Optional comma-separated scopes. Every listed scope is required; blank adds no scope restriction. Up to 64 entries, each up to 512 bytes without whitespace.",
 		required_roles: "Optional comma-separated roles. Every listed role is required; blank adds no role restriction. Up to 64 entries, each up to 512 bytes without whitespace.",
 		allowed_groups: "Optional comma-separated group IDs. At least one listed group must match; blank adds no group restriction. Up to 64 entries, each up to 512 bytes without whitespace.",
@@ -41520,6 +41528,28 @@ function serviceTypePresets() {
 			timeout: 6e4
 		},
 		{
+			id: "accessa_agents",
+			label: "Accessa agent routes",
+			description: "Routes requests under /agent/{agent}/v1/ to the channel adapter, including agent cards and runs.",
+			methods: ["GET", "POST"],
+			mode: "required",
+			accessa: true,
+			app: "tara",
+			channel: "web",
+			timeout: 6e4
+		},
+		{
+			id: "accessa_metadata",
+			label: "Accessa channel metadata (HTTP)",
+			description: "GET the channel metadata at /app/{app}/channel/{channel}.",
+			methods: ["GET"],
+			mode: "required",
+			accessa: true,
+			app: "tara",
+			channel: "web",
+			timeout: 6e4
+		},
+		{
 			id: "accessa_discovery",
 			label: "Accessa channel discovery (HTTP)",
 			description: "Channel identity discovery at /channel/{channel}/v1/me. App stays blank; enter the channel and its Entra audience. This endpoint does not open WebSockets.",
@@ -41538,7 +41568,12 @@ function serviceTypePresets() {
 	];
 }
 function suggestedServiceRoute(type, name, app, channel) {
-	if (type === "accessa_channel") return app && channel ? `/app/${app}/channel/${channel}/v1/*` : "";
+	const accessaSuffix = {
+		accessa_channel: "/v1/*",
+		accessa_agents: "/agent/*",
+		accessa_metadata: ""
+	}[type];
+	if (accessaSuffix !== void 0) return app && channel ? `/app/${app}/channel/${channel}${accessaSuffix}` : "";
 	if (type === "accessa_discovery") return channel ? `/channel/${channel}/v1/me` : "";
 	return type && type !== "custom" && name ? `/services/${name}/*` : "";
 }
@@ -41568,6 +41603,7 @@ function applyServiceTypePreset(form, type) {
 	]) set(field, "");
 	check("endpoint_apigee", !!preset.apigee);
 	check("accessa_enabled", !!preset.accessa);
+	check("accessa_http_only", false);
 	check("websocket_enabled", false);
 	set("accessa_app", preset.app || "");
 	set("accessa_channel", preset.channel || "");
@@ -41605,6 +41641,7 @@ function updateServiceTransportFields(form) {
 	for (const name of [
 		"accessa_app",
 		"accessa_channel",
+		"accessa_http_only",
 		"socket_idle_ms",
 		"socket_connections",
 		"socket_key_connections",
@@ -42414,12 +42451,11 @@ async function serviceAction(event) {
 }
 function serviceProtocolSummary(service) {
 	if (service.access?.websocket && !service.access?.accessa && !service.foundry && (service.allowed_methods || []).includes("GET")) return `<span class="badge">HTTP + WS</span><div class="subtle"><span class="badge">WS</span> GET <code>${esc(service.route_pattern)}</code></div>`;
-	const binding = service.access?.accessa;
-	const prefix = binding?.app ? `/app/${binding.app}/channel/${binding.channel}/v1/` : null;
-	if (!(prefix && service.route_pattern === `${prefix}*` && (service.allowed_methods || []).includes("GET"))) return "<span class=\"badge\">HTTP</span>";
+	const runPath = accessaRunPath(service);
+	if (!runPath) return "<span class=\"badge\">HTTP</span>";
 	return `<span class="badge">HTTP + WS</span>
     <div class="subtle">HTTP: registered methods</div>
-    <div class="subtle"><span class="badge">WS</span> GET <code>${esc(`${prefix}run`)}</code></div>`;
+    <div class="subtle"><span class="badge">WS</span> GET <code>${esc(runPath)}</code></div>`;
 }
 function serviceTable(rows) {
 	return table([
@@ -44140,12 +44176,13 @@ function endpointAccessFields(access, projectId = "") {
     <label class="check"><input name="accessa_enabled" type="checkbox" ${access.accessa ? "checked" : ""}> Accessa channel binding</label>
     <label>Accessa app<input name="accessa_app" value="${attr(binding.app || "")}" placeholder="tara"></label>
     <label>Accessa channel<input name="accessa_channel" value="${attr(binding.channel || "")}" placeholder="tara-frontend"></label>
+    <label class="check"><input name="accessa_http_only" type="checkbox" ${binding.http_only ? "checked" : ""}> Disable Accessa WebSocket upgrades</label>
     <label>Socket idle timeout ms<input name="socket_idle_ms" type="number" min="100" max="600000" value="${attr(binding.idle_timeout_ms ?? 6e4)}"></label>
     <label>Connections per route per instance<input name="socket_connections" type="number" min="1" max="10000" value="${attr(binding.max_connections ?? 100)}"></label>
     <label>Connections per key per instance<input name="socket_key_connections" type="number" min="1" max="10000" value="${attr(binding.max_connections_per_key ?? 10)}"></label>
     <label>Maximum socket message bytes<input name="socket_frame_bytes" type="number" min="125" max="16777216" value="${attr(binding.max_frame_bytes ?? 1048576)}"></label>
     <fieldset class="wide-field" style="border:0;margin:0;padding:0;min-width:0" data-user-token-forwarding="${attr(JSON.stringify(access.user_token_forwarding || null))}" ${access.accessa ? "" : "disabled hidden"}></fieldset>
-    <div class="help wide-field">With Require Entra, all listed scopes and roles are required; any listed group may match. Apigee must sign audience and expiry claims. Accessa requires Require Entra and an audience; a blank app is only for /channel/{channel}/v1/me. Socket limits apply per gateway instance; the instance ceiling is 4,096. Accessa transport and admission carry no charge; downstream service calls remain metered.</div>
+    <div class="help wide-field">Accessa requires Entra and a Relayna key. Use Require Entra with an endpoint audience or assign an Entra authentication profile. A blank app is only for legacy discovery at /channel/{channel}/v1/me. Socket limits apply per gateway instance; the instance ceiling is 4,096. Accessa transport and admission carry no charge; downstream service calls remain metered.</div>
     ${websocketTransportFields(access)}
   `);
 }
@@ -44200,6 +44237,7 @@ function endpointAccessFromForm(form) {
 		accessa: accessa ? {
 			app: nullableString(form.get("accessa_app")),
 			channel: String(form.get("accessa_channel") || "").trim(),
+			...form.has("accessa_http_only") ? { http_only: true } : {},
 			idle_timeout_ms: Number(form.get("socket_idle_ms")),
 			max_connections: Number(form.get("socket_connections")),
 			max_connections_per_key: Number(form.get("socket_key_connections")),

@@ -10,6 +10,24 @@ Published v1.0.1 images retain their original contents. Use the current released
 image; see the
 [triage and verification procedure](runtime-image-security.md).
 
+## Upgrade to 1.7.0
+
+1. After publication, roll out `ghcr.io/sarattha/relayna-gateway:1.7.0` with your
+   existing PostgreSQL, Redis and Entra settings. This release requires no
+   database migration.
+2. Once all replicas are upgraded, register the Accessa Phase 1 routes served
+   by your adapter. Assign the channel key to each registration and enable
+   verified user token forwarding where the adapter needs it. For CAI, select
+   HTTP-only transport. See [Accessa channel registration](accessa-channels.md#register-a-channel).
+3. Leave an Entra profile audience blank to use the Gateway audience from
+   Settings. Enter an explicit audience for Accessa tokens issued to a
+   different application. Verify that an assigned key and a token for the
+   effective audience can reach the new routes.
+
+Before rolling back to v1.6.0, remove new route registrations and the
+`http_only` setting from retained bindings, and restore an explicit audience
+on any profile that inherits it. [Release validation](benchmarks/v1.7.0.md).
+
 ## Upgrade to 1.6.0
 
 1. After publication, roll out `ghcr.io/sarattha/relayna-gateway:1.6.0` with your

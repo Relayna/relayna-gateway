@@ -120,7 +120,11 @@ The Rust verification helper runs formatting, workspace Clippy/tests and the req
 
 ## Releases and performance evidence
 
-The **1.6.0 candidate** adds [LiteLLM audio transcription controls](docs/litellm-passthrough.md#audio-transcriptions)
+The **1.7.0 candidate** adds [Accessa Phase 1 routing](docs/accessa-channels.md#register-a-channel)
+and optional Entra profile audiences. See the [upgrade guide](docs/deployment.md#upgrade-to-170)
+and [benchmark results](docs/benchmarks/v1.7.0.md).
+
+Version **1.6.0** adds [LiteLLM audio transcription controls](docs/litellm-passthrough.md#audio-transcriptions)
 in the Admin UI. See the [upgrade guide](docs/deployment.md#upgrade-to-160)
 and [benchmark results](docs/benchmarks/v1.6.0.md).
 

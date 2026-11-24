@@ -94,11 +94,7 @@ impl AuthenticationProfiles {
                 {
                     return Err(GatewayError::InvalidServicePayload);
                 }
-                crate::EndpointAccess {
-                    entra: Some(entra.clone()),
-                    ..Default::default()
-                }
-                .validate("/profile")?;
+                entra.validate()?;
             }
         }
         let mut keys = HashSet::new();
@@ -226,8 +222,9 @@ mod tests {
                 .identity_for_key(Uuid::nil())
                 .unwrap()
                 .unwrap()
-                .audience,
-            "api://employees"
+                .audience
+                .as_deref(),
+            Some("api://employees")
         );
         assert!(access.identity_for_key(Uuid::new_v4()).is_err());
         access.skip_entra = true;
@@ -240,5 +237,30 @@ mod tests {
             assert!(!error.code().is_empty());
             assert!(!error.public_message().is_empty());
         }
+    }
+
+    #[test]
+    fn profile_can_inherit_the_gateway_audience() {
+        let mut data = serde_json::to_value(fixture()).unwrap();
+        data["profiles"][0]["entra"]
+            .as_object_mut()
+            .unwrap()
+            .remove("audience");
+        let profiles: AuthenticationProfiles = serde_json::from_value(data).unwrap();
+        profiles.validate(false).unwrap();
+        let policy = profiles.select(Uuid::nil()).unwrap().entra().unwrap();
+        assert_eq!(
+            policy.expected_audience(Some("api://gateway")),
+            Ok("api://gateway")
+        );
+        assert_eq!(
+            policy.expected_audience(None),
+            Err(GatewayError::InvalidConfiguration)
+        );
+        assert!(serde_json::to_value(policy)
+            .unwrap()
+            .get("audience")
+            .is_none());
+        assert_eq!(policy.required_scopes, ["invoke"]);
     }
 }

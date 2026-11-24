@@ -123,14 +123,17 @@ impl EntraDiagnostics {
             .collect()
     }
 
-    pub fn endpoint(policy: &crate::EndpointEntraPolicy) -> Self {
+    pub fn endpoint(policy: &crate::EndpointEntraPolicy, default_audience: Option<&str>) -> Self {
         let mut result = Self {
             policy_source: "endpoint".into(),
             verification: "pending".into(),
             allow_apigee: policy.allow_apigee,
             ..Self::default()
         };
-        result.expected_audience = Some(Self::bounded(&policy.audience, &mut result.truncated));
+        result.expected_audience = policy
+            .expected_audience(default_audience)
+            .ok()
+            .map(|audience| Self::bounded(audience, &mut result.truncated));
         result.required_scopes = Self::claims(&policy.required_scopes, &mut result.truncated);
         result.required_roles = Self::claims(&policy.required_roles, &mut result.truncated);
         result.allowed_groups = Self::claims(&policy.allowed_groups, &mut result.truncated);
@@ -961,13 +964,13 @@ mod tests {
     #[test]
     fn identity_snapshot_bounds_claims_and_excludes_private_token_fields() {
         let policy = crate::EndpointEntraPolicy {
-            audience: "api://channel".into(),
+            audience: Some("api://channel".into()),
             required_scopes: vec!["run".into()],
             required_roles: vec![],
             allowed_groups: vec![],
             allow_apigee: false,
         };
-        let mut snapshot = EntraDiagnostics::endpoint(&policy);
+        let mut snapshot = EntraDiagnostics::endpoint(&policy, None);
         assert_eq!(snapshot.verification, "pending");
         assert!(snapshot.audiences.is_empty());
         let identity: crate::EntraIdentityContext = serde_json::from_value(serde_json::json!({

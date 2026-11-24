@@ -58,7 +58,7 @@ const profile: Record<string, string> = {
   name: "Required display name, up to 120 UTF-8 bytes. Unique on this route ignoring case. You can rename it without changing its stable ID or key assignments.",
   type: "Entra + Relayna key requires a verified Entra identity and an assigned key. Relayna key only requires the assigned key, with no Entra audience or claims. Accessa supports only Entra + Relayna key.",
   enabled: "Allow assigned keys to use this profile. Turning it off blocks every assigned key; it does not move callers to another profile.",
-  audience: "Required for Entra profiles. Exact expected JWT audience, such as api://employees; no spaces, up to 512 bytes. Tenant, issuer and JWKS come from Settings.",
+  audience: "Leave blank to use the Gateway Entra audience from Settings. A profile audience overrides that value and allows up to 512 UTF-8 bytes without whitespace.",
   required_scopes: "Optional comma-separated scopes. Every listed scope is required; blank adds no scope restriction. Up to 64 entries, each up to 512 bytes without whitespace.",
   required_roles: "Optional comma-separated roles. Every listed role is required; blank adds no role restriction. Up to 64 entries, each up to 512 bytes without whitespace.",
   allowed_groups: "Optional comma-separated group IDs. At least one listed group must match; blank adds no group restriction. Up to 64 entries, each up to 512 bytes without whitespace.",

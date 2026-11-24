@@ -15,10 +15,21 @@ export function catalogServiceTransport(service) {
   if (service.foundry || !service.allowed_methods.includes("GET")) return "http";
   const accessa = service.access?.accessa;
   if (accessa) {
-    return accessa.app && service.route_pattern === `/app/${accessa.app}/channel/${accessa.channel}/v1/*`
-      ? "accessa-websocket" : "http";
+    return accessaRunPath(service) ? "accessa-websocket" : "http";
   }
   return service.access?.websocket ? "websocket" : "http";
+}
+
+export function accessaRunPath(service) {
+  const binding = service.access?.accessa;
+  if (!binding?.app || binding.http_only || !service.allowed_methods?.includes("GET")) return null;
+  const channel = `/app/${binding.app}/channel/${binding.channel}`;
+  const pattern = service.route_pattern;
+  if (pattern === `${channel}/agent/*`) return `${channel}/agent/{agent}/v1/run`;
+  if (pattern.startsWith(`${channel}/`) && pattern.endsWith("/v1/*")) {
+    return `${pattern.slice(0, -1)}run`;
+  }
+  return null;
 }
 
 export function projectCatalogInsights(projects, services) {

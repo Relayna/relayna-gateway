@@ -350,7 +350,7 @@ describe("identity editor", () => {
     const fields = [
       ["Stable profile ID (optional)", "staff"],
       ["Profile name (required)", "Staff"],
-      ["Profile audience (required)", "api://staff"],
+      ["Profile audience (optional)", "api://staff"],
       ["Scopes (optional)", "read,write"],
       ["Roles (optional)", "Invoke"],
       ["Groups (optional)", "team"],
