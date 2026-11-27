@@ -42,6 +42,9 @@ RUN set -eu; \
 # This tool is mounted only while constructing the image; it is never shipped.
 FROM busybox:1.37.0-musl@sha256:f6a95d611e0a8780fabdb2aec43e31275b2720dfefa3e41b16835bfc42454478 AS runtime-tools
 
+# The newer Distroless index contains Debian's zstd security update.
+FROM gcr.io/distroless/cc-debian13:nonroot@sha256:29ee70762214fe8190cea04ef1c0a84a8365879e047ce8f911ae5a5ab2355fa2 AS runtime-zstd
+
 # Includes glibc, libgcc, OpenSSL and CA roots, without distribution utilities.
 # Pin the multi-platform index; refresh deliberately and scan every candidate.
 FROM gcr.io/distroless/cc-debian13:nonroot@sha256:08476c244888bfb425bae1ae4dd7c17f093e972aab8426883d97f3c6f280f7c1 AS runtime
@@ -50,6 +53,27 @@ USER 0
 RUN --mount=type=bind,from=runtime-tools,source=/bin/busybox,target=/tmp/busybox,ro \
     ["/tmp/busybox", "sh", "-ec", "test -f /var/lib/dpkg/status.d/zlib1g; /tmp/busybox rm -f /usr/lib/*/libz.so.1 /usr/lib/*/libz.so.1.*; /tmp/busybox rm -rf /usr/share/doc/zlib1g"]
 COPY --from=runtime-zlib /patched-zlib/ /
+SHELL ["/tmp/busybox", "sh", "-c"]
+RUN --mount=type=bind,from=runtime-tools,source=/bin/busybox,target=/tmp/busybox,ro \
+    --mount=type=bind,from=runtime-zstd,source=/,target=/tmp/patched,ro <<'PATCH_ZSTD'
+set -eu
+set -- /tmp/patched/usr/lib/*/libzstd.so.1
+test "$#" -eq 1
+source="$1"
+dest="${source#/tmp/patched}"
+test -L "$source"
+test -L "$dest"
+/tmp/busybox rm -f "$dest" "$dest".*
+/tmp/busybox cp -a "$source" "$source".* "${dest%/*}/"
+/tmp/busybox rm -rf /usr/share/doc/libzstd1
+/tmp/busybox cp -a /tmp/patched/usr/share/doc/libzstd1 /usr/share/doc/
+/tmp/busybox cp /tmp/patched/var/lib/dpkg/status.d/libzstd1* /var/lib/dpkg/status.d/
+/tmp/busybox grep -qx 'Version: 1.5.7+dfsg-1+deb13u1' /var/lib/dpkg/status.d/libzstd1
+cd /
+/tmp/busybox md5sum -c /var/lib/dpkg/status.d/libzstd1.md5sums
+PATCH_ZSTD
+SHELL ["/bin/sh", "-c"]
+
 WORKDIR /app
 
 COPY --from=builder /etc/passwd /etc/group /etc/
