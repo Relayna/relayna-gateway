@@ -149,7 +149,7 @@ pub use studio_settings::{
 };
 pub use usage::{
     estimate_generation_tokens, extract_estimated_cost_usd, extract_model, extract_usage_tokens,
-    UsageEvent, UsageRecorder, UsageStatus,
+    TaskUsage, TaskUsageObservation, UsageEvent, UsageRecorder, UsageStatus,
 };
 
 pub mod response_cost;

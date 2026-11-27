@@ -29,6 +29,9 @@ use std::{
 use tokio::{net::TcpListener, sync::Semaphore, task::JoinHandle, time};
 use uuid::Uuid;
 
+#[path = "fixtures/task_service.rs"]
+mod task_service;
+
 fn unused_port() -> u16 {
     let listener = StdTcpListener::bind("127.0.0.1:0").expect("reserve local port");
     listener.local_addr().expect("local address").port()
@@ -806,6 +809,7 @@ async fn gateway_process_proxies_generation_direct_and_registered_service_routes
         assert_eq!(body.as_ref(), delayed_body.as_bytes());
     }
 
+    task_service::check_contract(&client, &proxy_url, &store, project.id, &material.raw_key).await;
     unverified_bearer_regressions(&client, &proxy_url, &material, &store, &auth_runtime).await;
 
     control_task.abort();
