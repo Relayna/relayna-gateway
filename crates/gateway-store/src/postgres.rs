@@ -916,6 +916,15 @@ impl PostgresStore {
     }
 
     pub async fn insert_usage_event(&self, event: &UsageEvent) -> GatewayResult<()> {
+        self.insert_service_attributed_usage_event(event, None)
+            .await
+    }
+
+    async fn insert_service_attributed_usage_event(
+        &self,
+        event: &UsageEvent,
+        task_service: Option<&str>,
+    ) -> GatewayResult<()> {
         let route = event.route.as_str();
         let provider = event.provider.as_str();
         let status = match event.status {
@@ -953,9 +962,10 @@ impl PostgresStore {
                 fallback_count,
                 created_at,
                 diagnostics,
-                pricing_rule_fingerprint
+                pricing_rule_fingerprint,
+                task_service_name
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13::text::numeric, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13::text::numeric, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29)
             "#,
         )
         .bind(&event.request_id)
@@ -988,6 +998,7 @@ impl PostgresStore {
         .bind(event.created_at)
         .bind(sqlx::types::Json(&event.diagnostics))
         .bind(&event.pricing_rule_fingerprint)
+        .bind(task_service)
         .execute(&self.pool)
         .await
         .map_err(|_| GatewayError::StoreUnavailable)?;
@@ -1145,6 +1156,55 @@ fn budget_counter_windows(
 
 #[async_trait]
 impl UsageRecorder for PostgresStore {
+    async fn insert_scoped_usage_event(
+        &self,
+        event: &UsageEvent,
+        task_service: Option<&str>,
+    ) -> GatewayResult<()> {
+        self.insert_service_attributed_usage_event(event, task_service)
+            .await
+    }
+
+    async fn task_usage_for_service(
+        &self,
+        service: &str,
+        task_id: &str,
+    ) -> GatewayResult<gateway_core::TaskUsage> {
+        let usage = sqlx::query_scalar::<_, Json<gateway_core::TaskUsage>>(
+            r#"
+            WITH recent AS (
+                SELECT id, request_id, trace_id, created_at, route, provider, model, http_method,
+                    endpoint_path, status_code, run_id, input_tokens, output_tokens, total_tokens,
+                    estimated_cost::double precision AS estimated_cost_usd
+                FROM usage_events
+                WHERE task_service_name = $1 AND task_id = $2
+                ORDER BY created_at DESC, id DESC
+                LIMIT 100
+            )
+            SELECT jsonb_build_object(
+                'service', $1::text, 'task_id', $2::text,
+                'request_count', COUNT(*), 'input_tokens', COALESCE(SUM(input_tokens), 0),
+                'output_tokens', COALESCE(SUM(output_tokens), 0),
+                'total_tokens', COALESCE(SUM(total_tokens), 0),
+                'estimated_cost_usd', SUM(estimated_cost)::double precision,
+                'observations', (SELECT COALESCE(
+                    jsonb_agg(to_jsonb(recent) - 'id' ORDER BY created_at DESC, id DESC),
+                    '[]'::jsonb
+                ) FROM recent),
+                'truncated', COUNT(*) > 100
+            )
+            FROM usage_events
+            WHERE task_service_name = $1 AND task_id = $2
+            "#,
+        )
+        .bind(service)
+        .bind(task_id)
+        .fetch_one(&self.pool)
+        .await
+        .map_err(|_| GatewayError::StoreUnavailable)?;
+        Ok(usage.0)
+    }
+
     async fn committed_budget_spend(
         &self,
         key_id: Uuid,
@@ -4425,7 +4485,9 @@ impl AdminServiceStore for PostgresStore {
         if let Some(estimated_cost_usd) = patch.estimated_cost_usd {
             registration.estimated_cost_usd = estimated_cost_usd;
         }
-        if let Some(access) = patch.access {
+        if let Some(mut access) = patch.access {
+            // Older clients editing a service's identity omit the task mode.
+            access.relayna_tasks = access.relayna_tasks.or(registration.access.relayna_tasks);
             registration.access = access;
         }
         registration.access.validate(&registration.route_pattern)?;
@@ -6722,8 +6784,16 @@ fn append_usage_filters_with_alias(
         separated.push_bind_unseparated(provider);
     }
     if let Some(service) = query.service.as_deref() {
-        separated.push(format!("{} = ", column("service_name")));
-        separated.push_bind_unseparated(service);
+        if query.task_id.is_some() {
+            separated.push(format!("({} = ", column("service_name")));
+            separated.push_bind_unseparated(service);
+            separated.push_unseparated(format!(" OR {} = ", column("task_service_name")));
+            separated.push_bind_unseparated(service);
+            separated.push_unseparated(")");
+        } else {
+            separated.push(format!("{} = ", column("service_name")));
+            separated.push_bind_unseparated(service);
+        }
     }
     if let Some(request_id) = query.request_id.as_deref() {
         separated.push(format!("{} = ", column("request_id")));

@@ -218,6 +218,15 @@ request diagnostics retain the selected revision without storing raw credentials
 See [authentication profiles](operations/authentication-profiles.md) for the API,
 setup instructions and rollback behavior.
 
+### Scoped task usage
+
+Migration `20261127000100_scoped_task_usage.sql` adds nullable
+`usage_events.task_service_name` and an index on scoped task rows. Gateway
+sets it on acknowledged task submissions and cancellations and verified
+worker inference. The task usage API matches it together with `task_id`.
+Existing rows keep their original task correlation and reports. Retain the
+column and index on application rollback.
+
 ### `provider_configs`
 
 `provider_configs` stores operator-managed upstream provider settings.

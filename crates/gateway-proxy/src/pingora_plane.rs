@@ -512,6 +512,8 @@ pub struct PingoraContext {
     reservation_id: String,
     task_id: Option<String>,
     run_id: Option<String>,
+    task_usage_service: Option<String>,
+    task_operation: Option<TaskOperation>,
     traceparent: Option<String>,
     trace_id: Option<String>,
     public_origin: Option<String>,
@@ -614,6 +616,8 @@ where
             reservation_id: uuid::Uuid::new_v4().to_string(),
             task_id: None,
             run_id: None,
+            task_usage_service: None,
+            task_operation: None,
             traceparent: None,
             trace_id: None,
             public_origin: None,
@@ -872,7 +876,7 @@ where
                 match self.store.service_registration(name).await {
                     Ok(Some(registration)) => {
                         ctx.access = registration.access;
-                        if ctx.access.accessa.is_some() {
+                        if ctx.access.accessa.is_some() || ctx.access.is_task_service() {
                             respond_error(session, GatewayError::UnsupportedRoute, ctx).await?;
                             return Ok(true);
                         }
@@ -998,7 +1002,10 @@ where
             ctx.trace_id.as_deref(),
         )
         .in_scope(|| tracing::info!("gateway request received"));
-        if self.trusted_worker(req) {
+        if !ctx.access.is_task_service()
+            && !req.headers.contains_key("x-relayna-task-service")
+            && self.trusted_worker(req)
+        {
             ctx.task_id = header_value(req, "x-relayna-task-id").map(ToOwned::to_owned);
             ctx.run_id = header_value(req, "x-relayna-run-id").map(ToOwned::to_owned);
         }
@@ -1737,9 +1744,7 @@ where
                 .await
             {
                 Ok(effective) => {
-                    features.service_name = features
-                        .service_name
-                        .or_else(|| matched.service_name.clone());
+                    apply_registered_service_identity(&mut features, &matched, ctx);
                     let admission = ctx
                         .request_body_lease
                         .as_mut()
@@ -2066,9 +2071,7 @@ where
         }
 
         let mut features = extract_generation_features(&ctx.body_prefix);
-        if features.service_name.is_none() {
-            features.service_name = matched.service_name.clone();
-        }
+        apply_registered_service_identity(&mut features, &matched, ctx);
         ctx.is_streaming = features.stream;
         traffic_step(ctx, "policy");
         let effective_policy = match self
@@ -2093,12 +2096,58 @@ where
         let policy = effective_policy.policy;
         ctx.guardrail_policy = effective_policy.guardrail_policy;
 
-        if let Err(error) = evaluate_policy(&policy, route, matched.provider, &features) {
+        let authorization =
+            evaluate_policy(&policy, route, matched.provider, &features).and_then(|()| {
+                if ctx.access.is_task_service() {
+                    authorize_task_service(
+                        &policy,
+                        &matched,
+                        ctx.task_operation.as_ref(),
+                        body_empty,
+                    )
+                } else {
+                    Ok(())
+                }
+            });
+        if let Err(error) = authorization {
             gateway_telemetry::record_policy_denial(route.as_str(), error.code());
             self.record_terminal_usage(ctx, &key, route, &error, now)
                 .await;
             respond_error(session, error, ctx).await?;
             return Ok(false);
+        }
+        if matched.service_name.is_none()
+            && (gateway_core::is_litellm_canonical_route(route) || route == Route::DirectOpenAi)
+            && session
+                .req_header()
+                .headers
+                .contains_key("x-relayna-task-service")
+            && self.trusted_worker(session.req_header())
+        {
+            if let ([service], Some(header_service), Some(task_id)) = (
+                policy.allowed_services.as_slice(),
+                header_value(session.req_header(), "x-relayna-task-service"),
+                header_value(session.req_header(), "x-relayna-task-id")
+                    .filter(|id| valid_task_id(id)),
+            ) {
+                if service == header_service
+                    && self
+                        .store
+                        .service_registration(service)
+                        .await
+                        .is_ok_and(|registration| {
+                            registration.is_some_and(|service| {
+                                service.enabled && service.access.is_task_service()
+                            })
+                        })
+                {
+                    ctx.task_usage_service = Some(service.clone());
+                    ctx.task_id = Some(task_id.to_owned());
+                    ctx.run_id = header_value(session.req_header(), "x-relayna-run-id")
+                        .filter(|id| !id.is_empty() && id.len() <= 256)
+                        .map(ToOwned::to_owned);
+                }
+            }
         }
         let estimated_tokens =
             if policy.max_input_tokens_per_request.is_some() || policy.tpm_limit.is_some() {
@@ -2225,6 +2274,23 @@ where
             Ok(BudgetDecision::Allowed(_)) => {
                 ctx.budget_reserved = body_empty || managed_service_request_can_stream(ctx);
                 ctx.budget_reserved_at = ctx.budget_reserved.then_some(now);
+                if let Some(TaskOperation::Usage(task_id)) = &ctx.task_operation {
+                    let service = matched
+                        .service_name
+                        .as_deref()
+                        .expect("authorized task service");
+                    let result = tokio::time::timeout(
+                        Duration::from_millis(matched.timeout_ms),
+                        self.store.task_usage_for_service(service, task_id),
+                    )
+                    .await
+                    .unwrap_or(Err(GatewayError::StoreUnavailable));
+                    match result {
+                        Ok(usage) => respond_task_usage(session, &ctx.request_id, &usage).await?,
+                        Err(error) => respond_error(session, error, ctx).await?,
+                    }
+                    return Ok(false);
+                }
                 if let Some((_, config)) = &ctx.foundry {
                     let result = tokio::time::timeout(
                         Duration::from_millis(matched.timeout_ms),
@@ -2435,6 +2501,13 @@ where
             upstream,
             Some(ctx.relayna_key_header.as_str()),
         )?;
+        if upstream_request
+            .remove_header("x-relayna-task-service")
+            .is_some()
+        {
+            upstream_request.remove_header("x-relayna-task-id");
+            upstream_request.remove_header("x-relayna-run-id");
+        }
         if ctx.socket && ctx.direct_litellm_passthrough {
             // LiteLLM's initial WebSocket auth reads Authorization even when
             // its HTTP auth requires a custom header. Supply the same selected
@@ -2450,7 +2523,10 @@ where
         // Cost metadata must remain readable even when a caller requests gzip
         // or Brotli. Selectors can still switch the final price mode after these
         // upstream headers are prepared, so include possible passthrough rules.
-        if ctx
+        if matches!(
+            ctx.task_operation,
+            Some(TaskOperation::Submit | TaskOperation::Cancel(_))
+        ) || ctx
             .resolved_service_cost
             .as_ref()
             .is_some_and(|cost| cost.cost_mode == ServiceCostMode::Passthrough)
@@ -2564,6 +2640,15 @@ where
             upstream_request.insert_header("traceparent", traceparent)?;
         }
 
+        if ctx.access.is_task_service() {
+            for name in [
+                "x-relayna-task-id",
+                "x-relayna-run-id",
+                "x-relayna-project-id",
+            ] {
+                upstream_request.remove_header(name);
+            }
+        }
         if let Some(key) = &ctx.key {
             upstream_request.insert_header("x-relayna-key-id", key.key_id.to_string())?;
             if let Some(project_id) = key.project_id {
@@ -2975,6 +3060,14 @@ where
                 response_usage_tokens(ctx)
             };
             let provider = provider_for_usage(ctx);
+            let accepted_task_id = accepted_task_id(ctx, status_code);
+            let task_service = if accepted_task_id.is_some() {
+                ctx.route_match
+                    .as_ref()
+                    .and_then(|matched| matched.service_name.as_deref())
+            } else {
+                ctx.task_usage_service.as_deref()
+            };
             let event = UsageEvent::new(
                 &ctx.request_id,
                 key,
@@ -3008,7 +3101,14 @@ where
                 ctx.endpoint_path.clone(),
                 ctx.endpoint_template.clone(),
             )
-            .with_task_context(ctx.task_id.clone(), ctx.run_id.clone())
+            .with_task_context(
+                accepted_task_id.clone().or_else(|| ctx.task_id.clone()),
+                if accepted_task_id.is_some() {
+                    None
+                } else {
+                    ctx.run_id.clone()
+                },
+            )
             .with_trace_id(ctx.trace_id.clone())
             .with_fallback_count(ctx.fallback_count)
             .with_diagnostics(ctx.traffic.diagnostics.clone());
@@ -3048,7 +3148,7 @@ where
             if !matches!(
                 tokio::time::timeout(
                     Duration::from_secs(2),
-                    self.store.insert_usage_event(&event)
+                    self.store.insert_scoped_usage_event(&event, task_service)
                 )
                 .await,
                 Ok(Ok(()))
@@ -3576,9 +3676,7 @@ where
                 matched.provider = Provider::LiteLlm;
             }
             let mut features = analyzed.features();
-            features.service_name = features
-                .service_name
-                .or_else(|| matched.service_name.clone());
+            apply_registered_service_identity(&mut features, &matched, ctx);
             let effective = self
                 .effective_complete_policy(&key, &matched, &analyzed)
                 .await?;
@@ -3717,7 +3815,8 @@ where
         if !matches!(
             tokio::time::timeout(
                 Duration::from_secs(2),
-                self.store.insert_usage_event(&event)
+                self.store
+                    .insert_scoped_usage_event(&event, ctx.task_usage_service.as_deref())
             )
             .await,
             Ok(Ok(()))
@@ -4004,6 +4103,105 @@ fn should_check_service_routes(path: &str) -> bool {
     !path.starts_with("/v1/") && !path.starts_with("/providers/openai/")
 }
 
+fn apply_registered_service_identity(
+    features: &mut gateway_core::GenerationFeatures,
+    matched: &RouteMatch,
+    ctx: &PingoraContext,
+) {
+    if ctx.access.is_task_service() || features.service_name.is_none() {
+        features.service_name.clone_from(&matched.service_name);
+    }
+}
+
+#[derive(Debug)]
+enum TaskOperation {
+    Submit,
+    Cancel(String),
+    Usage(String),
+    Read,
+    Events,
+}
+
+fn valid_task_id(task_id: &str) -> bool {
+    // Match one literal, URL-safe segment so the SDK sees the same operation.
+    let mut bytes = task_id.bytes();
+    task_id.len() <= 256
+        && bytes.next().is_some_and(|b| b.is_ascii_alphanumeric())
+        && bytes.all(|b| b.is_ascii_alphanumeric() || matches!(b, b'.' | b'_' | b'~' | b'-'))
+}
+
+fn task_operation(method: &http::Method, path: &str) -> Option<TaskOperation> {
+    match (method.as_str(), path) {
+        ("POST", "/tasks") => return Some(TaskOperation::Submit),
+        ("GET", "/relayna/capabilities") => return Some(TaskOperation::Read),
+        _ => {}
+    }
+    let (operation, rest) = path.strip_prefix('/')?.split_once('/')?;
+    if operation == "tasks" {
+        let (task_id, suffix) = rest.split_once('/')?;
+        if valid_task_id(task_id) {
+            return match (method.as_str(), suffix) {
+                ("POST", "cancel") => Some(TaskOperation::Cancel(task_id.to_owned())),
+                ("GET", "usage") => Some(TaskOperation::Usage(task_id.to_owned())),
+                _ => None,
+            };
+        }
+    } else if method == http::Method::GET && valid_task_id(rest) {
+        return match operation {
+            "status" | "history" => Some(TaskOperation::Read),
+            "events" => Some(TaskOperation::Events),
+            _ => None,
+        };
+    }
+    None
+}
+
+fn authorize_task_service(
+    policy: &KeyPolicy,
+    matched: &RouteMatch,
+    operation: Option<&TaskOperation>,
+    body_empty: bool,
+) -> GatewayResult<()> {
+    // An empty service allowlist is unrestricted for ordinary service routes.
+    // Task submissions and reads require a grant for this resolved service.
+    if !matched
+        .service_name
+        .as_ref()
+        .is_some_and(|name| policy.allowed_services.contains(name))
+    {
+        return Err(GatewayError::PolicyDenied);
+    }
+    match operation {
+        Some(TaskOperation::Events) if !policy.allow_streaming => Err(GatewayError::PolicyDenied),
+        Some(TaskOperation::Cancel(_) | TaskOperation::Usage(_)) if !body_empty => {
+            Err(GatewayError::UnsupportedRoute)
+        }
+        Some(_) => Ok(()),
+        None => Err(GatewayError::UnsupportedRoute),
+    }
+}
+
+fn accepted_task_id(ctx: &PingoraContext, status_code: u16) -> Option<String> {
+    let operation = ctx.task_operation.as_ref()?;
+    if !matches!(operation, TaskOperation::Submit | TaskOperation::Cancel(_))
+        || status_code != 202
+        || ctx.traffic.diagnostics.upstream_status != Some(202)
+        || ctx.response_body_prefix.len() > 1024
+        || ctx.response_body_prefix.len() != ctx.response_bytes_seen
+    {
+        return None;
+    }
+    #[derive(serde::Deserialize)]
+    struct TaskAcceptance {
+        task_id: String,
+    }
+    let accepted: TaskAcceptance = serde_json::from_slice(&ctx.response_body_prefix).ok()?;
+    if matches!(operation, TaskOperation::Cancel(task_id) if *task_id != accepted.task_id) {
+        return None;
+    }
+    valid_task_id(&accepted.task_id).then_some(accepted.task_id)
+}
+
 fn apply_litellm_limits_to_match(
     matched: &mut RouteMatch,
     limits: gateway_core::LiteLlmRouteLimits,
@@ -4049,7 +4247,9 @@ fn apply_service_registration_runtime_limits(
 }
 
 fn response_usage_tokens(ctx: &PingoraContext) -> (Option<i64>, Option<i64>, Option<i64>) {
-    if ctx.foundry.is_some() && ctx.is_streaming {
+    if ctx.access.is_task_service() {
+        (None, None, None)
+    } else if ctx.foundry.is_some() && ctx.is_streaming {
         ctx.foundry_usage.tokens
     } else {
         extract_usage_tokens(&ctx.response_body_prefix)
@@ -4739,13 +4939,24 @@ fn configure_service_pricing_context(
     ctx.service_pricing_rules = registration.pricing_rules.clone();
     let endpoint_path = route_pattern_wildcard_suffix(public_path, &registration.route_pattern)
         .unwrap_or_else(|| public_path.to_owned());
+    if registration.access.is_task_service() {
+        ctx.task_operation = task_operation(method, &endpoint_path);
+    }
     ctx.http_method = Some(method.as_str().to_ascii_uppercase());
     ctx.endpoint_path = Some(endpoint_path.clone());
     ctx.endpoint_template =
         matching_openapi_endpoint(method, &endpoint_path, &registration.openapi_endpoints)
             .map(|endpoint| endpoint.path_template.clone());
-    ctx.resolved_endpoint_cost =
-        resolve_endpoint_pricing_rule(method, &endpoint_path, &registration.endpoint_pricing_rules);
+    ctx.resolved_endpoint_cost = if matches!(ctx.task_operation, Some(TaskOperation::Usage(_))) {
+        Some(ResolvedServiceCost {
+            pricing_rule_fingerprint: None,
+            cost_mode: ServiceCostMode::None,
+            estimated_cost_usd: None,
+            pricing_rule_name: None,
+        })
+    } else {
+        resolve_endpoint_pricing_rule(method, &endpoint_path, &registration.endpoint_pricing_rules)
+    };
 }
 
 fn resolved_usage_cost(ctx: &PingoraContext) -> ResolvedUsageCost {
@@ -5017,6 +5228,8 @@ fn new_pingora_context_for_tests() -> PingoraContext {
         reservation_id: uuid::Uuid::new_v4().to_string(),
         task_id: None,
         run_id: None,
+        task_usage_service: None,
+        task_operation: None,
         traceparent: None,
         trace_id: None,
         public_origin: None,
@@ -5054,6 +5267,27 @@ fn new_pingora_context_for_tests() -> PingoraContext {
 #[cfg(test)]
 fn default_auth_runtime_for_tests() -> SharedGatewayAuthRuntime {
     SharedGatewayAuthRuntime::new(GatewayAuthRuntimeConfig::default()).expect("auth runtime")
+}
+
+async fn respond_task_usage(
+    session: &mut Session,
+    request_id: &str,
+    usage: &gateway_core::TaskUsage,
+) -> PingoraResult<()> {
+    let body =
+        serde_json::to_vec(usage).map_err(|_| PingoraError::new(ErrorType::InternalError))?;
+    let mut response = ResponseHeader::build(200, Some(5))?;
+    response.insert_header(header::CONTENT_TYPE, "application/json")?;
+    response.insert_header(header::CONTENT_LENGTH, body.len().to_string())?;
+    response.insert_header(header::CACHE_CONTROL, "private, no-store")?;
+    response.insert_header("x-request-id", request_id)?;
+    response.insert_header("x-relayna-request-id", request_id)?;
+    session
+        .write_response_header(Box::new(response), false)
+        .await?;
+    session
+        .write_response_body(Some(Bytes::from(body)), true)
+        .await
 }
 
 async fn respond_error(

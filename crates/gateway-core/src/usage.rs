@@ -1,6 +1,7 @@
 use crate::{AuthenticatedKey, Provider, Route, ServiceCostMode};
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use uuid::Uuid;
 
@@ -48,6 +49,22 @@ pub struct UsageEvent {
 pub trait UsageRecorder: Send + Sync {
     async fn insert_usage_event(&self, event: &UsageEvent) -> GatewayResult<()>;
 
+    async fn insert_scoped_usage_event(
+        &self,
+        event: &UsageEvent,
+        _task_service: Option<&str>,
+    ) -> GatewayResult<()> {
+        self.insert_usage_event(event).await
+    }
+
+    async fn task_usage_for_service(
+        &self,
+        _service: &str,
+        _task_id: &str,
+    ) -> GatewayResult<TaskUsage> {
+        Err(crate::GatewayError::StoreUnavailable)
+    }
+
     async fn committed_budget_spend(
         &self,
         _key_id: Uuid,
@@ -55,6 +72,37 @@ pub trait UsageRecorder: Send + Sync {
     ) -> GatewayResult<crate::BudgetState> {
         Err(crate::GatewayError::StoreUnavailable)
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TaskUsage {
+    pub service: String,
+    pub task_id: String,
+    pub request_count: i64,
+    pub input_tokens: i64,
+    pub output_tokens: i64,
+    pub total_tokens: i64,
+    pub estimated_cost_usd: Option<f64>,
+    pub observations: Vec<TaskUsageObservation>,
+    pub truncated: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TaskUsageObservation {
+    pub request_id: String,
+    pub trace_id: Option<String>,
+    pub created_at: DateTime<Utc>,
+    pub route: String,
+    pub provider: String,
+    pub model: Option<String>,
+    pub http_method: Option<String>,
+    pub endpoint_path: Option<String>,
+    pub status_code: i32,
+    pub run_id: Option<String>,
+    pub input_tokens: Option<i64>,
+    pub output_tokens: Option<i64>,
+    pub total_tokens: Option<i64>,
+    pub estimated_cost_usd: Option<f64>,
 }
 
 impl UsageEvent {

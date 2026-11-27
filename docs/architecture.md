@@ -284,6 +284,11 @@ PostgreSQL is the source of truth for durable state:
 
 Registered service routes support wildcard paths under `/services/<service-name>/*`. The route resolver can match `GET` for service wildcard traffic, but forwarding still requires the service registration to include `GET` in its allowed method set. OpenAI-compatible routes, LiteLLM rerank aliases, direct provider routes, and legacy named service routes remain `POST` routes.
 
+[Relayna task services](relayna-task-services.md) use this wildcard to expose
+SDK discovery, submission, cancellation, status, history, and SSE. Gateway
+serves task usage from its own ledger. The registration opts in to task
+operation checks, explicit service grants, and streaming policy for SSE.
+
 Redis is the fast mutable state layer:
 
 - Request-per-minute and token-per-minute counters.

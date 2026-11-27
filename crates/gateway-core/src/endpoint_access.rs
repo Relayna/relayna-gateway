@@ -14,8 +14,15 @@ pub struct EndpointAccess {
     /// Absent keeps ordinary endpoints HTTP-only. Accessa retains its own limits.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub websocket: Option<WebSocketSettings>,
+    /// Expose the Relayna SDK task HTTP contract under a service wildcard.
+    #[serde(skip_serializing_if = "task_service_disabled")]
+    pub relayna_tasks: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub user_token_forwarding: Option<UserTokenForwarding>,
+}
+
+fn task_service_disabled(enabled: &Option<bool>) -> bool {
+    !enabled.unwrap_or_default()
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -176,6 +183,10 @@ pub struct AccessaBinding {
 }
 
 impl EndpointAccess {
+    pub fn is_task_service(&self) -> bool {
+        self.relayna_tasks.unwrap_or_default()
+    }
+
     pub fn identity_for_key(
         &self,
         key_id: uuid::Uuid,
@@ -187,6 +198,16 @@ impl EndpointAccess {
     }
 
     pub fn validate(&self, route_pattern: &str) -> GatewayResult<()> {
+        if self.is_task_service()
+            && (self.accessa.is_some()
+                || self.websocket.is_some()
+                || !route_pattern
+                    .strip_prefix("/services/")
+                    .and_then(|suffix| suffix.strip_suffix("/*"))
+                    .is_some_and(|name| crate::validate_service_name(name).is_ok()))
+        {
+            return Err(GatewayError::InvalidServicePayload);
+        }
         if let Some(socket) = &self.websocket {
             socket.validate()?;
             if self.accessa.is_some() {

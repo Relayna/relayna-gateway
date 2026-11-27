@@ -89,6 +89,8 @@ Provider keys, operator tokens, virtual keys, Studio credentials and request pro
 
 The Relayna SDK supplies service-side task, status and workflow plumbing. Relayna Studio provides centralized operational visibility, task investigation and assessments.
 
+[Register a Relayna task service](docs/relayna-task-services.md) to submit and cancel tasks, retrieve terminal results and usage, and resume SDK event streams through Gateway.
+
 ## Repository map
 
 | Path | Responsibility |
